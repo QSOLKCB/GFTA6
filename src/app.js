@@ -266,3 +266,13 @@ function frame(time) {
 }
 refreshHUD();
 requestAnimationFrame(frame);
+
+// Service worker is optional: the game still runs on ordinary static hosts.
+if ('serviceWorker' in navigator &&
+    (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(error => {
+      console.warn('Offline cache unavailable; the game still works while online:', error);
+    });
+  });
+}
