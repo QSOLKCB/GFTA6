@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600" viewBox="0 0 1600 600" role="img" aria-labelledby="title desc">
+<title id="title">GFTA6 — Girlfriend Theft Auto VI: the internet is furious, you're just trying to find parking</title>
+<desc id="desc">Original satirical arcade banner. A pink hatchback overloaded with shopping and flat-pack furniture drives through a sunset suburb while duelling outrage billboards argue in the distance. A mission alert orders the player to complete a task that was never assigned.</desc>
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0.9" y2="1"><stop stop-color="#142548"/><stop offset=".48" stop-color="#513164"/><stop offset="1" stop-color="#f07676"/></linearGradient>
+  <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffe4a4"/><stop offset=".53" stop-color="#ffac89"/><stop offset="1" stop-color="#f6668d"/></linearGradient>
+  <linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#252d4e"/><stop offset="1" stop-color="#10172c"/></linearGradient>
+  <linearGradient id="paint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fa78a0"/><stop offset=".52" stop-color="#e84078"/><stop offset="1" stop-color="#9b285c"/></linearGradient>
+  <linearGradient id="titlepaint" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff9e5"/><stop offset=".48" stop-color="#fff9e5"/><stop offset=".49" stop-color="#ffd78e"/><stop offset="1" stop-color="#ff8e88"/></linearGradient>
+  <pattern id="grain" width="34" height="34" patternUnits="userSpaceOnUse"><circle cx="4" cy="9" r="1" fill="#fff" opacity=".06"/><circle cx="22" cy="28" r="1" fill="#000" opacity=".10"/></pattern>
+  <filter id="shadow" x="-20%" y="-40%" width="160%" height="200%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#070a1c" flood-opacity=".65"/></filter>
+  <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="20"/></filter>
+  <clipPath id="shape"><rect x="6" y="6" width="1588" height="588" rx="24"/></clipPath>
+</defs>
+<g clip-path="url(#shape)">
+<rect width="1600" height="600" fill="url(#sky)"/>
+<rect width="1600" height="600" fill="url(#grain)"/>
+<circle cx="1033" cy="184" r="169" fill="#ffb293" opacity=".18" filter="url(#glow)"/>
+<circle cx="1033" cy="184" r="137" fill="url(#sun)" opacity=".88"/>
+<g fill="#703657" opacity=".82">
+<path d="M0 340v-85h68v-49h49v69h54v-100h72v122h45v-63h48v105z"/>
+<path d="M315 342v-103h47v-70h56v83h46v-47h60v133z"/>
+<path d="M706 348v-121h49v-62h57v144h35v-83h68v117z"/>
+<path d="M1109 346v-120h52v-83h66v126h42v-71h64v142z"/>
+<path d="M1370 345v-85h62v-66h55v84h40v-104h73v174z"/>
+</g>
+<g fill="#f4b98d" opacity=".30">
+<path d="M29 274h14v13H29zm28 0h14v13H57zm134-50h13v14h-13zm26 0h13v14h-13zm157 16h15v14h-15zm28 0h15v14h-15zm370-1h14v14h-14zm28 0h14v14h-14zm376-15h14v14h-14zm25 0h14v14h-14zm266-1h14v14h-14zm26 0h14v14h-14z"/>
+</g>
+<path d="M0 352L1600 341v259H0z" fill="#402d4d"/>
+<path d="M0 439L1600 407v193H0z" fill="url(#road)"/>
+<path d="M0 539L1600 475" stroke="#ffe8c0" opacity=".31" stroke-width="4" stroke-dasharray="86 74"/>
+<path d="M-20 583L1630 522" stroke="#e99596" opacity=".28" stroke-width="3"/>
+<g fill="#161b37">
+<path d="M135 357l23-57 16 56z"/><path d="M173 358l-5-75 8-7 5 82z"/><path d="M164 298q-34-32-45-14 28 5 45 23zm11 9q42-28 54-7-27-3-54 18z"/>
+<path d="M1323 348l26-78 21 78z"/><rect x="1349" y="267" width="9" height="83"/><path d="M1351 284q-47-40-67-19 37 9 67 30zm8 12q43-43 65-16-37 9-65 28z"/>
+</g>
+<!-- Boutique signs and competing fictional outrage channels -->
+<g font-family="Arial,Helvetica,sans-serif">
+<rect x="71" y="328" width="117" height="48" rx="7" fill="#fce6bc" stroke="#2b2743" stroke-width="6"/>
+<text x="129" y="360" text-anchor="middle" font-size="23" font-weight="900" fill="#442d50">NAILS</text>
+<rect x="211" y="316" width="97" height="49" rx="7" fill="#9ce8de" stroke="#2b2743" stroke-width="6"/>
+<text x="259" y="348" text-anchor="middle" font-size="23" font-weight="900" fill="#233954">SPA</text>
+<g transform="translate(1185 104) rotate(5)">
+<rect x="0" y="0" width="173" height="73" rx="10" fill="#243454" stroke="#ffbb8d" stroke-width="4"/>
+<text x="86" y="23" font-size="13" font-weight="800" fill="#ffcca3" text-anchor="middle" letter-spacing="1">CHANNEL A</text>
+<text x="86" y="52" font-size="21" font-weight="900" fill="white" text-anchor="middle">RUINED!</text>
+</g>
+<g transform="translate(1368 100) rotate(-4)">
+<rect x="0" y="0" width="165" height="82" rx="10" fill="#263551" stroke="#8bded5" stroke-width="4"/>
+<text x="82" y="23" font-size="13" font-weight="800" fill="#8bded5" text-anchor="middle" letter-spacing="1">CHANNEL B</text>
+<text x="82" y="49" font-size="16" font-weight="900" fill="white" text-anchor="middle">YOU DON'T</text>
+<text x="82" y="70" font-size="16" font-weight="900" fill="white" text-anchor="middle">GET IT!</text>
+</g>
+</g>
+<!-- Title area -->
+<g font-family="Arial Black,Arial,Helvetica,sans-serif" filter="url(#shadow)">
+<rect x="76" y="38" width="362" height="37" rx="18" fill="#182e45" stroke="#ffcf82" stroke-width="2"/>
+<text x="257" y="63" font-size="16" font-weight="900" letter-spacing="1.8" text-anchor="middle" fill="#ffdfad">100% UNOFFICIAL • 0% FREE TIME</text>
+<text x="82" y="201" font-size="174" font-weight="1000" letter-spacing="-10" fill="#171b36" stroke="#171b36" stroke-width="21" stroke-linejoin="round">GFTA6</text>
+<text x="82" y="201" font-size="174" font-weight="1000" letter-spacing="-10" fill="url(#titlepaint)" stroke="#fff4d3" stroke-width="2">GFTA6</text>
+<text x="94" y="251" font-size="37" font-weight="900" letter-spacing="3.8" fill="#fff5d9">GIRLFRIEND THEFT AUTO VI™</text>
+<text x="94" y="293" font-size="25" font-weight="700" fill="#aef3e4">THE INTERNET IS FURIOUS.</text>
+<text x="94" y="323" font-size="25" font-weight="700" fill="white">YOU'RE JUST TRYING TO FIND PARKING.</text>
+</g>
+<!-- Flat-pack furniture and overflowing shopping on car roof -->
+<g filter="url(#shadow)">
+<path d="M599 351l-21-90 286-23 23 112z" fill="#dfb27e" stroke="#3b2946" stroke-width="9" stroke-linejoin="round"/>
+<path d="M619 277l228-20m-214 42l222-19" stroke="#a06b55" stroke-width="4"/>
+<rect x="608" y="298" width="118" height="29" rx="4" transform="rotate(-5 608 298)" fill="#f7e7c0"/>
+<text x="661" y="318" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="19" text-anchor="middle" fill="#4a3553" transform="rotate(-5 661 318)">46 PARTS</text>
+<path d="M596 345l-14-21m265 24l31-28" stroke="#29263e" stroke-width="8"/>
+<!-- shopping bags -->
+<path d="M887 311h69l-4 69h-63z" fill="#fbbeb8" stroke="#32263c" stroke-width="5"/>
+<path d="M904 316q0-36 32 0" fill="none" stroke="#32263c" stroke-width="6"/>
+<path d="M943 334h70l7 46h-81z" fill="#a3e2da" stroke="#32263c" stroke-width="5"/>
+<path d="M962 339q0-32 26-2" fill="none" stroke="#32263c" stroke-width="5"/>
+</g>
+<!-- Car drop shadow -->
+<ellipse cx="718" cy="532" rx="357" ry="32" fill="#060d1e" opacity=".62"/>
+<!-- Hatchback, original stylised proportions -->
+<g filter="url(#shadow)" stroke-linejoin="round">
+<path d="M403 459l50-18 75-77q19-22 56-22h232q37 0 60 23l69 72 96 14q27 5 34 30l7 27-20 18H408l-23-19z" fill="url(#paint)" stroke="#27233d" stroke-width="10"/>
+<path d="M524 427l56-65h232q30 0 49 25l30 41z" fill="#1c3856" stroke="#29233d" stroke-width="9"/>
+<path d="M711 366l-4 61" stroke="#f8d8e7" stroke-width="8"/>
+<path d="M574 419l30-38h67l-4 38z" fill="#84bcce" opacity=".45"/>
+<path d="M741 381h69q22 0 37 37h-111z" fill="#a9dbd6" opacity=".38"/>
+<!-- occupants silhouette -->
+<circle cx="647" cy="389" r="18" fill="#25334d"/>
+<path d="M614 428q1-28 34-31 31 0 36 31" fill="#26324c"/>
+<circle cx="793" cy="389" r="18" fill="#273651"/>
+<path d="M764 427q4-30 29-30t29 30" fill="#273651"/>
+<path d="M654 402l26 10" stroke="#f7d8c0" stroke-width="4" opacity=".65"/>
+<path d="M513 439h424" stroke="#ffb5bf" stroke-width="7" opacity=".65"/>
+<path d="M399 482l54-5m558-5l45 7" stroke="#ffc3d0" stroke-width="7" opacity=".5"/>
+<rect x="729" y="458" width="86" height="8" rx="4" fill="#ffbfbe"/>
+<path d="M812 451l8 58" stroke="#9c2757" stroke-width="5" opacity=".55"/>
+<rect x="977" y="465" width="68" height="25" rx="8" fill="#ffe0a6" stroke="#452a40" stroke-width="6"/>
+<rect x="393" y="472" width="33" height="22" rx="5" fill="#f75a8a" stroke="#452a40" stroke-width="4"/>
+<circle cx="515" cy="516" r="44" fill="#1a1e34" stroke="#0b1226" stroke-width="8"/><circle cx="515" cy="516" r="23" fill="#c7d2d9" stroke="#34475e" stroke-width="7"/>
+<circle cx="939" cy="516" r="44" fill="#1a1e34" stroke="#0b1226" stroke-width="8"/><circle cx="939" cy="516" r="23" fill="#c7d2d9" stroke="#34475e" stroke-width="7"/>
+<rect x="863" y="471" width="95" height="27" rx="4" fill="#fff1c7" stroke="#28253b" stroke-width="4"/>
+<text x="910" y="490" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="900" fill="#3f3151">ERRANDS</text>
+</g>
+<!-- Mission popup: deliberately absurd no-quest-marker quest -->
+<g filter="url(#shadow)" font-family="Arial,Helvetica,sans-serif">
+<rect x="1092" y="305" width="443" height="228" rx="21" fill="#111e36" stroke="#ffd088" stroke-width="6"/>
+<rect x="1110" y="324" width="405" height="47" rx="8" fill="#e95f82"/>
+<text x="1130" y="355" fill="white" font-size="24" font-weight="900" letter-spacing=".8">⚠ NEW MISSION UNLOCKED</text>
+<text x="1126" y="409" fill="#ffedc4" font-size="23" font-weight="900">I THOUGHT YOU WERE GOING</text>
+<text x="1126" y="435" fill="#ffedc4" font-size="23" font-weight="900">TO DO THAT TODAY.</text>
+<text x="1127" y="466" fill="#d6e6e9" font-size="17" font-weight="700">OBJECTIVE: TASK NEVER ASSIGNED</text>
+<rect x="1123" y="482" width="348" height="34" rx="8" fill="#f8c45e"/>
+<text x="1297" y="505" text-anchor="middle" fill="#29233c" font-size="19" font-weight="900">DIFFICULTY: IMPOSSIBLE</text>
+</g>
+<!-- Footer title bar -->
+<rect x="0" y="554" width="1600" height="46" fill="#0e172b" opacity=".95"/>
+<text x="800" y="585" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="900" text-anchor="middle" letter-spacing="1.4" fill="#ffe5b7">NOBODY WINS THE CULTURE WAR. EVERYBODY GETS ANOTHER ERRAND.</text>
+</g>
+<rect x="6" y="6" width="1588" height="588" rx="24" fill="none" stroke="#ffd08c" stroke-width="8"/>
+</svg>
