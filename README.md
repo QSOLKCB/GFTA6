@@ -1,3 +1,5 @@
+![GFTA6 illustrated arcade banner: a shopping-laden hatchback, contradictory outrage channels, and a mission to complete a task that was never assigned](assets/gfta6-banner.svg)
+
 # GFTA6 — GIRLFRIEND THEFT AUTO VI™
 
 > **The Internet Is Furious. You're Just Trying to Find Parking.**
