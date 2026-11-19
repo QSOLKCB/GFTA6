@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="GFTA6">
+<rect width="64" height="64" rx="13" fill="#15233a"/>
+<path d="M11 43V29q0-12 11-12h16q10 0 13 12v14z" fill="#f076a4" stroke="#fff0cb" stroke-width="3"/>
+<path d="M19 27h25l4 11H16z" fill="#4a86a0"/>
+<circle cx="20" cy="44" r="7" fill="#1c2734" stroke="#ffe4c0" stroke-width="2"/>
+<circle cx="44" cy="44" r="7" fill="#1c2734" stroke="#ffe4c0" stroke-width="2"/>
+<text x="32" y="59" fill="#ffe8be" font-family="Arial,sans-serif" font-size="10" font-weight="900" text-anchor="middle">GFTA6</text>
+</svg>
