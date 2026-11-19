@@ -24,7 +24,7 @@ Built as an original, offline-first browser game with **VANILLAJS**, HTML5, CSS3
 | **Licence** | Apache License 2.0 |
 | **Political alignment** | None. Fucks Given = 0. |
 | **Targets of satire** | Everyone else. Left, Right, Up & Down. |
-| **Development status** | Concept / pre-alpha — features below are design goals, not shipped functionality |
+| **Development status** | v0.1.0 preview — first playable Saturday; additional campaign concepts remain planned |
 
 ## The comedy philosophy
 
@@ -99,6 +99,25 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
+## First playable Saturday — v0.1.0 preview
+
+The repository includes a **playable original top-down driving and errand game** in `index.html`. Your first Saturday has a deterministic seed, a small fictional suburb, vehicle handling from a pinned local VANILLAJS motion module, a dynamic "While You're Out" diversion, and a fully playable chain of errands.
+
+Implemented in the preview:
+
+- Eight neighbourhood locations, including a petrol station and two possible bonus-errand destinations.
+- Steering, acceleration, braking/reverse, collision with buildings, parking interactions, and a city mini-map.
+- A fixed 60 Hz simulation tick and seed-dependent, reproducible mission interruptions.
+- Shopping, hardware, laundry, cleaning, and flat-pack assembly mini-games.
+- A non-political, fictional outrage feed that lampoons mutually escalating internet commentary.
+- The final unassigned-task mission and **MISSION FAILED SUCCESSFULLY** ending.
+- Keyboard and touch-button controls, sound-effect toggle, pause, restart, and static-resource offline caching.
+- Dependency-free Node.js regression checks using the built-in test runner.
+
+**Controls:** W / ↑ accelerate; S / ↓ brake or reverse; A / ← and D / → steer; E interact at the marked destination; P or Escape pause; number keys 1–4 choose mini-game responses. Buttons below the game provide touch-friendly driving and interactions.
+
+**Limitation:** This is a short vertical slice, not a full GTA-style open world. All later mission ideas below remain design concepts unless explicitly listed above.
+
 ## Planned gameplay
 
 - **Drive across an original fictional suburb.** Take your girlfriend to appointments, collect shopping, navigate traffic, find parking, and manage fuel.
@@ -156,7 +175,7 @@ The ultimate achievement: **FREE WEEKEND — Complete all assigned tasks before 
 
 ## Technical direction
 
-GFTA6 is intended as a **standalone repository**, using selected components and ideas from [QSOLKCB/VANILLAJS](https://github.com/QSOLKCB/VANILLAJS) rather than copying its entire demo catalogue.
+GFTA6 is a **standalone repository**, using selected components and ideas from [QSOLKCB/VANILLAJS](https://github.com/QSOLKCB/VANILLAJS) rather than copying its entire demo catalogue.
 
 Design priorities:
 
@@ -168,29 +187,37 @@ Design priorities:
 6. **Portable saves.** Keep local progress under player control, with versioned save formats when implemented.
 7. **Modularity.** Treat errands, locations, dialogue, and mini-games as data-driven systems.
 
-### Initial v0.1.0 scope (proposed)
+### v0.1.0 scope
 
-- One small, drivable fictional neighbourhood.
-- Six destinations, including home, a salon, a health spa, shops, and a dry cleaner.
-- Basic vehicle handling, parking, and delivery interactions.
-- A deterministic mission queue, "While You're Out" events, and a complete Saturday campaign.
-- Four short household mini-games.
-- Original comedy dialogue and a fictional outrage feed.
-- Keyboard controls, pause/restart, and offline smoke tests.
-
-**Status:** This is the intended first playable milestone, not a claim that these systems already exist.
+The **first playable Saturday** is implemented as a compact browser vertical slice: the neighbourhood, errands, household mini-games, dynamic interruption, and ending are playable. Future objectives include additional streets, campaign branches, save files, vehicle tuning, improved traffic, and measured 60 FPS performance across target devices.
 
 ## Getting started
 
-This repository is at the concept stage. Installation and launch instructions will be added once there is a playable build.
-
-The planned delivery format is a static browser game. When the web entry point exists, a simple local HTTP server can be used for development, for example:
+No NPM installation, bundling, cloud account, or third-party runtime is needed. Run a local static HTTP server at the repository root:
 
 ```sh
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000/`. A local server avoids the restrictions that some browsers apply to ES modules loaded directly from `file://` URLs.
+Then open `http://localhost:8000/`. A local server avoids browser restrictions on ES modules loaded via `file://` URLs.
+
+For deterministic tests and syntax checks, Node.js 24 or newer is recommended:
+
+```sh
+node --test tests/*.test.js
+node scripts/check-assets.mjs
+node --check src/core.js
+node --check src/app.js
+node --check src/render.js
+```
+
+There are **no NPM dependencies**. `package.json` declares ESM mode and exposes convenience scripts; no package installation is required.
+
+### VANILLAJS source provenance
+
+GFTA6 uses a local, unmodified copy of `modules/motion2d/index.js` from `QSOLKCB/VANILLAJS` pinned to commit `394fd455c6ce3bec9f0bf2c5d2a672b8c5454ab1`. See [NOTICE](NOTICE) and [vendor/vanillajs/motion2d.js](vendor/vanillajs/motion2d.js). It does not import code from a CDN.
+
+The service worker precaches the game shell after the first successful visit on a compatible origin (HTTPS or localhost). Until that visit completes, a browser connection is still needed to fetch the game once. Offline functionality can be tested by loading the page once, stopping the local server, and refreshing while the browser remains under service-worker control.
 
 ## What this game is *not*
 
@@ -208,7 +235,7 @@ Names and marks belonging to third parties remain the property of their respecti
 
 ## Licence
 
-This project is intended to be released under the **Apache License, Version 2.0**. See [`LICENSE`](LICENSE) when the licence file has been added. Third-party material, if any, must retain its own notices and licence terms.
+This project is intended to be released under the **Apache License, Version 2.0**. See [`LICENSE`](LICENSE). Third-party material, if any, must retain its own notices and licence terms.
 
 ---
 
