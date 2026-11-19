@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111a2d">
+  <meta name="description" content="GFTA6: an original, apolitical, offline-first comedy driving and errand game. Nobody wins the culture war. Everybody gets another errand.">
+  <title>GFTA6 — Girlfriend Theft Auto VI · First Playable Saturday</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./src/style.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <a class="brand" href="#game"><span class="mark">GFTA<span>6</span></span> <span class="subtitle">THE SATURDAY INCIDENT / v0.1.0 PREVIEW</span></a>
+    <a class="repo" href="https://github.com/QSOLKCB/GFTA6" target="_blank" rel="noopener noreferrer">SOURCE / APACHE-2.0 ↗</a>
+  </header>
+  <main id="game">
+    <section class="intro-copy">
+      <div><p class="eyebrow">AN ORIGINAL APOLITICAL DOMESTIC COMEDY</p><h1>THE INTERNET IS FURIOUS.<br><em>YOU'RE JUST TRYING TO FIND PARKING.</em></h1></div>
+      <p>Nobody wins the culture war.<br><strong>Everybody gets another errand.</strong></p>
+    </section>
+    <div class="shell">
+      <section class="game-panel" aria-label="Playable game">
+        <div class="instruments">
+          <span class="live"><i></i> <span id="mode-label">AWAITING SATURDAY</span></span>
+          <span>TIME <b id="clock">SAT 09:00</b></span>
+          <span>ODOMETER <b id="odo">0 m</b></span>
+          <span>SEED <b id="seed-readout">1988</b></span>
+        </div>
+        <div class="viewport">
+          <canvas id="canvas" width="960" height="600" tabindex="0" aria-label="Overhead city driving game. W or Up drives, S or Down reverses and brakes, A or Left and D or Right steer. Press E near destinations, P pauses."></canvas>
+          <div id="intro" class="splash">
+            <div class="splash-card">
+              <img class="splash-art" src="./assets/gfta6-banner.svg" alt="GFTA6 satirical project banner: a car overloaded with shopping and an impossible mission alert">
+              <div class="splash-content">
+                <p class="eyebrow">NEW CAMPAIGN / SATURDAY 001</p>
+                <h2>YOU HAVE THE DAY OFF.<br><em>ALLEGEDLY.</em></h2>
+                <p>Drive to appointments. Collect the shopping. Survive household mini-games. Get home without receiving another message. Good luck with that.</p>
+                <div class="launch-row"><label for="seed">GAME SEED <input id="seed" type="number" inputmode="numeric" min="0" max="4294967295" step="1" value="1988"></label><button id="start" class="button-primary">START SATURDAY ↗</button></div>
+                <small>WASD / ARROWS DRIVE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW</small>
+              </div>
+            </div>
+          </div>
+          <section id="mini" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mini-title">
+            <div class="modal-card">
+              <p class="eyebrow" id="mini-type">HOUSEHOLD EMERGENCY</p>
+              <h2 id="mini-title">MINI GAME</h2>
+              <p id="mini-progress" class="mini-progress"></p>
+              <p id="mini-prompt" class="question"></p>
+              <div id="mini-choices" class="choices"></div>
+              <small>CLICK A CHOICE OR PRESS ITS NUMBER KEY.</small>
+            </div>
+          </section>
+          <section id="ending" class="modal" hidden aria-labelledby="ending-title">
+            <div class="modal-card ending-card">
+              <p class="eyebrow">SPECIAL ACHIEVEMENT / SATURDAY COMPLETE</p>
+              <h2 id="ending-title">MISSION FAILED<br>SUCCESSFULLY.</h2>
+              <p>No quest marker. No briefing. No acknowledgement that the final objective existed five seconds ago.</p>
+              <p id="ending-stats" class="ending-stats"></p>
+              <button id="play-again" class="button-primary">REPLAY SAME SATURDAY ↗</button>
+            </div>
+          </section>
+        </div>
+        <div class="game-toolbar">
+          <div class="shortcuts">W / ↑ THROTTLE <span>·</span> S / ↓ BRAKE + REVERSE <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
+          <div class="toolbar-buttons">
+            <button id="interact" class="tool-button">E / INTERACT</button>
+            <button id="pause" class="tool-button">PAUSE</button>
+            <button id="sound" class="tool-button" aria-pressed="false">SOUND OFF</button>
+            <button id="restart" class="tool-button">RESTART</button>
+          </div>
+        </div>
+        <div class="touch-controls" aria-label="Touch driving controls">
+          <div class="touch-steer"><button data-drive="left" aria-label="Hold to steer left">◀</button><button data-drive="right" aria-label="Hold to steer right">▶</button></div>
+          <div class="touch-drive"><button data-drive="reverse" aria-label="Hold to brake or reverse">BRAKE / REVERSE</button><button class="forward" data-drive="forward" aria-label="Hold to accelerate">ACCELERATE ▲</button></div>
+        </div>
+        <footer class="panel-footer"><span>NO CRIME. NO WANTED STARS. JUST 38 UNREAD MESSAGES.</span><span>BUILT ON <a href="https://github.com/QSOLKCB/VANILLAJS" target="_blank" rel="noopener noreferrer">VANILLAJS</a></span></footer>
+      </section>
+      <aside class="dashboard" aria-label="Mission dashboard">
+        <section class="mission-panel">
+          <p class="eyebrow">01 / CURRENT OBJECTIVE</p>
+          <h2 id="mission-title">I'LL ONLY BE FIVE MINUTES</h2>
+          <p id="mission-detail">Take your girlfriend to the nail salon. Five minutes is not a unit of time.</p>
+          <div class="destination"><span>DESTINATION</span><strong id="destination">NAIL SALON</strong></div>
+          <div class="destination"><span>DISTANCE</span><strong id="distance">390 m</strong></div>
+          <div class="progress"><div id="task-progress"></div></div><small id="task-count">MISSION 1 / 9</small>
+        </section>
+        <section class="stats-panel">
+          <p class="eyebrow">02 / DOMESTIC SURVIVAL METRICS</p>
+          <div class="metric"><div><span>BANK BALANCE</span><strong id="money">$87.60</strong></div><div class="track"><div id="money-bar" class="cash"></div></div></div>
+          <div class="metric"><div><span>PATIENCE</span><strong id="patience">100%</strong></div><div class="track"><div id="patience-bar" class="pink"></div></div></div>
+          <div class="metric"><div><span>RELATIONSHIP</span><strong id="goodwill">83%</strong></div><div class="track"><div id="goodwill-bar" class="mint"></div></div></div>
+          <div class="metric"><div><span>FUEL</span><strong id="fuel">100%</strong></div><div class="track"><div id="fuel-bar" class="gold"></div></div></div>
+        </section>
+        <section class="phone-panel" aria-live="polite">
+          <p class="eyebrow">03 / INCOMING MESSAGE</p>
+          <p id="message" class="message">SATURDAY 09:00 — "Just one tiny favour..."</p>
+        </section>
+        <section class="feed-panel">
+          <p class="eyebrow">04 / FICTIONAL INTERNET OUTRAGE</p>
+          <p id="feed-channel" class="feed-channel">OUTRAGE CHANNEL A</p>
+          <p id="feed-text" class="feed-text">"This game is destroying civilisation!"</p>
+          <small>MUTE THE DISCOURSE. COMPLETE THE ERRANDS.</small>
+        </section>
+        <section class="log-panel">
+          <p class="eyebrow">05 / ERRAND RECEIPTS</p>
+          <ol id="log" class="log"></ol>
+        </section>
+      </aside>
+    </div>
+    <div class="readme-note"><strong>NOTICE:</strong> GFTA6 is independent satire, not an official Grand Theft Auto game or a Rockstar/Take-Two product. The city, dialogue and artwork are original. Gameplay is a fictional caricature of impossible expectations, not a claim about any gender or political group. <a href="./README.md">PROJECT README ↗</a></div>
+  </main>
+</body>
+</html>
