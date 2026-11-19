@@ -134,7 +134,7 @@ export function stepGame(state, controls = {}) {
   state.tick += 1;
   const before = state.body;
   const turn = state.tick % 7 === 0 ? steer : 0;
-  state.body = stepBody2D(before, {steer: turn, throttle}, {
+  state.body = stepBody2D(before, {steer: turn, throttle: state.fuel > 0 ? throttle : 0}, {
     profile: 'car', bounds: BOUNDS, blockedAt: isBlocked
   });
   const moved = Math.hypot(state.body.x - before.x, state.body.y - before.y) / MOTOR_UNITS_PER_PIXEL;
@@ -193,10 +193,10 @@ export function interact(state) {
 }
 export function chooseMiniGame(state, selection) {
   if (!state.miniGame || state.paused || state.finished) return false;
-  if (!Number.isInteger(selection) || selection < 0 || selection > 2) return false;
   const {type, round} = state.miniGame;
   const questions = MINI_GAMES[type];
   const question = questions[round];
+  if (!Number.isInteger(selection) || selection < 0 || selection >= question.choices.length) return false;
   if (type === 'boss') {
     state.finished = true;
     state.outcome = 'MISSION FAILED SUCCESSFULLY';
