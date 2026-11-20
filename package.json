@@ -1,0 +1,12 @@
+{
+  "name": "gfta6",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Original offline-first domestic errand comedy; vanilla browser JavaScript and pinned VANILLAJS motion module.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "check": "node --check src/core.js && node --check src/app.js && node --check src/render.js && node --check vendor/vanillajs/motion2d.js"
+  }
+}

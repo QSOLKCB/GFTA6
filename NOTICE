@@ -1,0 +1,13 @@
+GFTA6 — Third-party notices
+
+Selected motion simulation code is copied unmodified from the VANILLAJS project.
+Source repository: https://github.com/QSOLKCB/VANILLAJS
+Source file: modules/motion2d/index.js
+Pinned source commit: 394fd455c6ce3bec9f0bf2c5d2a672b8c5454ab1
+Vendored file: vendor/vanillajs/motion2d.js
+VANILLAJS licence: Apache License 2.0
+Upstream source includes its SPDX-License-Identifier: Apache-2.0 declaration.
+
+GFTA6's own original code and documentation are licensed separately under
+this repository's Apache-2.0 LICENSE file. The VANILLAJS source remains
+attributed and is not silently replaced by a network dependency.
