@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Canvas presentation only. All rules and movement belong to core.js.
-import {WORLD, PLACES, BLOCKS, currentMission, placeById, screenPosition, INTERACT_RADIUS} from './core.js';
+import {WORLD, PLACES, BLOCKS, screenPosition, INTERACT_RADIUS} from './core.js';
 import {vehicleArt} from './vehicle-art.js';
 import {PARKING_BAYS} from './world.js';
 import {getCityProjection, projectCityGroundPoint} from './scene25d.js';
@@ -244,7 +244,6 @@ export function drawScene(canvas, state, {mode = 'classic', route = 'errands'} =
   ctx.translate(-cx, -cy);
   const raised = mode === 'raised';
   scenery(ctx, !raised);
-  const mission = currentMission(state);
   const nav=waypoint(state,route);
   if (raised) {
     raisedCity(ctx, state, carPoint);
@@ -257,13 +256,19 @@ export function drawScene(canvas, state, {mode = 'classic', route = 'errands'} =
   ctx.restore();
   miniMap(ctx, state, nav);
   routeOverlay(ctx, w, nav);
-  const target = mission?.place;
-  if (target && state.miniGame === null && Math.hypot(
-    carPoint.x - placeById(target).x, carPoint.y - placeById(target).y
-  ) <= INTERACT_RADIUS) {
+  if (nav && !state.paused && !state.finished && !state.miniGame &&
+      nav.distance <= INTERACT_RADIUS) {
+    let prompt='E / COMPLETE ERRAND';
+    if (nav.mode === 'escape') {
+      prompt=state.escape.activeGig ? 'G / DELIVER PAID JOB' :
+        nav.id === 'parcel' ? (state.cargo ?
+          'DELIVER ORDINARY CARGO FIRST' : 'G / ACCEPT PAID JOB') :
+        state.escape.upgrades.length === 4 ? 'F / START ESCAPE FLIGHT' :
+          'U / RESTORE AIRCRAFT';
+    }
+    if (Math.abs(state.speed)>22) prompt='STOP THE CAR FIRST';
     rect(ctx, 232, h - 62, w - 464, 45, 'rgba(9,20,37,.88)');
-    text(ctx, 'PRESS E TO ' + (target === 'home' ? 'ENTER HOME' : 'PARK / INTERACT'),
-      w / 2, h - 34, '900 17px system-ui', '#fff1c5');
+    text(ctx,prompt,w/2,h-34,'900 17px system-ui','#fff1c5');
   }
   if (state.paused) {
     rect(ctx, 0, 0, w, h, 'rgba(11,17,34,.67)');
