@@ -7,6 +7,7 @@ import {createCargoJob, loadCargo, deliverCargo, cargoFinished,
   cargoJobById, cargoUsed, cargoCapacity} from './cargo.js';
 import {WORLD, PLACES, BLOCKS} from './world.js';
 import {createAirCombat,stepAirCombat} from './aircombat.js';
+import {createAirWarCombat,stepAirWarCombat} from './airwar.js';
 import {createEscape, gigAction, nextUpgrade, purchaseUpgrade,
   launchFlight, stepEscape, flightActive, flightSucceeded} from './escape.js';
 export {WORLD, PLACES, BLOCKS} from './world.js';
@@ -154,6 +155,16 @@ export function createDogfightGame(seed = 1988, profile = DEFAULT_VEHICLE) {
   addLog(state, 'ARCADE MODE: JUST A FRIEND SQUADRON. NO ERRANDS WERE SKIPPED.');
   return state;
 }
+/** Separate advanced mode: old difficult Saturday and classic arcade
+ * remain byte-identical at the authoritative gameplay entry points.
+ */
+export function createAirWarGame(seed=1988,profile=DEFAULT_VEHICLE) {
+  const state=createDogfightGame(seed,profile);
+  state.gameMode='airwar';
+  state.airCombat=createAirWarCombat(seed);
+  addLog(state,'AIRWAR-001: SQUAD INTELLIGENCE & PHYSICAL INTERCEPTORS ACTIVE');
+  return state;
+}
 export function currentMission(state) {
   return state.tasks[state.index] ?? null;
 }
@@ -216,7 +227,8 @@ export function stepGame(state, controls = {}) {
   if (state.airCombat) {
     if (state.airCombat.status === 'active') {
       const before = state.airCombat;
-      state.airCombat = stepAirCombat(before, controls);
+      state.airCombat = state.gameMode==='airwar'?
+        stepAirWarCombat(before,controls):stepAirCombat(before,controls);
       state.tick += 1;
       if (state.airCombat.radio !== before.radio)
         addLog(state, state.airCombat.radio);
