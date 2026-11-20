@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '24'
       - name: Syntax-check JavaScript
-        run: node --check src/core.js && node --check src/aircombat.js && node --check src/aircombat-view.js && node --check vendor/vanillajs/missiles.js && node --check vendor/vanillajs/cockpit-rig/index.js && node --check src/navigation.js && node --check src/escape.js && node --check src/flight-view.js && node --check src/vehicle.js && node --check src/app.js && node --check src/render.js && node --check vendor/vanillajs/motion2d.js && node --check sw.js
+        run: node --check src/core.js && node --check src/audio-player.js && node --check src/soundtrack.js && node --check src/audio-cues.js && node --check vendor/vanillajs/chip-audio/index.js && node --check src/aircombat.js && node --check src/aircombat-view.js && node --check vendor/vanillajs/missiles.js && node --check vendor/vanillajs/cockpit-rig/index.js && node --check src/navigation.js && node --check src/escape.js && node --check src/flight-view.js && node --check src/vehicle.js && node --check src/app.js && node --check src/render.js && node --check vendor/vanillajs/motion2d.js && node --check sw.js
       - name: Deterministic game tests
         run: node --test tests/*.test.js
       - name: Verify offline assets and pin
