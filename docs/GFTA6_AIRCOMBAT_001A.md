@@ -29,7 +29,10 @@ not a hidden change of the existing mission's outcome.
    last embarrassing interception.
 
 The waves are limited to five authored contacts. Seeded target motion is
-bounded and deterministic. Once all contacts disengage, the encounter is
+bounded and deterministic, with rivals closing their relative range at a
+fixed, capped rate. Every new wave resets its own approach clock. This is
+an authored chase sequence, not an autonomous air-combat AI or aerodynamic
+flight model. Once all contacts disengage, the encounter is
 sealed with the canonical, owner-locked dialogue from
 `docs/GFTA6_AIRCOMBAT_001.md`. Its text is compared verbatim in CI.
 
