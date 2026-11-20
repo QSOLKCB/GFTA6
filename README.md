@@ -106,7 +106,7 @@ campaign: the original Derek and Group Chat encounters, followed by
 **THE MUTUAL FRIENDS™**, **THE READ RECEIPTS™**, and a formidable final
 boss, **THE FINAL WORD™**. There are now **14 unique aircraft contacts**.
 
-The boss is a large original 2.5D command plane with **12 HP, three
+The boss has its own **original ADSR/Paula chip-music theme**. It is a large original 2.5D command plane with **12 HP, three
 dialogue/attack phases and a telegraphed personal-space interceptor**.
 When its warning appears, use **A/D to evade** the indicated attack lane.
 Three hits to your hull end the run, but Replay returns to the same
