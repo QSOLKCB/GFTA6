@@ -25,7 +25,7 @@ const locations=freeze([
   freeze({id:'ridge-west',model:'wing-model',position:freeze([-45,165,-340])}),
   freeze({id:'ridge-east',model:'wing-model',position:freeze([45,165,-400])})
 ]);
-let cached=null;
+let cached=null,activeProject=null;
 /** Inert creator project, no arbitrary scripts or remote texture references. */
 export function createAirWarProject(){
   const assets=definitions.map(x=>creatorCADAsset({id:x.id,kind:x.kind,
@@ -41,11 +41,22 @@ export function createAirWarProject(){
     tactical:null});
 }
 export async function exportAirWarWorld(){
-  const sealed=await sealCreatorPackage(createAirWarProject());
+  const sealed=await sealCreatorPackage(worldContent().project);
   return creatorPackageJSON(sealed);
 }
 export async function verifyAirWarWorld(payload){
   return openCreatorPackage(payload);
+}
+/** Atomic native World Foundry import. A valid content receipt cannot
+ * override actual physical enemies, SENSE decisions or flight physics.
+ * Unusable render projects reject before replacing the previous scene.
+ */
+export async function loadAirWarWorld(payload){
+  const project=await openCreatorPackage(payload);
+  const prepared=buildContent(project);
+  activeProject=project;cached=prepared;
+  return freeze({sha256:JSON.parse(payload).sha256,
+    assets:project.assets.length,placements:project.placements.length});
 }
 /** Source lit batches follow WORLD-VIS's original XYZ/normal/RGB/UV contract. */
 function sourceBatch(asset,position,id) {
@@ -67,14 +78,18 @@ function sourceBatch(asset,position,id) {
   return {id,vertices:data,material:{color:[1,1,1],
     roughness:.7,metalness:0,opacity:1,emission:0,pattern:'none',patternScale:1}};
 }
+function buildContent(project){
+  const assets=new Map(project.assets.map(x=>[x.id,x]));
+  const props=project.placements.filter(p=>p.kind==='prop'&&p.assetId!==null);
+  if(props.length===0)throw RangeError('Airwar scene needs one display prop');
+  const batches=props.map(p=>sourceBatch(assets.get(p.assetId),p.position,p.id));
+  const retained=createRetainedWorld(batches);
+  return freeze({project,retained,batches:new Map(
+    batches.map(b=>[b.id,b.vertices]))});
+}
 function worldContent(){
   if(cached)return cached;
-  const project=createAirWarProject();
-  const assets=new Map(project.assets.map(x=>[x.id,x]));
-  const batches=project.placements.map(p=>sourceBatch(assets.get(p.assetId),p.position,p.id));
-  const retained=createRetainedWorld(batches);
-  cached=freeze({project,retained,
-    batches:new Map(batches.map(b=>[b.id,b.vertices]))});
+  cached=buildContent(activeProject??createAirWarProject());
   return cached;
 }
 /** Presentational camera selection. No actor visibility, LOS or hit authority. */
@@ -115,4 +130,36 @@ export function drawAirWarWorld(ctx,combat,width,height){
   return freeze({selected:view.selected,culled:view.culled,
     lodVertices:view.lodVertices,drawnTriangles:triangles});
 }
-export const inspectAirWarSight=()=>createCreatorSightWorld(createAirWarProject());
+/** CAD-003 indexed wing geometry is drawn using the same physical target
+ * centre that authority-tested guns and missile locks consume. Source is
+ * presentation-only and never expands the accepted hit sphere.
+ */
+export function drawAirWarAircraft(ctx,camera,target,width,height){
+  const foundry=worldContent();
+  const assets=foundry.project.assets;
+  const asset=assets.find(a=>a.id===(target.role==='boss'?'tower-model':'wing-model'));
+  if(!asset||target.disengaged)return false;
+  const scale=target.role==='boss'?7:3.2;
+  const tris=asset.triangles;
+  let drawn=0;
+  const tint=target.role==='boss'?'rgba(224,129,176,.76)':
+    'rgba(162,191,215,.69)';
+  for(let i=0;i<tris.length&&i<96;i++){
+    const pts=tris[i].map(index=>{
+      const a=asset.vertices[index];
+      return projectCockpitPoint(camera,[
+        target.center[0]+a[0]*scale,
+        target.center[1]+a[1]*scale,
+        target.center[2]+a[2]*scale],{width,height});
+    });
+    if(pts.some(p=>!p.visible))continue;
+    ctx.fillStyle=tint;ctx.strokeStyle='rgba(244,243,238,.32)';
+    ctx.lineWidth=.8;
+    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+    ctx.lineTo(pts[1].x,pts[1].y);ctx.lineTo(pts[2].x,pts[2].y);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    drawn++;
+  }
+  return drawn>0;
+}
+export const inspectAirWarSight=()=>createCreatorSightWorld(worldContent().project);
