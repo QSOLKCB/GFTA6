@@ -130,6 +130,7 @@ function togglePause() {
   setPaused(state, !state.paused);
   clearControls();
   refreshHUD();
+  syncAudio();
   focusGame();
 }
 function refreshMini() {
@@ -346,9 +347,18 @@ $('repair').addEventListener('click',()=>escapeNow('upgrade'));
 $('takeoff').addEventListener('click',()=>escapeNow('fly'));
 $('sound').addEventListener('click', () => {
   soundEnabled = !soundEnabled;
-  $('sound').textContent = soundEnabled ? 'SOUND ON' : 'SOUND OFF';
+  audio.setSfxEnabled(soundEnabled);
+  $('sound').textContent = soundEnabled ? 'SFX ON' : 'SFX OFF';
   $('sound').setAttribute('aria-pressed', String(soundEnabled));
-  if (soundEnabled) ping(680);
+  if(soundEnabled){activateAudio();ping(680);}
+  focusGame();
+});
+$('music').addEventListener('click', () => {
+  musicEnabled = !musicEnabled;
+  audio.setMusicEnabled(musicEnabled);
+  $('music').textContent = musicEnabled ? 'MUSIC ON' : 'MUSIC OFF';
+  $('music').setAttribute('aria-pressed',String(musicEnabled));
+  if(musicEnabled)activateAudio();
   focusGame();
 });
 const bindings = Object.freeze({
@@ -446,11 +456,15 @@ function frame(time) {
     let steps = 0;
     const duration = 1000 / TICK_HZ;
     while (accumulator >= duration && steps < 8) {
+      const previousCombat=state.airCombat;
       stepGame(state, controls());
+      for(const cue of combatAudioCues(previousCombat,state.airCombat))
+        if(soundEnabled)audio.effect(cue);
       accumulator -= duration; steps += 1;
     }
     if (steps === 8) accumulator = 0;
   } else accumulator = 0;
+  syncAudio();
   drawScene(canvas, state, {mode: renderMode, route: routeMode});
   const flightStatus = state.escape.flight?.status ?? null;
   if (state.tick !== lastHUDTick || state.paused || state.finished ||
