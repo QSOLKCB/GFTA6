@@ -41,7 +41,8 @@ const feed = Object.freeze([
   ['THE PLAYER', '"The milk is getting warm. Please stop talking."']
 ]);
 function sceneForState() {
-  return state.finished ? null : state.airCombat ? 'dogfight' :
+  return state.finished ? null : state.airCombat ?
+    AIRCOMBAT_WAVES[state.airCombat.stage]?.boss ? 'boss' : 'dogfight' :
     state.escape.flight ? 'flight' : 'saturday';
 }
 function syncAudio() {
