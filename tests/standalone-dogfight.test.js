@@ -152,7 +152,8 @@ test('production HUD displays five contacts and exactly 100% on final victory',a
     stepGame(game,{steer,throttle:0,brake:true,missile:false});
     const pct=progress(game);
     assert.ok(pct>=0&&pct<=100,'HUD progress exceeded 100% during combat');
-    stageProgress.set(game.airCombat.stage,pct);
+    if (!stageProgress.has(game.airCombat.stage))
+      stageProgress.set(game.airCombat.stage,pct);
   }
   assert.equal(game.airCombat.status,'won');
   assert.equal(game.airCombat.stage,3);
