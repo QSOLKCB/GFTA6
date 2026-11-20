@@ -34,16 +34,34 @@ function tree(ctx, x, y, size) {
   ellipse(ctx, x, y - size * .27, size, size * .79, '#387c64');
   ellipse(ctx, x - size * .17, y - size * .51, size * .55, size * .4, '#66b08c');
 }
+// Lightweight 2.5D extrusion: gameplay and collision stay in flat XY.
+function polygon(ctx, points, fill) {
+  ctx.fillStyle = fill;
+  ctx.beginPath();
+  ctx.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
+  ctx.closePath(); ctx.fill();
+}
 function building(ctx, b) {
-  ctx.fillStyle = 'rgba(2, 10, 24, .38)'; ctx.fillRect(b.x + 10, b.y + 12, b.w, b.h);
-  rect(ctx, b.x - 6, b.y - 6, b.w + 12, b.h + 12, '#b7bbaf');
-  rect(ctx, b.x, b.y, b.w, b.h, b.color);
+  const x = b.x, y = b.y, w = b.w, h = b.h;
+  const liftX = 13, liftY = 18;
+  const roofX = x - liftX, roofY = y - liftY;
+  // Static shadow and façade shading communicate height without 3D meshes.
+  rect(ctx, x + 18, y + 20, w, h, 'rgba(2, 10, 24, .38)');
+  polygon(ctx, [
+    [roofX + w, roofY], [x + w, y], [x + w, y + h], [roofX + w, roofY + h]
+  ], '#32465b');
+  polygon(ctx, [
+    [roofX, roofY + h], [roofX + w, roofY + h], [x + w, y + h], [x, y + h]
+  ], '#526477');
+  rect(ctx, roofX - 5, roofY - 5, w + 10, h + 10, '#b8b8ad');
+  rect(ctx, roofX, roofY, w, h, b.color);
   ctx.strokeStyle = '#f0d9bd'; ctx.lineWidth = 3;
-  ctx.strokeRect(b.x + 7, b.y + 8, b.w - 14, b.h - 16);
-  rect(ctx, b.x + 20, b.y + 25, 24, 14, '#253e53');
-  rect(ctx, b.x + b.w - 43, b.y + 25, 23, 14, '#253e53');
-  rect(ctx, b.x + b.w / 2 - 24, b.y + b.h - 29, 48, 14, '#394c5d');
-  text(ctx, b.label, b.x + b.w / 2, b.y + b.h / 2 + 2, 'bold 12px system-ui', '#f9efcf');
+  ctx.strokeRect(roofX + 7, roofY + 8, w - 14, h - 16);
+  rect(ctx, roofX + 19, roofY + 24, 24, 14, '#253e53');
+  rect(ctx, roofX + w - 43, roofY + 25, 23, 14, '#253e53');
+  rect(ctx, roofX + w / 2 - 24, roofY + h - 29, 48, 14, '#394c5d');
+  text(ctx, b.label, roofX + w / 2, roofY + h / 2 + 2, 'bold 12px system-ui', '#f9efcf');
 }
 function scenery(ctx) {
   rect(ctx, 0, 0, WORLD.width, WORLD.height, '#1d3e43');
@@ -97,8 +115,8 @@ function marker(ctx, p, active, tick) {
   text(ctx, p.name, 0, 50, '900 12px system-ui', '#fff7e3');
   ctx.restore();
 }
-function car(ctx, x, y, heading) {
-  ctx.save(); ctx.translate(x, y); ctx.rotate(-heading * Math.PI / 8);
+function car(ctx, x, y, headingQ) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(-headingQ * Math.PI / 32);
   ellipse(ctx, 4, 6, 30, 17, '#101f2b');
   rect(ctx, -20, -22, 17, 5, '#101923'); rect(ctx, -20, 17, 17, 5, '#101923');
   rect(ctx, 10, -22, 16, 5, '#101923'); rect(ctx, 10, 17, 16, 5, '#101923');
@@ -106,6 +124,11 @@ function car(ctx, x, y, heading) {
   ctx.beginPath(); ctx.roundRect(-28, -18, 59, 36, 12); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#294c69'; ctx.beginPath(); ctx.roundRect(-12, -14, 29, 28, 6); ctx.fill();
   rect(ctx, -10, -10, 4, 20, '#b6dce3');
+  // Roof bevel and shopping bags: inexpensive 2.5D shading.
+  rect(ctx, -11, -15, 25, 3, 'rgba(255,249,229,.34)');
+  rect(ctx, -11, 12, 25, 3, 'rgba(5,20,41,.35)');
+  rect(ctx, -25, -9, 10, 10, '#f8c789');
+  rect(ctx, -25, 3, 10, 10, '#a4e4d7');
   rect(ctx, 25, -12, 5, 9, '#fff5bb'); rect(ctx, 25, 4, 5, 9, '#fff5bb');
   rect(ctx, -28, -12, 4, 7, '#dc335c'); rect(ctx, -28, 5, 4, 7, '#dc335c');
   ellipse(ctx, 15, -23, 10, 7, '#e8bb88'); ellipse(ctx, 1, -26, 11, 8, '#eee2bb');
@@ -137,7 +160,7 @@ export function drawScene(canvas, state) {
   scenery(ctx);
   const mission = currentMission(state);
   for (const p of PLACES) marker(ctx, p, mission?.place === p.id, state.tick);
-  car(ctx, carPoint.x, carPoint.y, state.body.heading);
+  car(ctx, carPoint.x, carPoint.y, state.headingQ);
   ctx.restore();
   miniMap(ctx, state);
   const target = mission?.place;

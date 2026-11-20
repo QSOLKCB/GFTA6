@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // GFTA6 game rules: deterministic, fixed-tick and DOM-independent.
 // Motion is supplied by a pinned Apache-2.0 VANILLAJS module (see NOTICE).
-import {createBody2D, stepBody2D} from '../vendor/vanillajs/motion2d.js';
+import {createBody2D} from '../vendor/vanillajs/motion2d.js';
+import {stepCar} from './vehicle.js';
 
 export const WORLD = Object.freeze({width: 1120, height: 830, roadsX: [170, 560, 950], roadsY: [170, 435, 695]});
 export const TICK_HZ = 60;
@@ -104,7 +105,8 @@ export function createGame(seed = 1988) {
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 0xffffffff)
     throw new RangeError('seed must be an unsigned 32-bit integer');
   const state = {
-    seed, tick: 0, body: bodyAt(170, 170), moneyCents: 8760, patience: 100,
+    seed, tick: 0, body: bodyAt(170, 170), speed: 0, headingQ: 0,
+    moneyCents: 8760, patience: 100,
     goodwill: 83, fuel: 100, driveTicks: 0, distance: 0, index: 0,
     ambushed: false, paused: false, finished: false, outcome: '',
     miniGame: null, message: '', log: [], tasks: BASIC_MISSIONS.map(m => ({...m}))
@@ -129,14 +131,20 @@ function advanceMission(state) {
 export function stepGame(state, controls = {}) {
   if (state.paused || state.finished || state.miniGame) return state;
   const steer = controls.steer ?? 0, throttle = controls.throttle ?? 0;
-  if (![ -1, 0, 1].includes(steer) || ![-1, 0, 1].includes(throttle))
-    throw new RangeError('steering and throttle must be -1, 0 or 1');
+  const brake = controls.brake ?? false;
+  if (![-1, 0, 1].includes(steer) || ![-1, 0, 1].includes(throttle) ||
+      typeof brake !== 'boolean')
+    throw new RangeError('invalid steering, throttle or brake input');
   state.tick += 1;
   const before = state.body;
-  const turn = state.tick % 7 === 0 ? steer : 0;
-  state.body = stepBody2D(before, {steer: turn, throttle: state.fuel > 0 ? throttle : 0}, {
-    profile: 'car', bounds: BOUNDS, blockedAt: isBlocked
-  });
+  const next = stepCar(
+    {body: before, speed: state.speed, headingQ: state.headingQ},
+    {steer, throttle: state.fuel > 0 ? throttle : 0, brake},
+    {tick: state.tick, bounds: BOUNDS, blockedAt: isBlocked}
+  );
+  state.body = next.body;
+  state.speed = next.speed;
+  state.headingQ = next.headingQ;
   const moved = Math.hypot(state.body.x - before.x, state.body.y - before.y) / MOTOR_UNITS_PER_PIXEL;
   state.distance += moved;
   if (throttle !== 0 && moved > 0) {
@@ -174,7 +182,7 @@ export function interact(state) {
     addLog(state, 'Wrong destination. Check your mission marker.');
     return false;
   }
-  if (Math.abs(state.body.vx) + Math.abs(state.body.vy) > 65) {
+  if (Math.abs(state.speed) > 22) {
     addLog(state, 'Park first! You cannot shop at 80 km/h.');
     return false;
   }
@@ -229,6 +237,7 @@ export function setPaused(state, value) {
 export function snapshot(state) {
   return {
     seed: state.seed, tick: state.tick, body: state.body,
+    speed: state.speed, headingQ: state.headingQ,
     moneyCents: state.moneyCents, patience: state.patience, goodwill: state.goodwill,
     fuel: state.fuel, driveTicks: state.driveTicks, index: state.index,
     ambushed: state.ambushed, finished: state.finished,

@@ -24,7 +24,7 @@ Built as an original, offline-first browser game with **VANILLAJS**, HTML5, CSS3
 | **Licence** | Apache License 2.0 |
 | **Political alignment** | None. Fucks Given = 0. |
 | **Targets of satire** | Everyone else. Left, Right, Up & Down. |
-| **Development status** | v0.1.0 preview — first playable Saturday; additional campaign concepts remain planned |
+| **Development status** | v0.1.x playable prototype — mechanics-first 2D, experimental 2.5D details; full 3D later |
 
 ## The comedy philosophy
 
@@ -99,6 +99,42 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
+## Play online
+
+**[PLAY GFTA6 ON GITHUB PAGES](https://qsolkcb.github.io/GFTA6/)**
+
+The static browser build is published from `main` through a gated
+[GitHub Pages workflow](.github/workflows/pages.yml). It requires no login,
+bundler, telemetry, or remotely loaded game code. After a successful first
+online visit and service-worker installation, the same assets can load offline.
+
+## Classic top-down → 2.5D → full 3D
+
+The first priority is **good driving feel and complete, funny gameplay in a
+classic top-down perspective**. After that, the entire game becomes a carefully
+iterated 2.5D experience with height, shaded buildings and original low-poly
+assets. Full 3D is a future presentation upgrade, **not a rewrite of game rules**.
+
+See **[the phased 2D-to-3D roadmap](docs/ROADMAP_2D_TO_3D.md)**,
+including explicit acceptance gates, reproducibility requirements, and
+performance safeguards.
+
+### Current driving improvements (v0.1.x)
+
+- Smooth, deterministic 64-step steering rather than rough 16-way jumps.
+- Signed forward/reverse speed and braking *before* changing direction.
+- Independent **Space** service brake; friction and sensible no-spin steering.
+- Velocity aligned to car orientation rather than accumulating independent
+  sideways movement.
+- Fixed-tick collision resolution; slowed contact with walls and buildings.
+- Correct simultaneous keyboard inputs and control resets when entering missions.
+- Lightweight 2.5D roof/façade shading and car bevel, with **unchanged 2D collisions**.
+- Additional deterministic vehicle regression tests; offline cache version bumped.
+
+**These changes are review-stage until their PR passes CI and the driving
+feel has been play-tested and approved.** The live Pages site publishes from
+`main`, not feature branches.
+
 ## First playable Saturday — v0.1.0 preview
 
 The repository includes a **playable original top-down driving and errand game** in `index.html`. Your first Saturday has a deterministic seed, a small fictional suburb, vehicle handling from a pinned local VANILLAJS motion module, a dynamic "While You're Out" diversion, and a fully playable chain of errands.
@@ -114,7 +150,7 @@ Implemented in the preview:
 - Keyboard and touch-button controls, sound-effect toggle, pause, restart, and static-resource offline caching.
 - Dependency-free Node.js regression checks using the built-in test runner.
 
-**Controls:** W / ↑ accelerate; S / ↓ brake or reverse; A / ← and D / → steer; E interact at the marked destination; P or Escape pause; number keys 1–4 choose mini-game responses. Buttons below the game provide touch-friendly driving and interactions.
+**Controls:** W / ↑ accelerate; S / ↓ brake or reverse; **Space** independent service brake; A / ← and D / → steer; E interact at the marked destination; P or Escape pause; number keys 1–4 choose mini-game responses. Buttons below the game provide touch-friendly driving and interactions.
 
 **Limitation:** This is a short vertical slice, not a full GTA-style open world. All later mission ideas below remain design concepts unless explicitly listed above.
 
@@ -187,7 +223,7 @@ Design priorities:
 6. **Portable saves.** Keep local progress under player control, with versioned save formats when implemented.
 7. **Modularity.** Treat errands, locations, dialogue, and mini-games as data-driven systems.
 
-### v0.1.0 scope
+### v0.1.x prototype scope
 
 The **first playable Saturday** is implemented as a compact browser vertical slice: the neighbourhood, errands, household mini-games, dynamic interruption, and ending are playable. Future objectives include additional streets, campaign branches, save files, vehicle tuning, improved traffic, and measured 60 FPS performance across target devices.
 
@@ -207,6 +243,7 @@ For deterministic tests and syntax checks, Node.js 24 or newer is recommended:
 node --test tests/*.test.js
 node scripts/check-assets.mjs
 node --check src/core.js
+node --check src/vehicle.js
 node --check src/app.js
 node --check src/render.js
 ```
