@@ -63,6 +63,26 @@ const gitBlobHash = createHash('sha1')
   .update(projectionData).digest('hex');
 assert.equal(gitBlobHash,'be6a75a90ab3d4061486442b263457e6b97e16df',
   'vendored projection source differs from exact upstream Git blob');
+const gameCombat = await readFile(resolve(root,'src/aircombat.js'),'utf8');
+assert.ok(gameCombat.includes('AIRCOMBAT_FORMAT'),'air combat state must be versioned');
+assert.ok(core.includes("from './aircombat.js'"),'the game core must own the optional combat transition');
+assert.ok(page.includes('id="aircombat-opt"'),'optional combat switch missing');
+assert.ok(page.includes('data-drive="missile"'),'mobile missile control missing');
+for(const path of ['src/aircombat.js','src/aircombat-view.js',
+  'vendor/vanillajs/math/index.js','vendor/vanillajs/cockpit-rig/index.js',
+  'vendor/vanillajs/missiles.js'])
+  assert.ok(paths.includes(path),'offline cache missing '+path);
+const pins = [
+  ['vendor/vanillajs/math/index.js','45e5fc4d6c6daa472a89fa59c80e6fd70b2c1455'],
+  ['vendor/vanillajs/cockpit-rig/index.js','74010bb24625900e6eeb812c3064bda09d9898cb'],
+  ['vendor/vanillajs/missiles.js','86094c7c0bf7d33ac962919b62eac7a72a68926d']
+];
+for(const [path,expected] of pins) {
+  const bytes=await readFile(resolve(root,path));
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0')
+    .update(bytes).digest('hex');
+  assert.equal(hash,expected,'exact upstream Git blob mismatch: '+path);
+}
 const notice = await readFile(resolve(root, 'NOTICE'), 'utf8');
 assert.ok(notice.includes('394fd455c6ce3bec9f0bf2c5d2a672b8c5454ab1'), 'pin missing');
 console.log('Static browser entry, offline cache, originals, and engine pin: PASS');
