@@ -24,7 +24,7 @@ Built as an original, offline-first browser game with **VANILLAJS**, HTML5, CSS3
 | **Licence** | Apache License 2.0 |
 | **Political alignment** | None. Fucks Given = 0. |
 | **Targets of satire** | Everyone else. Left, Right, Up & Down. |
-| **Development status** | v0.1.x playable prototype — mechanics-first 2D, experimental 2.5D details; full 3D later |
+| **Development status** | v0.2.0 release candidate — original 2D/2.5D Suburbania, full Saturday and air-combat arcade |
 
 ## The comedy philosophy
 
@@ -99,7 +99,28 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-DRIVING-002 — SUBURBANIA HAS LOST ITS PATIENCE™ (review PR)
+## GFTA6-POLISH-001 — ONE MORE ERRAND™ (v0.2.0 candidate)
+
+This review-stage release pass keeps the original Saturday, air combat,
+street atmosphere, and the excellent F-UH-K idle engine intact.
+It adds a dedicated **NPC VOICES ON/OFF** toggle: disable spoken insults
+while keeping the subtitles, living traffic, and player's engine.
+Both Classic and Raised speech bubbles are clamped to the camera viewport
+and drawn as readable overlays above building scenery; the minimap marks
+ambient traffic and pedestrians without treating them as physical hazards.
+
+No new collisions, traffic AI, damage model or fines. The vehicles and
+pedestrians deliberately remain **ghost traffic**: they're atmosphere,
+not obstacles or targets. Static-world driving collision is unchanged.
+
+[Polish design / acceptance checks](docs/GFTA6_POLISH_001.md) ·
+[Proposed v0.2.0 release notes](docs/GFTA6_RELEASE_v0.2.0_CANDIDATE.md).
+
+**Release status:** Candidate, awaiting independent Codex review,
+manual gameplay/audio acceptance and owner-authorised tag. No tag is
+created as part of this PR.
+
+## GFTA6-DRIVING-002 — SUBURBANIA HAS LOST ITS PATIENCE™ (merged PR #20)
 
 **Saturday's streets are now populated.** Six originally authored, moving
 traffic cars and six walking pedestrians follow deterministic, bounded
@@ -127,11 +148,10 @@ npm libraries or CDN are required. It plays only near the player and
 only on fixed simulation-tick cue slots. Existing **SFX ON/OFF** also
 mutes street speech; pause, blur, other game modes and endings silence it.
 
-This first street-life release makes NPCs **visual/audio actors only**.
-They do **not** collide with the player, harm pedestrians, issue fines,
-steal control, block routes or modify the Saturday campaign's
-authoritative physics/replay. Those mechanics require a separate,
-explicitly reviewed simulation upgrade.
+Street NPCs are intentionally **visual/audio actors only** and will remain
+non-colliding: no pedestrian impacts, traffic fines, blocked routes or
+changes to Saturday's authoritative vehicle/replay rules. This is a
+deliberate atmospheric design choice, not unfinished collision mechanics.
 
 [Technical and testing contract](docs/GFTA6_DRIVING_002.md).
 
