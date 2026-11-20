@@ -192,7 +192,8 @@ test('blur and hidden documents pause audio before the next animation frame',()=
       clearControls(){},setPaused(game,value){game.paused=value;},
       engineFeedback(){return null;},
       audio:{setScene(){},setPaused(value){pauses.push(value);},
-        setEngine(value){engineUpdates.push(value);}}});
+        setEngine(value){engineUpdates.push(value);},
+        setStreetEnabled(){},stopStreet(){}}});
     runInContext(section('function sceneForState()', 'function activateAudio()'),sandbox);
     runInContext(section("window.addEventListener('blur'", 'let priorTime'),sandbox);
     document.hidden=event==='visibilitychange';
