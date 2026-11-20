@@ -7,7 +7,7 @@ import {createCockpitRig, cockpitGunRays, sampleCockpitCamera}
   from '../vendor/vanillajs/cockpit-rig/index.js';
 import {createMissileRack, launchMissile, stepMissiles,
   missileSummary, MISSILE_STEP} from '../vendor/vanillajs/missiles.js';
-import {selectLockCandidate,selectGunTarget,MISSILE_ACQUIRE_TICKS}
+import {selectLockCandidate,selectGunTarget,missileLockDisplay,MISSILE_ACQUIRE_TICKS}
   from './combat-targeting.js';
 
 export const AIRCOMBAT_FORMAT='gfta6.aircombat.v3';
@@ -136,6 +136,8 @@ export function combatSight(combat,width,height) {
   return {camera,raySet:cockpitGunRays(pose,RIG)};
 }
 export const combatRackSummary=combat=>missileSummary(combat.rack);
+export const combatLockStatus=combat=>missileLockDisplay(combat,
+  combatTargets(combat),combatPose(combat),combatRackSummary(combat));
 function damage(opponents,id,amount) {
   return freeze(opponents.map(e=>e.id===id&&e.hp>0?
     freeze({...e,hp:Math.max(0,e.hp-amount),
