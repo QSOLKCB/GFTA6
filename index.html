@@ -48,6 +48,13 @@
                   </div>
                   <button id="start-dogfight" type="button" class="button-arcade">TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™ ↗</button>
                 </div>
+                <div class="arcade-launch" aria-label="Advanced deterministic squad tactics and Geometry Forge content">
+                  <div>
+                    <strong>AIRWAR-001 — ENGINE SYSTEMS COMBINED</strong>
+                    <p>Original CAD aircraft, SENSE squad formation orders, retained-world LOD, physical trajectory interceptors, and sealed offline content.</p>
+                  </div>
+                  <button id="start-airwar" type="button" class="button-arcade">ADVANCED AIR WAR — THE GROUP CHAT STRIKES BACK™ ↗</button>
+                </div>
                 <small>WASD / ARROWS DRIVE · SPACE BRAKE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW. ORIGINAL CHIP MUSIC STARTS WITH YOUR GAME CLICK; USE MUSIC / SFX TO MUTE.</small>
               </div>
             </div>
@@ -85,6 +92,9 @@
             <button id="route-mode" class="tool-button" type="button" aria-pressed="false"
               title="Switch compass and mini-map guidance between errands and escape objectives">N / ROUTE: ERRANDS</button>
             <button id="sound" class="tool-button" aria-pressed="true" title="Toggle original four-channel weapon and interaction sound effects">SFX ON</button>
+            <button id="import-airwar" type="button" class="tool-button" hidden title="Open a sealed original World Foundry JSON file with SHA-256 verification">IMPORT AIRWAR WORLD</button>
+            <input id="airwar-file" type="file" accept=".json,application/json" hidden aria-label="Air War sealed content file">
+            <button id="export-airwar" type="button" class="tool-button" hidden title="Export original Air War Foundry content in a SHA-256 sealed offline JSON package">EXPORT AIRWAR WORLD</button>
             <button id="music" class="tool-button" type="button" aria-pressed="true" title="Toggle original SID-ADSR / Paula-style chip soundtrack">MUSIC ON</button>
             <button id="restart" class="tool-button">RESTART</button>
           </div>

@@ -99,7 +99,40 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-AIRCOMBAT-003 — MISSILE LOCK + GUN HIT PRECISION (review stage)
+## GFTA6-AIRWAR-001 — THE GROUP CHAT STRIKES BACK™ (review PR #18)
+
+The optional **ADVANCED AIR WAR** button combines five merged VANILLAJS
+engine systems into a distinct, more sophisticated version of the
+existing six-wave dogfight. The original HARD Saturday game and the
+classic TOO CLOSE FOR GUNS™ arcade remain fully available.
+
+- **CAD-003:** Original bounded Forge fighter, command-plane and static
+  world meshes, all rendered from real physical target centres.
+- **WORLD-VIS-001:** Conservative camera frustum/LOD selects retained
+  original static world triangles under a **320-triangle/frame Canvas2D
+  rendering budget**. This is *not* a WebGL GPU retainer.
+- **TACTICS-001:** Actual SENSE visibility and deterministic NavigationGrid
+  orders reposition enemy tactical formation lanes every 60 game ticks.
+  These offsets affect real target centres used by gun and missile tests.
+- **TRAJECTORY-001:** New 120 Hz lead-guided interceptor visual/contact
+  receipts from the physical swept actor-collision module. They do
+  **not** damage a stationary stand-in pilot; original boss hull
+  rules retain exclusive damage authority.
+- **CREATOR-INTEROP-001:** Original source-validated CAD and scene content,
+  **EXPORT AIRWAR WORLD** / **IMPORT AIRWAR WORLD** for offline SHA-256
+  sealed JSON with atomic tamper/invalid-scene rejection.
+
+All 12 newly vendored engine/transitive files are **unchanged** from
+merged VANILLAJS SHA
+`e9121ea7297b0aeca1da131b695e7c3371a98745`.
+Exact Git blob identities and licence attribution are checked offline.
+No npm dependencies, CDN, telemetry or proprietary art are added.
+
+See [GFTA6-AIRWAR-001: full source and acceptance contract](docs/GFTA6_AIRWAR_001.md).
+**PR #18 is pending independent Codex review and owner playthrough; it
+has not been merged or deployed.**
+
+## GFTA6-AIRCOMBAT-003 — MISSILE LOCK + GUN HIT PRECISION (merged PR #17)
 
 **TOO CLOSE FOR GUNS™** now requires an actual sustained physical lock
 before M can launch. Hold one target within the narrower **9°** boresight
@@ -117,7 +150,7 @@ status and visible target outlines come from the same authoritative
 simulation record. No source-pinned game engine APIs were modified.
 
 Read [AIRCOMBAT-003 precision, difficulty, and review contract](docs/GFTA6_AIRCOMBAT_003.md).
-This patch is **not deployed** until CI, Codex, owner review and merge.
+PR #17 is merged; the sustained missile acquisition and real gun-hit feedback are on main.
 
 ## GFTA6-AIRCOMBAT-002 — THE FINAL WORD™ (merged PR #16)
 

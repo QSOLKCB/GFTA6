@@ -3,6 +3,7 @@
 // Gun and missile hit authority remains in src/aircombat.js and VANILLAJS.
 import {projectCockpitPoint,inspectCockpitSight} from '../vendor/vanillajs/cockpit-rig/index.js';
 import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
+import {drawAirWarWorld,drawAirWarAircraft} from './airwar-world.js';
 import {combatPose,combatTargets,combatCamera,combatRackSummary,combatLockStatus,bossPhase,
   BOSS_PHASE_LINES,AIRCOMBAT_WAVES} from './aircombat.js';
 const rect=(ctx,x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
@@ -105,6 +106,7 @@ export function drawAirCombat(canvas,combat) {
   }
   const pose=combatPose(combat);
   const camera=combatCamera(combat);
+  if(combat.airwar)drawAirWarWorld(ctx,combat,w,h);
   const targets=combatTargets(combat);
   const rack=combatRackSummary(combat);
   const lock=combatLockStatus(combat);
@@ -112,8 +114,11 @@ export function drawAirCombat(canvas,combat) {
     const p=projectCockpitPoint(camera,[...t.center],{width:w,height:h});
     if(!p.visible||p.x< -80||p.x>w+80||p.y< -80||p.y>h+80)continue;
     const size=340/Math.max(65,p.depth);
-    if(t.role==='boss')bossAircraft(ctx,p.x,p.y,t.disengaged);
-    else fighter(ctx,p.x,p.y,Math.max(14,size*13),t.paint,t.disengaged);
+    const forged=combat.airwar&&drawAirWarAircraft(ctx,camera,t,w,h);
+    if(!forged){
+      if(t.role==='boss')bossAircraft(ctx,p.x,p.y,t.disengaged);
+      else fighter(ctx,p.x,p.y,Math.max(14,size*13),t.paint,t.disengaged);
+    }
     if(t.disengaged)continue;
     const acquiring=t.id===lock.targetId;
     ctx.strokeStyle=acquiring?(lock.ready?'#a9f7b9':'#ffcb79'):'#efce91';
@@ -134,6 +139,25 @@ export function drawAirCombat(canvas,combat) {
     ctx.stroke();
     ctx.strokeStyle='rgba(217,224,217,.46)';ctx.lineWidth=7;
     ctx.beginPath();ctx.arc(p.x,p.y,6,0,2*Math.PI);ctx.stroke();
+  }
+  if(combat.airwar?.projectile){
+    // Interceptor guidance and contact are owned by TRAJECTORY-001;
+    // this rendered glow is presentation-only and never supplies damage.
+    const position=combat.airwar.projectile.state.position;
+    const projected=projectCockpitPoint(camera,[...position],{width:w,height:h});
+    if(projected.visible){
+      ctx.strokeStyle='#fcaa5d';ctx.lineWidth=4;
+      ctx.beginPath();ctx.arc(projected.x,projected.y,9,0,Math.PI*2);ctx.stroke();
+    }
+  }
+  if(combat.airwar?.contact&&combat.tick-combat.airwar.contact.tick<60){
+    const projected=projectCockpitPoint(camera,
+      [...combat.airwar.contact.point],{width:w,height:h});
+    if(projected.visible){
+      ctx.strokeStyle='#eaaee9';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(projected.x,projected.y,
+        10+(combat.tick-combat.airwar.contact.tick)*.3,0,Math.PI*2);ctx.stroke();
+    }
   }
   impactFX(ctx,camera,combat,w,h);
   // The reticle is projected from the ACTUAL gun convergence target, not
@@ -193,6 +217,14 @@ export function drawAirCombat(canvas,combat) {
   text(ctx,'RADIO: '+combat.radio.slice(0,106),25,h-75,14,'#fff0d7');
   const closest=targets.filter(t=>!t.disengaged).reduce((min,t)=>
     Math.min(min,Math.abs(40-t.center[2])),Infinity);
+  if(combat.airwar) {
+    const info=combat.airwar;
+    const summary='TACTICS TURN '+info.turn+'  ·  SENSE CONTACTS '+info.visible+
+      '  ·  TRAJECTORY '+(info.projectile?'GUIDING':'STANDBY')+
+      '  ·  VERIFIED CONTACTS '+info.contacts;
+    rect(ctx,12,h-161,w-24,29,'rgba(12,27,45,.87)');
+    text(ctx,summary,24,h-142,12,'#b8e7e0');
+  }
   text(ctx,'CONTACTS: '+combat.opponents.filter(o=>o.disengaged).length+
     '/'+combat.opponents.length+'  ·  GUN '+combat.gunHits+
     '  ·  MISSILE '+combat.missileHits+

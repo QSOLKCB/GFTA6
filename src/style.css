@@ -162,3 +162,9 @@ body.standalone-dogfight .escape-panel { border-color:#d4ad83!important; }
 #music[aria-pressed="false"],#sound[aria-pressed="false"]{
   color:#a6acb8;border-color:#4c5869
 }
+
+/* AIRWAR-001: the advanced mode is separate from the original arcade. */
+.arcade-launch:has(#start-airwar){border-color:#81bdc1;background:#142b39}
+#start-airwar{background:#245e69;border-color:#9fd9ce}
+#start-airwar:hover{background:#327d86}
+#export-airwar:not([hidden]){color:#d8f0e6;border-color:#85bab4}

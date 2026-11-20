@@ -117,12 +117,15 @@ export function combatTargets(combat) {
     const phase=enemy.role==='boss'?bossPhase(combat):null;
     const strafe=enemy.role==='boss'?drift*(phase===3?4:phase===2?3:2):
       (i%2===0?drift:-drift);
+    // Aerial tactical lane offsets come from actual TACTICS/SENSE orders
+    // only in AIRWAR mode; original arcade/ACT IV geometry stays identical.
+    const formation=combat.airwar?.offsets?.[enemy.id]??{x:0,z:0};
     return freeze({
       id:enemy.id,name:enemy.name,paint:enemy.paint,hp:enemy.hp,
       maxHp:enemy.maxHp,role:enemy.role,disengaged:enemy.disengaged,
       center:freeze([
-        enemy.x+strafe,180+enemy.y,
-        40-(enemy.range-Math.min(85,Math.trunc(t/7)))
+        enemy.x+strafe+formation.x,180+enemy.y,
+        40-(enemy.range-Math.min(85,Math.trunc(t/7)))+formation.z
       ]),radius:enemy.role==='boss'?26:enemy.role==='interceptor'?16:14
     });
   }));

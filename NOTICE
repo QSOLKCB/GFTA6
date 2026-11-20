@@ -52,3 +52,26 @@ SID-style ADSR stages are linear approximations, not MOS SID emulation.
 The Paula-style 4-voice PCM, stereo panning and LED filter approximation
 are implemented by the unchanged upstream source, not copied ROMs,
 commercial recordings, tracker samples or protected music.
+
+
+GFTA6 AIRWAR-001: the following unmodified VANILLAJS Apache-2.0 modules
+are copied from merged VANILLAJS commit e9121ea7297b0aeca1da131b695e7c3371a98745:
+  modules/cad-geometry/index.js -> vendor/vanillajs/cad-geometry/index.js; Git blob 10b69a5ea58878f5109e5d84a08f1ed9d370e1e9
+  modules/world-vis/index.js -> vendor/vanillajs/world-vis/index.js; Git blob 0b8a887b9732be99b473bac7f11ce0084f37d8bf
+  modules/tactics/index.js -> vendor/vanillajs/tactics/index.js; Git blob aadf803bf9b0f38b492af2ee09cd3953e277475d
+  modules/trajectory/index.js -> vendor/vanillajs/trajectory/index.js; Git blob c4d77688b1f0d76e070c981f7e21588683043e8a
+  modules/creator-interop/index.js -> vendor/vanillajs/creator-interop/index.js; Git blob 3ab939e8ea21efa3e51102e407d4cb6c59f51663
+  modules/geometry/index.js -> vendor/vanillajs/geometry/index.js; Git blob 921ec893482a37e2503886ef42af3cd0bb2baca4
+  modules/render-lit/index.js -> vendor/vanillajs/render-lit/index.js; Git blob def5f61785305de7335490a12fe15fef92f05929
+  modules/sensing/index.js -> vendor/vanillajs/sensing/index.js; Git blob da7f221447277a32e9f1eac55f61d9e855ccf76a
+  modules/navigation/index.js -> vendor/vanillajs/navigation/index.js; Git blob a1eb1814db836b6a8c841d2d41552232e23fdf78
+  modules/scene-graph/index.js -> vendor/vanillajs/scene-graph/index.js; Git blob e35474f13f1920ff8cc55728683ee87e177427e1
+  modules/lead-solver/index.js -> vendor/vanillajs/lead-solver/index.js; Git blob a39427287fb93fbca08919e3b7df16f74a3c261c
+  modules/collision/index.js -> vendor/vanillajs/collision/index.js; Git blob 60975e1e1d5914f0610de2e3ed3cbb241ce7f571
+The CAD Geometry Forge adaptation retains DabbleCAD's method attribution:
+DJMcNewgent/DabbleCAD src/renderer/core/shapes.js, copyright 2026
+DJMcNewgent, Apache-2.0, donor revision
+9cfd20b0a973275c7f7411afb6e7c355f8a863cc.
+See VANILLAJS docs/DABBLECAD_NOTICE.md and docs/CAD_001.md.
+GFTA6 world meshes, tactical mapping and original game mode are authored
+as GFTA6 source. Hashes prove byte integrity, not independent certification.

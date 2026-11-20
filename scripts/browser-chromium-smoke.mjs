@@ -211,6 +211,33 @@ async function main(){
   assert.ok(bossView.colors>6,'Chromium did not paint the final boss Canvas');
   await screenshot('boss-render-fixture.png');
   console.log('PASS: independently rendered original final-boss silhouette in real Chromium');
+  // Advanced systems are a real separate third launch, not synthetic state
+  // injected through the browser. Test the source-integrated CAD/World-VIS,
+  // SENSE tactical engine and sealed creator export on the real DOM.
+  await navigate(url);
+  await click('start-airwar');
+  await until(()=>cdp.eval(el('intro')+'.hidden&&'+
+    el('task-count')+'.textContent.includes("AIRWAR")'),'advanced airwar start');
+  await canvasCheck();
+  assert.equal(await cdp.eval(el('export-airwar')+'.hidden'),false);
+  const foundry=await cdp.eval(`(async()=>{
+    const creator=await import('./src/airwar-world.js');
+    const pkg=await creator.exportAirWarWorld();
+    const imported=await creator.verifyAirWarWorld(pkg);
+    const game=await import('./src/airwar.js');
+    const plan=game.inspectAirWarTactics(1988,1,2);
+    const visual=creator.selectAirWarWorld(game.createAirWarCombat(1988),960,600);
+    return {sha:JSON.parse(pkg).sha256,assets:imported.assets.length,
+      props:imported.placements.length,turn:plan.turn,
+      selected:visual.selected};
+  })()`);
+  assert.match(foundry.sha,/^[a-f0-9]{64}$/);
+  assert.equal(foundry.assets,3);
+  assert.equal(foundry.props,5);
+  assert.equal(foundry.turn,2);
+  assert.ok(foundry.selected>0);
+  await screenshot('airwar-original-foundry.png');
+  console.log('PASS: real Advanced Air War launch, CAD retained geometry, SENSE tactics and offline SHA-256 creator package');
   await cdp.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   const mobile=await cdp.eval(`({
     width: innerWidth,
