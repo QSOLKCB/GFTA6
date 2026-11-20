@@ -99,7 +99,35 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-POLISH-001 — Route Guidance and Flight HUD (review-stage)
+## GFTA6-AIRCOMBAT-001A — JUST A FRIEND SQUADRON™ (review-stage PR)
+
+The merged VANILLAJS COCKPIT-002 release now supplies the actual
+gun-sight geometry and deterministic missile module. A new **opt-in
+ACT IV** checkbox at the start of Saturday extends the existing
+Freedom Flight with a playable **2.5D air-combat** finale.
+
+Intercept Derek, the three members of THE GROUP CHAT SQUADRON, and
+finally Derek again in **TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™**.
+Use **W/S** to aim up and down, **A/D** to steer your gunsight,
+**Space** for physical gun-ray hits and **M** for upstream missile-lock
+and homing checks. A new touch missile button is available during combat.
+
+The final cinematic uses the owner-approved **MISSION ACCOMPLISHED.**
+radio dialogue word-for-word. The original "YOU FORGOT THE MILK"
+ending remains accessible by leaving the ACT IV checkbox unchecked.
+
+The upstream sources are vendored unmodified from VANILLAJS merged commit
+`ae0b594f006ec3c1add71574c830ddde9ff5fa66`, with exact Git
+blob hashes checked in CI and source attribution in `NOTICE`.
+This first encounter retains **GFTA6 arcade flight** and does not yet
+substitute VANILLAJS's experimental airframe physics. No external art,
+cloud services, npm dependencies or GPL code.
+
+See [AIRCOMBAT-001A implementation and review gates](docs/GFTA6_AIRCOMBAT_001A.md)
+and [the locked campaign canon](docs/GFTA6_AIRCOMBAT_001.md).
+Not live on Pages until the PR is reviewed, accepted and merged.
+
+## GFTA6-POLISH-001 — Route Guidance and Flight HUD (merged PR #9)
 
 The next review-stage slice adds an **N / ROUTE** switch between errands and
 the optional secret escape objective. Both Classic and Raised views show a
@@ -114,7 +142,7 @@ labelled arcade indicators, takeoff/climb/departure progress bars, and a
 runway that fades as altitude increases.
 
 See [GFTA6-POLISH-001 review and regression criteria](docs/GFTA6_POLISH_001.md).
-This polish is not live until its PR is reviewed and merged.
+PR #9 is merged and these navigation improvements are on main.
 
 ## GFTA6-ESCAPE-001 — Operation Freedom Flight™ (merged PR #8)
 

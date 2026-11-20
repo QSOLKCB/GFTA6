@@ -6,6 +6,7 @@ import {stepCar, vehicleSpec, DEFAULT_VEHICLE} from './vehicle.js';
 import {createCargoJob, loadCargo, deliverCargo, cargoFinished,
   cargoJobById, cargoUsed, cargoCapacity} from './cargo.js';
 import {WORLD, PLACES, BLOCKS} from './world.js';
+import {createAirCombat,stepAirCombat} from './aircombat.js';
 import {createEscape, gigAction, nextUpgrade, purchaseUpgrade,
   launchFlight, stepEscape, flightActive, flightSucceeded} from './escape.js';
 export {WORLD, PLACES, BLOCKS} from './world.js';
@@ -118,7 +119,11 @@ function addLog(state, message) {
   state.log.unshift({tick: state.tick, message});
   if (state.log.length > 7) state.log.length = 7;
 }
-export function createGame(seed = 1988, profile = DEFAULT_VEHICLE) {
+export function createGame(seed = 1988, profile = DEFAULT_VEHICLE, options = {}) {
+  if (!options || typeof options !== 'object' || Array.isArray(options) ||
+      Object.keys(options).some(k => k !== 'airCombat') ||
+      (options.airCombat !== undefined && typeof options.airCombat !== 'boolean'))
+    throw new TypeError('only optional airCombat boolean is supported');
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 0xffffffff)
     throw new RangeError('seed must be an unsigned 32-bit integer');
   vehicleSpec(profile); // fail before constructing a game with a bogus vehicle
@@ -128,6 +133,7 @@ export function createGame(seed = 1988, profile = DEFAULT_VEHICLE) {
     goodwill: 83, fuel: 100, driveTicks: 0, distance: 0, index: 0,
     ambushed: false, paused: false, finished: false, outcome: '',
     miniGame: null, cargo: null, completedCargo: [], escape: createEscape(seed),
+    airCombatEnabled: options.airCombat === true, airCombat: null,
     message: '', log: [],
     tasks: BASIC_MISSIONS.map(m => ({...m}))
   };
@@ -193,6 +199,25 @@ function dropCargo(state, mission) {
 }
 export function stepGame(state, controls = {}) {
   if (state.paused || state.finished || state.miniGame) return state;
+  if (state.airCombat) {
+    if (state.airCombat.status === 'active') {
+      const before = state.airCombat;
+      state.airCombat = stepAirCombat(before, controls);
+      state.tick += 1;
+      if (state.airCombat.radio !== before.radio)
+        addLog(state, state.airCombat.radio);
+      if (state.airCombat.status === 'won') {
+        state.finished = true;
+        state.outcome = 'JUST A FRIEND SQUADRON COMPLETE';
+        addLog(state,'MISSION ACCOMPLISHED. DEREK HAS DEPLOYED HIS PARACHUTE.');
+      } else if (state.airCombat.status === 'timed-out') {
+        state.finished = true;
+        state.outcome = 'AIRCOMBAT TIMED OUT';
+        addLog(state,'RADIO: THE GROUP CHAT IS STILL TYPING.');
+      }
+    }
+    return state;
+  }
   // The optional airfield mini-game uses the SAME fixed simulation tick and
   // driver inputs, but does not drive/mutate the authoritative 2D car.
   if (state.escape.flight) {
@@ -200,9 +225,14 @@ export function stepGame(state, controls = {}) {
       state.escape = stepEscape(state.escape, controls);
       state.tick += 1;
       if (flightSucceeded(state.escape)) {
-        state.finished = true;
-        state.outcome = 'YOU FORGOT THE MILK';
-        addLog(state,'ESCAPE ACHIEVED. INCOMING MESSAGE: "Can you pick up milk?"');
+        if (state.airCombatEnabled) {
+          state.airCombat = createAirCombat(state.seed);
+          addLog(state,'NEW MISSION UNLOCKED: JUST A FRIEND SQUADRON™');
+        } else {
+          state.finished = true;
+          state.outcome = 'YOU FORGOT THE MILK';
+          addLog(state,'ESCAPE ACHIEVED. INCOMING MESSAGE: "Can you pick up milk?"');
+        }
       } else if (state.escape.flight.status === 'grounded') {
         addLog(state,'THE AIRCRAFT RETURNED TO THE GROUND. Press F to retry.');
       }
@@ -292,7 +322,7 @@ export function interact(state) {
  * Actions are accepted only when parked near the actual mapped location.
  */
 export function interactEscape(state, action) {
-  if (state.paused || state.finished || state.miniGame) return false;
+  if (state.paused || state.finished || state.miniGame || state.airCombat) return false;
   if (!['gig','upgrade','fly'].includes(action))throw RangeError('unknown escape action');
   if (flightActive(state.escape)) return false;
   if (Math.abs(state.speed) > 22) {
@@ -320,6 +350,7 @@ export function interactEscape(state, action) {
   return result.ok;
 }
 export function escapeObjective(state) {
+  if (state.airCombat) return 'JUST A FRIEND SQUADRON — SPACE GUNS · M MISSILES';
   const escape=state.escape;
   if (escape.flight) {
     if (escape.flight.status==='grounded') return 'Flight aborted · press F at airfield to retry';
@@ -387,7 +418,8 @@ export function snapshot(state) {
     ambushed: state.ambushed, finished: state.finished,
     outcome: state.outcome, miniGame: state.miniGame,
     cargo: state.cargo, completedCargo: state.completedCargo.map(job => ({...job})),
-    escape: state.escape,
+    escape: state.escape, airCombatEnabled: state.airCombatEnabled,
+    airCombat: state.airCombat,
     tasks: state.tasks.map(t => ({id: t.id, kind: t.kind, place: t.place, job: t.job ?? null}))
   };
 }

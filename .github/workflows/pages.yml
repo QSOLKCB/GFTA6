@@ -35,6 +35,10 @@ jobs:
       - name: Validate game before publishing
         run: |
           node --check src/core.js
+          node --check src/aircombat.js
+          node --check src/aircombat-view.js
+          node --check vendor/vanillajs/missiles.js
+          node --check vendor/vanillajs/cockpit-rig/index.js
           node --check src/navigation.js
           node --check src/escape.js
           node --check src/flight-view.js
@@ -56,6 +60,11 @@ jobs:
           test -f _site/src/escape.js
           test -f _site/src/flight-view.js
           test -f _site/src/navigation.js
+          test -f _site/src/aircombat.js
+          test -f _site/src/aircombat-view.js
+          test -f _site/vendor/vanillajs/missiles.js
+          test -f _site/vendor/vanillajs/math/index.js
+          test -f _site/vendor/vanillajs/cockpit-rig/index.js
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload static game

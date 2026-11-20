@@ -6,6 +6,7 @@ import {cargoCapacity, cargoUsed, cargoItemById, cargoJobById} from './cargo.js'
 import {interactEscape, escapeObjective} from './core.js';
 import {RESTORATION, ESCAPE_TARGET_CENTS, nextUpgrade} from './escape.js';
 import {waypoint} from './navigation.js';
+import {AIRCOMBAT_WAVES, AIRCOMBAT_FINAL_TEXT, combatRackSummary} from './aircombat.js';
 
 const $ = id => {
   const element = document.getElementById(id);
@@ -59,7 +60,8 @@ function ping(frequency = 660) {
 function begin() {
   try {
     const seed = Number($('seed').value);
-    state = createGame(seed, $('vehicle').value);
+    state = createGame(seed, $('vehicle').value,
+      {airCombat: $('aircombat-opt').checked});
     $('seed').setCustomValidity('');
   } catch {
     $('seed').setCustomValidity('Enter an integer seed between 0 and 4294967295');
@@ -76,7 +78,8 @@ function begin() {
 }
 function restart() {
   if (!started) return begin();
-  state = createGame(state.seed, state.profile);
+  state = createGame(state.seed, state.profile,
+    {airCombat: state.airCombatEnabled});
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   clearControls(); shownMiniKey = ''; lastHUDTick = -1;
   refreshHUD(); canvas.focus({preventScroll: true});
@@ -86,7 +89,8 @@ function controls() {
   return {
     throttle: Number(controlHeld('forward')) - Number(controlHeld('reverse')),
     steer: Number(controlHeld('left')) - Number(controlHeld('right')),
-    brake: controlHeld('brake')
+    brake: controlHeld('brake'),
+    missile: controlHeld('missile')
   };
 }
 function focusGame() {
@@ -127,14 +131,17 @@ function refreshMini() {
   }
   if (state.finished) {
     const mins = Math.floor(state.tick / 22);
+    const squadron = state.outcome === 'JUST A FRIEND SQUADRON COMPLETE';
     const escaped = state.outcome === 'YOU FORGOT THE MILK';
-    $('ending-title').textContent = escaped ? 'FREEDOM FLIGHT COMPLETE!' :
-      'MISSION FAILED SUCCESSFULLY.';
-    $('ending-blurb').textContent = escaped ?
-      'You made it into the sky. Your phone still has one more assignment.' :
+    $('ending-title').textContent = squadron ? 'MISSION ACCOMPLISHED.' :
+      escaped ? 'FREEDOM FLIGHT COMPLETE!' : 'MISSION FAILED SUCCESSFULLY.';
+    $('ending-blurb').textContent = squadron ?
+      AIRCOMBAT_FINAL_TEXT.split('\n').slice(2).join('\n') :
+      escaped ? 'You made it into the sky. Your phone still has one more assignment.' :
       'No quest marker. No briefing. You were meant to know what the task was.';
-    $('ending-stats').textContent = escaped ?
-      'NEW MESSAGE: "YOU FORGOT THE MILK." • PAID GIGS: '+
+    $('ending-stats').textContent = squadron ?
+      'DEREK AND HIS GROUP CHAT HAVE DISENGAGED. AIRBORNE ESCAPE: VERIFIED.' :
+      escaped ? 'NEW MESSAGE: "YOU FORGOT THE MILK." • PAID GIGS: ' +
         state.escape.completedGigs+' • FLIGHT DISTANCE: '+
         state.escape.flight.distance+' m' :
       'ERRANDS: ' + state.index + ' • IN-GAME MINUTES LOST: ' +
@@ -167,33 +174,48 @@ function refreshMini() {
 function refreshHUD() {
   const mission = currentMission(state);
   $('mode-label').textContent = !started ? 'AWAITING SATURDAY' :
-    state.finished ? (state.outcome === 'YOU FORGOT THE MILK' ?
+    state.finished ? (state.outcome === 'JUST A FRIEND SQUADRON COMPLETE' ?
+      'MISSION ACCOMPLISHED — DEREK PARACHUTING' :
+      state.outcome === 'YOU FORGOT THE MILK' ?
       'ESCAPE ACHIEVED — MILK FORGOTTEN' : 'SATURDAY LOST') :
     state.paused ? 'SATURDAY PAUSED' :
+    state.airCombat ? 'JUST A FRIEND SQUADRON™' :
     state.escape.flight ? 'OPERATION FREEDOM FLIGHT' : 'DOMESTIC SURVIVAL ACTIVE';
   const timeMinutes = 9 * 60 + Math.floor(state.tick / 22);
   const hours = Math.floor(timeMinutes / 60) % 24;
   const minutes = timeMinutes % 60;
   $('clock').textContent = (timeMinutes >= 24 * 60 ? 'SUN ' : 'SAT ') +
     String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-  $('odo').textContent = state.escape.flight ?
-    state.escape.flight.distance + ' FLIGHT u' : Math.floor(state.distance) + ' u';
-  $('velocity').textContent = state.escape.flight ?
-    state.escape.flight.speed + ' ARCADE' :
+  $('odo').textContent = state.airCombat ?
+    'WAVE ' + Math.min(state.airCombat.stage+1,3) + '/3' :
+    state.escape.flight ? state.escape.flight.distance + ' FLIGHT u' :
+    Math.floor(state.distance) + ' u';
+  $('velocity').textContent = state.airCombat ?
+    combatRackSummary(state.airCombat).ammo + ' MISSILES' :
+    state.escape.flight ? state.escape.flight.speed + ' ARCADE' :
     Math.round(Math.abs(state.speed) * TICK_HZ / 64) + ' u/s';
   $('seed-readout').textContent = String(state.seed);
   $('vehicle-readout').textContent = state.profile.toUpperCase();
-  $('mission-title').textContent = mission?.title ?? 'WEEKEND OVER';
-  $('mission-detail').textContent = mission?.description ?? 'Go and have a lie-down. You earned it.';
-  $('destination').textContent = placeById(mission?.place)?.name ?? 'NONE';
-  $('distance').textContent = mission ? Math.round(distanceToPlace(state, mission.place)) + ' m' : '0 m';
+  const combat = state.airCombat;
+  const combatWave = combat ? AIRCOMBAT_WAVES[Math.min(combat.stage,2)] : null;
+  $('combat-status').hidden = !combat;
+  $('mission-title').textContent = combatWave?.name ??
+    (mission?.title ?? 'WEEKEND OVER');
+  $('mission-detail').textContent = combat?.radio ??
+    (mission?.description ?? 'Go and have a lie-down. You earned it.');
+  $('destination').textContent = combat ? 'JUST A FRIEND SQUADRON™' :
+    (placeById(mission?.place)?.name ?? 'NONE');
+  $('distance').textContent = combat ?
+    combat.opponents.filter(e=>!e.disengaged).length + ' CONTACT(S)' :
+    mission ? Math.round(distanceToPlace(state, mission.place)) + ' m' : '0 m';
   const navigation=waypoint(state,routeMode);
   $('nav-target').textContent = navigation ?
     (routeMode === 'escape' ? 'ESCAPE ROUTE · ' : 'ERRAND ROUTE · ') +
       navigation.label : 'ROUTE OFF · FLIGHT IN PROGRESS';
   $('nav-distance').textContent = navigation ? navigation.distance + ' u' : '—';
-  $('nav-instruction').textContent = navigation ?
-    navigation.instruction : 'Use flight controls for takeoff and climb.';
+  $('nav-instruction').textContent = combat ?
+    'W/S PITCH · A/D YAW · SPACE GUNS · M MISSILES' :
+    navigation ? navigation.instruction : 'Use flight controls for takeoff and climb.';
   $('route-mode').textContent = state.escape.flight ? 'N / ROUTE: IN FLIGHT' :
     'N / ROUTE: ' + routeMode.toUpperCase();
   $('route-mode').disabled = Boolean(state.escape.flight || state.finished || !started);
@@ -233,18 +255,24 @@ function refreshHUD() {
   $('escape-fund').textContent = moneyFmt.format(state.escape.fundCents/100);
   $('escape-bar').style.width = Math.min(100,
     (state.escape.fundCents+state.escape.spentCents)/ESCAPE_TARGET_CENTS*100)+'%';
-  $('escape-title').textContent = flight ?
+  $('escape-title').textContent = combat ?
+    'ACT IV: JUST A FRIEND SQUADRON™' : flight ?
     'AIRBORNE OPERATION: '+flight.status.toUpperCase() :
     state.escape.upgrades.length===RESTORATION.length ?
     'THE WAR BIRD IS READY' : 'SECRET ESCAPE FUND';
-  $('escape-goal').textContent = flight ?
-    'ALT '+flight.altitude+' m • SPEED '+flight.speed+' • '+flight.distance+' m traveled' :
+  $('escape-goal').textContent = combat ?
+    'WAVE '+Math.min(combat.stage+1,3)+'/3 • GUN HITS '+combat.gunHits+
+      ' • MISSILE HITS '+combat.missileHits : flight ?
+    'ALT '+flight.altitude+' u • SPEED '+flight.speed+' • '+flight.distance+' u traveled' :
     'RESTORED '+state.escape.upgrades.length+'/'+RESTORATION.length+
     ' • GOAL '+moneyFmt.format(ESCAPE_TARGET_CENTS/100);
   $('escape-next').textContent = next && !flight ?
     'NEXT: '+next.label+' ('+moneyFmt.format(next.costCents/100)+') · '+escapeObjective(state) :
     escapeObjective(state);
   $('escape-gigs').textContent = state.escape.completedGigs+' SECRET COURIER JOBS';
+  document.querySelector('[data-drive="missile"]').hidden = !combat;
+  document.querySelector('[data-drive="brake"]').textContent =
+    combat ? 'GUNS / FIRE' : 'STOP ■';
   $('message').textContent = state.message;
   const i = Math.floor(state.tick / 480) % feed.length;
   $('feed-channel').textContent = feed[i][0];
@@ -296,7 +324,7 @@ $('sound').addEventListener('click', () => {
 const bindings = Object.freeze({
   KeyW: 'forward', ArrowUp: 'forward', KeyS: 'reverse', ArrowDown: 'reverse',
   KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right',
-  Space: 'brake'
+  Space: 'brake', KeyM: 'missile'
 });
 // Track physical key codes, not actions: releasing W cannot cancel a held ↑.
 const keyHeld = new Set();

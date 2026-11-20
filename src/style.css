@@ -122,3 +122,13 @@ main{max-width:1580px;margin:auto;padding:30px 24px 54px}
 .nav-guidance p{grid-column:1/-1;font-size:11px;color:var(--muted);margin:2px 0 0}
 #route-mode[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
 #route-mode:disabled{opacity:.55;cursor:not-allowed}
+
+/* GFTA6 AIRCOMBAT-001: opt-in campaign and verbatim final radio transcript. */
+.launch-row .combat-choice{display:flex;align-items:center;gap:8px;max-width:230px;
+  font-size:11px;line-height:1.4;letter-spacing:.025em;color:var(--gold)}
+.launch-row .combat-choice input[type="checkbox"]{width:17px;height:17px;
+  accent-color:var(--pink);flex-shrink:0}
+#ending-blurb{white-space:pre-line;line-height:1.65;max-height:48vh;overflow-y:auto}
+#combat-status{color:var(--gold)}
+.touch-controls [data-drive="missile"]{background:#79545b;border-color:#e6ae86}
+.touch-controls [data-drive="missile"][hidden]{display:none}

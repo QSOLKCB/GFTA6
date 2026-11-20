@@ -29,6 +29,7 @@
           <span>SPEED <b id="velocity">0 u/s</b></span>
           <span>SEED <b id="seed-readout">1988</b></span>
           <span>CAR <b id="vehicle-readout">HATCHBACK</b></span>
+          <span id="combat-status" hidden>COMBAT <b>JUST A FRIEND SQUADRON™</b></span>
         </div>
         <div class="viewport">
           <canvas id="canvas" width="960" height="600" tabindex="0" aria-label="Overhead city driving game. W or Up drives, S or Down reverses and brakes, A or Left and D or Right steer. Press E near destinations, P pauses."></canvas>
@@ -39,7 +40,7 @@
                 <p class="eyebrow">NEW CAMPAIGN / SATURDAY 001</p>
                 <h2>YOU HAVE THE DAY OFF.<br><em>ALLEGEDLY.</em></h2>
                 <p>Drive to appointments. Collect the shopping. Survive household mini-games. Get home without receiving another message. Good luck with that.</p>
-                <div class="launch-row"><label for="seed">GAME SEED <input id="seed" type="number" inputmode="numeric" min="0" max="4294967295" step="1" value="1988"></label><label for="vehicle">VEHICLE <select id="vehicle"><option value="hatchback">Errand hatchback</option><option value="coupe">Weekend coupe</option><option value="van">Shopping van</option></select></label><button id="start" class="button-primary">START SATURDAY ↗</button></div>
+                <div class="launch-row"><label for="seed">GAME SEED <input id="seed" type="number" inputmode="numeric" min="0" max="4294967295" step="1" value="1988"></label><label for="vehicle">VEHICLE <select id="vehicle"><option value="hatchback">Errand hatchback</option><option value="coupe">Weekend coupe</option><option value="van">Shopping van</option></select></label><label class="combat-choice" for="aircombat-opt"><input id="aircombat-opt" type="checkbox"> ACT IV: JUST A FRIEND SQUADRON™</label><button id="start" class="button-primary">START SATURDAY ↗</button></div>
                 <small>WASD / ARROWS DRIVE · SPACE BRAKE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW</small>
               </div>
             </div>
@@ -65,7 +66,7 @@
           </section>
         </div>
         <div class="game-toolbar">
-          <div class="shortcuts">W / ↑ THROTTLE <span>·</span> N NAVIGATION <span>·</span> G SIDE GIG <span>·</span> U RESTORE <span>·</span> F FLY <span>·</span> SPACE STOP <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
+          <div class="shortcuts">AIR COMBAT: WASD AIM · SPACE GUNS · M MISSILES <span>·</span> W / ↑ THROTTLE <span>·</span> N NAVIGATION <span>·</span> G SIDE GIG <span>·</span> U RESTORE <span>·</span> F FLY <span>·</span> SPACE STOP <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
           <div class="toolbar-buttons">
             <button id="interact" class="tool-button">E / INTERACT</button>
             <button id="gig" class="tool-button" type="button">G / PAID JOB</button>
@@ -82,7 +83,7 @@
         </div>
         <div class="touch-controls" aria-label="Touch driving controls">
           <div class="touch-steer"><button data-drive="left" aria-label="Hold to steer left">◀</button><button data-drive="right" aria-label="Hold to steer right">▶</button></div>
-          <div class="touch-drive"><button data-drive="brake" aria-label="Hold the service brake">STOP ■</button><button data-drive="reverse" aria-label="Hold to brake or reverse">BRAKE / REVERSE</button><button class="forward" data-drive="forward" aria-label="Hold to accelerate">ACCELERATE ▲</button></div>
+          <div class="touch-drive"><button data-drive="missile" aria-label="Hold to fire one missile" hidden>M / MISSILE</button><button data-drive="brake" aria-label="Hold service brake, or fire guns in air combat">STOP ■</button><button data-drive="reverse" aria-label="Hold to brake or reverse">BRAKE / REVERSE</button><button class="forward" data-drive="forward" aria-label="Hold to accelerate">ACCELERATE ▲</button></div>
         </div>
         <footer class="panel-footer"><span>NO CRIME. NO WANTED STARS. JUST 38 UNREAD MESSAGES.</span><span>BUILT ON <a href="https://github.com/QSOLKCB/VANILLAJS" target="_blank" rel="noopener noreferrer">VANILLAJS</a></span></footer>
       </section>
