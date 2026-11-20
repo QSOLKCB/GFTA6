@@ -3,7 +3,7 @@
 // Gun and missile hit authority remains in src/aircombat.js and VANILLAJS.
 import {projectCockpitPoint,inspectCockpitSight} from '../vendor/vanillajs/cockpit-rig/index.js';
 import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
-import {drawAirWarWorld} from './airwar-world.js';
+import {drawAirWarWorld,drawAirWarAircraft} from './airwar-world.js';
 import {combatPose,combatTargets,combatCamera,combatRackSummary,combatLockStatus,bossPhase,
   BOSS_PHASE_LINES,AIRCOMBAT_WAVES} from './aircombat.js';
 const rect=(ctx,x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
@@ -114,8 +114,11 @@ export function drawAirCombat(canvas,combat) {
     const p=projectCockpitPoint(camera,[...t.center],{width:w,height:h});
     if(!p.visible||p.x< -80||p.x>w+80||p.y< -80||p.y>h+80)continue;
     const size=340/Math.max(65,p.depth);
-    if(t.role==='boss')bossAircraft(ctx,p.x,p.y,t.disengaged);
-    else fighter(ctx,p.x,p.y,Math.max(14,size*13),t.paint,t.disengaged);
+    const forged=combat.airwar&&drawAirWarAircraft(ctx,camera,t,w,h);
+    if(!forged){
+      if(t.role==='boss')bossAircraft(ctx,p.x,p.y,t.disengaged);
+      else fighter(ctx,p.x,p.y,Math.max(14,size*13),t.paint,t.disengaged);
+    }
     if(t.disengaged)continue;
     const acquiring=t.id===lock.targetId;
     ctx.strokeStyle=acquiring?(lock.ready?'#a9f7b9':'#ffcb79'):'#efce91';
