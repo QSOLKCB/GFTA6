@@ -3,7 +3,7 @@
 // Unchanged upstream cockpit geometry and COCKPIT-002 missiles are vendored.
 // Explicit 3D encounter coordinates are NOT a replacement for airframe physics.
 import {quatMultiply} from '../vendor/vanillajs/math/index.js';
-import {createCockpitRig, cockpitGunRays, testCockpitTarget, sampleCockpitCamera}
+import {createCockpitRig, cockpitGunRays, sampleCockpitCamera}
   from '../vendor/vanillajs/cockpit-rig/index.js';
 import {createMissileRack, launchMissile, stepMissiles,
   missileSummary, MISSILE_STEP} from '../vendor/vanillajs/missiles.js';
