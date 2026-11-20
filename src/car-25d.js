@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // GFTA6-CAR25D-001: original, bounded raised-car geometry.
 // Presentation only: no changes to position, steering, hit boxes or physics.
-const TAU=Math.PI*2;
 const HEIGHT=Object.freeze({body:9,roof:20});
 const shade=Object.freeze({near:'#203346',far:'#354a60',glass:'#a9dfe6',
   shadow:'rgba(3,12,22,.40)',tyre:'#14202c',lamp:'#ffe4a1',tail:'#e64266'});
