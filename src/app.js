@@ -50,7 +50,7 @@ function ping(frequency = 660) {
 function begin() {
   try {
     const seed = Number($('seed').value);
-    state = createGame(seed);
+    state = createGame(seed, $('vehicle').value);
     $('seed').setCustomValidity('');
   } catch {
     $('seed').setCustomValidity('Enter an integer seed between 0 and 4294967295');
@@ -67,7 +67,7 @@ function begin() {
 }
 function restart() {
   if (!started) return begin();
-  state = createGame(state.seed);
+  state = createGame(state.seed, state.profile);
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   clearControls(); shownMiniKey = ''; lastHUDTick = -1;
   refreshHUD(); canvas.focus({preventScroll: true});
@@ -144,6 +144,7 @@ function refreshHUD() {
   $('odo').textContent = Math.floor(state.distance) + ' u';
   $('velocity').textContent = Math.round(Math.abs(state.speed) * TICK_HZ / 64) + ' u/s';
   $('seed-readout').textContent = String(state.seed);
+  $('vehicle-readout').textContent = state.profile.toUpperCase();
   $('mission-title').textContent = mission?.title ?? 'WEEKEND OVER';
   $('mission-detail').textContent = mission?.description ?? 'Go and have a lie-down. You earned it.';
   $('destination').textContent = placeById(mission?.place)?.name ?? 'NONE';
@@ -194,8 +195,11 @@ function syncKeys() {
   for (const code of keyHeld) keys.add(bindings[code]);
 }
 window.addEventListener('keydown', event => {
-  if (event.target instanceof HTMLInputElement) {
-    if (event.code === 'Enter' && !started) { event.preventDefault(); begin(); }
+  // Preserve native keyboard navigation on the vehicle selector and buttons.
+  if (event.target instanceof HTMLInputElement ||
+      event.target?.closest?.('select,textarea,button')) {
+    if (event.target instanceof HTMLInputElement &&
+        event.code === 'Enter' && !started) { event.preventDefault(); begin(); }
     return;
   }
   if (event.code in bindings) {

@@ -28,6 +28,7 @@
           <span>DISTANCE <b id="odo">0 u</b></span>
           <span>SPEED <b id="velocity">0 u/s</b></span>
           <span>SEED <b id="seed-readout">1988</b></span>
+          <span>CAR <b id="vehicle-readout">HATCHBACK</b></span>
         </div>
         <div class="viewport">
           <canvas id="canvas" width="960" height="600" tabindex="0" aria-label="Overhead city driving game. W or Up drives, S or Down reverses and brakes, A or Left and D or Right steer. Press E near destinations, P pauses."></canvas>
@@ -38,7 +39,7 @@
                 <p class="eyebrow">NEW CAMPAIGN / SATURDAY 001</p>
                 <h2>YOU HAVE THE DAY OFF.<br><em>ALLEGEDLY.</em></h2>
                 <p>Drive to appointments. Collect the shopping. Survive household mini-games. Get home without receiving another message. Good luck with that.</p>
-                <div class="launch-row"><label for="seed">GAME SEED <input id="seed" type="number" inputmode="numeric" min="0" max="4294967295" step="1" value="1988"></label><button id="start" class="button-primary">START SATURDAY ↗</button></div>
+                <div class="launch-row"><label for="seed">GAME SEED <input id="seed" type="number" inputmode="numeric" min="0" max="4294967295" step="1" value="1988"></label><label for="vehicle">VEHICLE <select id="vehicle"><option value="hatchback">Errand hatchback</option><option value="coupe">Weekend coupe</option><option value="van">Shopping van</option></select></label><button id="start" class="button-primary">START SATURDAY ↗</button></div>
                 <small>WASD / ARROWS DRIVE · SPACE BRAKE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW</small>
               </div>
             </div>

@@ -108,6 +108,22 @@ The static browser build is published from `main` through a gated
 bundler, telemetry, or remotely loaded game code. After a successful first
 online visit and service-worker installation, the same assets can load offline.
 
+## Independent vehicle handling prototype (review stage)
+
+The next proposed driving revision replaces periodic 64-way turning with
+**continuous 1024-step integer steering**, preserving deterministic, fixed-tick
+gameplay. The start menu adds three **original handling profiles**: the
+standard Errand Hatchback, quicker Weekend Coupe, and heavier Shopping Van.
+
+This is being developed in a review branch; it will appear on the live Pages
+build **only after merge**. The objective is better corners and parking feel
+without loss of the classic top-down presentation.
+
+Multi-Race-Driving is a GPLv3-licensed external **design reference** only.
+**No GPL code, assets, constants or engine dependencies are copied.**
+See [independent 2.5D implementation notes](docs/INDEPENDENT_25D_IMPLEMENTATION.md)
+for the precise source and licensing boundary, and what remains planned.
+
 ## Classic top-down → 2.5D → full 3D
 
 The first priority is **good driving feel and complete, funny gameplay in a

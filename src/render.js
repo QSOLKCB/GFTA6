@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Canvas presentation only. All rules and movement belong to core.js.
 import {WORLD, PLACES, BLOCKS, currentMission, placeById, screenPosition, INTERACT_RADIUS} from './core.js';
+import {vehicleSpec} from './vehicle.js';
 
 const TAU = Math.PI * 2;
 function rect(ctx, x, y, w, h, fill) { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); }
@@ -115,12 +116,12 @@ function marker(ctx, p, active, tick) {
   text(ctx, p.name, 0, 50, '900 12px system-ui', '#fff7e3');
   ctx.restore();
 }
-function car(ctx, x, y, headingQ) {
-  ctx.save(); ctx.translate(x, y); ctx.rotate(-headingQ * Math.PI / 32);
+function car(ctx, x, y, headingFine, paint) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(-headingFine * Math.PI / 512);
   ellipse(ctx, 4, 6, 30, 17, '#101f2b');
   rect(ctx, -20, -22, 17, 5, '#101923'); rect(ctx, -20, 17, 17, 5, '#101923');
   rect(ctx, 10, -22, 16, 5, '#101923'); rect(ctx, 10, 17, 16, 5, '#101923');
-  ctx.fillStyle = '#f36b9b'; ctx.strokeStyle = '#fff0c9'; ctx.lineWidth = 2;
+  ctx.fillStyle = paint; ctx.strokeStyle = '#fff0c9'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.roundRect(-28, -18, 59, 36, 12); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#294c69'; ctx.beginPath(); ctx.roundRect(-12, -14, 29, 28, 6); ctx.fill();
   rect(ctx, -10, -10, 4, 20, '#b6dce3');
@@ -160,7 +161,7 @@ export function drawScene(canvas, state) {
   scenery(ctx);
   const mission = currentMission(state);
   for (const p of PLACES) marker(ctx, p, mission?.place === p.id, state.tick);
-  car(ctx, carPoint.x, carPoint.y, state.headingQ);
+  car(ctx, carPoint.x, carPoint.y, state.headingFine, vehicleSpec(state.profile).paint);
   ctx.restore();
   miniMap(ctx, state);
   const target = mission?.place;
