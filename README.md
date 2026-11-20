@@ -99,6 +99,27 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
+## GFTA6-ERRANDS-003 — The Errand Economy™ (PR #6 candidate)
+
+The next GFTA6 game-specific phase adds a **physical cargo manifest** to
+shopping, parcel pickups and furniture deliveries. Finish the selection
+mini-game, load the boot, drive to the intended destination, and deliver the
+actual items before progressing.
+
+The Hatchback has 9 cargo slots, the Coupe has 5 and the Shopping Van has 15.
+The small Coupe requires **repeat trips** for a full grocery run or wardrobe,
+while the other vehicles fit each manifest in one load. No item is silently
+lost or duplicated; unfinished loads generate deterministic extra errands.
+
+A new in-game dashboard displays loaded items, capacity, pending stock and
+delivery receipts. The rules stay in GFTA6's pure JavaScript simulation, with
+no changes to car physics or collision, no new cloud dependencies, and no
+upstream rendering APIs copied or pre-emptively integrated.
+
+See [GFTA6-ERRANDS-003 delivery and replay contracts](docs/GFTA6_ERRANDS_003.md).
+The feature stays on a review branch until PR #6 passes CI, Codex review and
+manual play-through; the live Pages site continues serving merged `main`.
+
 ## GFTA6-WORLD-002 — Suburbania (review-stage PR #5)
 
 The next GFTA6-specific feature slice expands the original city from eight
