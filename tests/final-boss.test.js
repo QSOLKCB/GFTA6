@@ -8,6 +8,9 @@ import {createAirCombat,stepAirCombat,combatTargets,bossPhase,
   AIRCOMBAT_FINAL_TEXT} from '../src/aircombat.js';
 import {drawAirCombat} from '../src/aircombat-view.js';
 import {combatAudioCues} from '../src/audio-cues.js';
+import {readFile} from 'node:fs/promises';
+import {createContext,runInContext} from 'node:vm';
+import {createGameMusic} from '../src/soundtrack.js';
 
 function bossFixture(seed=1988) {
   const first=createAirCombat(seed);
@@ -141,4 +144,24 @@ test('accepted boss warning and hull impact become game SFX cues',()=>{
   }
   assert.equal(warning,true);
   assert.equal(hit,true);
+});
+
+test('production soundtrack switches to the unique boss theme only on final wave',async()=>{
+  const js=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+  const start=js.indexOf('function sceneForState() {');
+  const end=js.indexOf('function syncAudio() {',start);
+  assert.ok(start>=0&&end>start,'read the production scene switch');
+  const state=createDogfightGame(1988,'coupe');
+  const sandbox=createContext({state,AIRCOMBAT_WAVES});
+  runInContext(js.slice(start,end),sandbox);
+  assert.equal(runInContext('sceneForState()',sandbox),'dogfight');
+  state.airCombat=bossFixture(1988);
+  assert.equal(runInContext('sceneForState()',sandbox),'boss');
+  const score=createGameMusic('boss'),pcm=score.renderRange(0,9000);
+  assert.ok(pcm.some(v=>v!==0));
+  assert.equal(score.frames,48000*8);
+  state.finished=true;
+  assert.equal(runInContext('sceneForState()',sandbox),null);
+  state.finished=false;state.airCombat=null;
+  assert.equal(runInContext('sceneForState()',sandbox),'saturday');
 });
