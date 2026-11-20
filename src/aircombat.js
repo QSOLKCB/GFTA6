@@ -57,7 +57,7 @@ export function createAirCombat(seed) {
   return freeze({format:AIRCOMBAT_FORMAT,seed,stage:0,tick:0,waveTick:0,
     opponents:freshOpponents(0),yaw:0,pitch:0,gunCooldown:0,
     shots:0,gunHits:0,missileHits:0,lastMissile:false,
-    rack:createMissileRack({ammo:8}),status:'active',
+    rack:createMissileRack({ammo:8}),missileTargetId:null,status:'active',
     radio:AIRCOMBAT_WAVES[0].radio});
 }
 export function combatPose(combat) {
@@ -115,36 +115,40 @@ export function stepAirCombat(combat,control={}) {
   const pose=combatPose(view);
   let opponents=combat.opponents,rack=combat.rack,gunCooldown=Math.max(0,combat.gunCooldown-1);
   let shots=combat.shots,gunHits=combat.gunHits,missileHits=combat.missileHits;
-  let radio=combat.radio;
-  // One active missile at a time: the upstream rack's fixed-target stepping
-  // cannot otherwise bind different simultaneous projectiles to different
-  // enemy IDs without extending its contract. No target-switch teleport.
+  let radio=combat.radio,missileTargetId=combat.missileTargetId;
+  // Each one-at-a-time missile is bound to the *launch-time* opponent ID.
+  // Gunfire can disengage that rival before the missile resolves; the rack
+  // must still advance towards the original target, never retarget to the
+  // next live rival or crash because no live rival remains.
   if(focused && missile && !combat.lastMissile && rack.active.length===0) {
     const launched=launchMissile(rack,pose,{center:[...focused.center],radius:focused.radius});
     rack=launched.rack;
+    if(launched.status==='launched') missileTargetId=focused.id;
     radio=launched.status==='launched'?
       'MISSILE AWAY — '+focused.name+' IS JUST A FRIEND.' :
       'MISSILE: '+launched.status.toUpperCase().replaceAll('-',' ');
   }
-  if(focused) {
+  if(rack.active.length>0) {
+    const tracked=targets.find(t=>t.id===missileTargetId);
+    if(!tracked) throw Error('airborne missile target receipt invalid');
     for(let n=0;n<2;n++) {
       const stepped=stepMissiles(rack,
-        {center:[...focused.center],radius:focused.radius},MISSILE_STEP);
+        {center:[...tracked.center],radius:tracked.radius},MISSILE_STEP);
       rack=stepped.rack;
       for(const event of stepped.events) if(event.type==='hit') {
         missileHits++;
-        opponents=damage(opponents,focused.id,2);
-        radio=focused.name+' DISENGAGING. PARACHUTE DEPLOYED.';
+        opponents=damage(opponents,tracked.id,2);
+        radio=tracked.name+' DISENGAGING. PARACHUTE DEPLOYED.';
       }
     }
-  } else if(rack.active.length!==0) {
-    throw Error('active missile without tracked target');
+    if(rack.active.length===0) missileTargetId=null;
   } else {
-    // Cooldown still needs deterministic 120 Hz advancement between waves;
-    // use the previous known target while no projectiles are present.
-    const old=targets[0];
+    // Maintain the rack's fixed 120Hz cooldown clock even with no
+    // projectile. The dummy goal is never used for damage or lock.
+    const old=focused??targets[0];
     for(let n=0;n<2;n++)
-      rack=stepMissiles(rack,{center:[...old.center],radius:old.radius}).rack;
+      rack=stepMissiles(rack,{center:[...old.center],radius:old.radius},MISSILE_STEP).rack;
+    missileTargetId=null;
   }
   if(focused && gun && gunCooldown===0 && !opponents.find(e=>e.id===focused.id).disengaged) {
     shots++;
@@ -169,5 +173,5 @@ export function stepAirCombat(combat,control={}) {
     }
   }
   return freeze({...combat,tick,waveTick,yaw,pitch,gunCooldown,shots,gunHits,
-    missileHits,lastMissile:missile,opponents,rack,stage,status,radio});
+    missileHits,lastMissile:missile,missileTargetId,opponents,rack,stage,status,radio});
 }
