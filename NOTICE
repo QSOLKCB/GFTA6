@@ -11,3 +11,13 @@ Upstream source includes its SPDX-License-Identifier: Apache-2.0 declaration.
 GFTA6's own original code and documentation are licensed separately under
 this repository's Apache-2.0 LICENSE file. The VANILLAJS source remains
 attributed and is not silently replaced by a network dependency.
+
+Additional unchanged VANILLAJS projection25d module:
+Source repository: https://github.com/QSOLKCB/VANILLAJS
+Source file: modules/projection25d/index.js
+Pinned source commit: 9014a9dc175ea18653c289f9f2956cccb33ea7f8
+Pinned upstream Git blob SHA: be6a75a90ab3d4061486442b263457e6b97e16df
+Vendored file: vendor/vanillajs/projection25d.js
+VANILLAJS licence: Apache License 2.0
+No external CDN, network runtime, unlicensed car meshes or copied GPL racing
+engine code is required for the opt-in presentation mode.
