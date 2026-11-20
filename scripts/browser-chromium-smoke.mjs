@@ -129,6 +129,12 @@ async function main(){
   await until(()=>cdp.audioEvents.filter(x=>x.method==='WebAudio.audioNodeCreated'&&
     x.nodeType==='AudioBufferSource').length>=2,
     'original speech-motor buffer loops alongside chip soundtrack');
+  await until(()=>cdp.eval(el('street-caption')+'.textContent!=="THE FOOTPATH HAS OPINIONS"'),
+    'authored street NPC caption reacts to nearby seeded actor');
+  await until(()=>cdp.audioEvents.filter(x=>x.method==='WebAudio.audioNodeCreated'&&
+    x.nodeType==='AudioBufferSource').length>=3,
+    'real synthetic NPC voice buffer under Web Audio');
+  console.log('PASS: deterministic traffic and pedestrian radio dialogue plays actual synthesized voices');
   await click('sound');
   assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX OFF/);
   await click('sound');
