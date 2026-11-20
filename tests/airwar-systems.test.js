@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,createDogfightGame,createAirWarGame,stepGame,snapshot} from '../src/core.js';
+import {readFile} from 'node:fs/promises';
+import {createContext,runInContext} from 'node:vm';
 import {createAirWarCombat,stepAirWarCombat,inspectAirWarTactics,
   createAirWarInterceptor,AIRWAR_FORMAT,AIRWAR_TACTICS_PERIOD,
   AIRWAR_TRAJECTORY_PERIOD, AIRWAR_TRAJECTORY_STEP} from '../src/airwar.js';
@@ -176,4 +178,36 @@ test('rejects corrupt advanced combat source without changing replay state',()=>
   const game=createAirWarGame(17),before=snapshot(game);
   assert.throws(()=>stepAirWarCombat({...game.airCombat,airwar:null}),TypeError);
   assert.deepEqual(snapshot(game),before);
+});
+
+test('real start/replay handlers preserve Advanced Air War without faking completed errands',async()=>{
+  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+  const start=source.indexOf("function begin(mode = 'saturday') {");
+  const end=source.indexOf('function controlHeld(action)',start);
+  assert.ok(start>=0&&end>start);
+  const fields=new Map([
+    ['seed',{value:'1988',setCustomValidity(){},reportValidity(){}}],
+    ['vehicle',{value:'coupe'}],
+    ['aircombat-opt',{checked:false}],
+    ['intro',{hidden:false}],['ending',{hidden:false}],['mini',{hidden:false}]
+  ]);
+  const sandbox=createContext({
+    state:createGame(1988),started:false,shownMiniKey:'',lastHUDTick:10,
+    $:id=>{assert.ok(fields.has(id),id);return fields.get(id);},
+    createGame,createDogfightGame,createAirWarGame,clearControls(){},
+    refreshHUD(){},activateAudio(){},ping(){},
+    canvas:{focus(){}}
+  });
+  runInContext(source.slice(start,end),sandbox);
+  runInContext("begin('airwar')",sandbox);
+  assert.equal(sandbox.state.gameMode,'airwar');
+  const first=snapshot(sandbox.state);
+  stepGame(sandbox.state,{brake:true});
+  runInContext('restart()',sandbox);
+  assert.deepEqual(snapshot(sandbox.state),first);
+  runInContext("begin('saturday')",sandbox);
+  assert.equal(sandbox.state.gameMode,undefined);
+  assert.equal(sandbox.state.airCombat,null);
+  assert.match(source,/\$\('start-airwar'\)\.addEventListener\('click', \(\) => begin\('airwar'\)\)/);
+  assert.match(source,/loadAirWarWorld\(payload\)/);
 });
