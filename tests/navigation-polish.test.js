@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGame,interactEscape,bodyAt,stepGame,snapshot} from '../src/core.js';
+import {createGame,interactEscape,interact,chooseMiniGame,MINI_GAMES,bodyAt,stepGame,snapshot} from '../src/core.js';
 import {waypoint,ROUTE_MODES} from '../src/navigation.js';
 import {createCargoJob,loadCargo,deliverCargo} from '../src/cargo.js';
 import {PLACES} from '../src/world.js';
@@ -104,4 +104,66 @@ test('polished flight view only draws progress and never modifies flight',()=>{
   assert.ok(a.strings.includes('DEPARTURE'));
   assert.ok(a.strings.some(s=>s.includes('ARCADE')));
   assert.deepEqual(flight,initial);
+});
+
+test('active paid gig is blocked by subsequently collected shopping until all coupe batches delivered',()=>{
+  const s=createGame(1988,'coupe');
+  parkAt(s,'parcel');
+  assert.equal(interactEscape(s,'gig'),true,'take an active gig first');
+  const destination=s.escape.activeGig.to;
+  s.index=s.tasks.findIndex(m=>m.id==='groceries');
+  parkAt(s,'market');
+  assert.equal(interact(s),true);
+  for(const question of MINI_GAMES.groceries)
+    assert.equal(chooseMiniGame(s,question.answer),true);
+  assert.ok(s.cargo.loaded.length>0,'groceries must be in boot');
+  assert.equal(waypoint(s,'escape').id,'home');
+  assert.equal(waypoint(s,'escape').action,'E');
+  assert.equal(waypoint(s,'escape').prompt,'E / DELIVER ORDINARY CARGO');
+  parkAt(s,'home');
+  assert.equal(interactEscape(s,'gig'),false,'regular cargo prevents completing paid gig');
+  const first=canvasRecorder();
+  drawScene(first.canvas,s,{route:'escape'});
+  assert.ok(first.strings.includes('E / DELIVER ORDINARY CARGO'));
+  assert.equal(interact(s),true);
+  assert.equal(waypoint(s,'escape').id,'market','second coupe batch remains at store');
+  assert.equal(waypoint(s,'escape').prompt,'E / COLLECT REMAINING CARGO');
+  parkAt(s,'market');
+  assert.equal(interact(s),true);
+  assert.equal(waypoint(s,'escape').id,'home');
+  parkAt(s,'home');
+  assert.equal(interact(s),true);
+  assert.equal(s.cargo,null);
+  assert.equal(waypoint(s,'escape').id,destination,'resume the pending courier route');
+  assert.equal(waypoint(s,'escape').action,'G');
+  assert.equal(waypoint(s,'escape').prompt,'G / DELIVER PAID JOB');
+});
+
+test('funded airfield repair and launch keep U/F prompts even when boot contains ordinary cargo',()=>{
+  const s=createGame(1988,'hatchback');
+  s.cargo=loadCargo(createCargoJob('shopping','hatchback'),'hatchback');
+  s.escape=Object.freeze({...createEscape(s.seed),fundCents:RESTORATION[0].costCents});
+  parkAt(s,'airfield');
+  let nav=waypoint(s,'escape');
+  assert.equal(nav.id,'airfield');
+  assert.equal(nav.action,'U');
+  assert.equal(nav.prompt,'U / RESTORE AIRCRAFT');
+  for(const mode of ['classic','raised']){
+    const scene=canvasRecorder();
+    drawScene(scene.canvas,s,{mode,route:'escape'});
+    assert.ok(scene.strings.includes(nav.prompt),mode+' must show U for affordable repair');
+    assert.ok(!scene.strings.includes('E / DELIVER ORDINARY CARGO'));
+  }
+  s.escape=Object.freeze({...createEscape(s.seed),
+    upgrades:Object.freeze(RESTORATION.map(u=>u.id))});
+  nav=waypoint(s,'escape');
+  assert.equal(nav.id,'airfield');
+  assert.equal(nav.action,'F');
+  assert.equal(nav.prompt,'F / START ESCAPE FLIGHT');
+  for(const mode of ['classic','raised']){
+    const scene=canvasRecorder();
+    drawScene(scene.canvas,s,{mode,route:'escape'});
+    assert.ok(scene.strings.includes(nav.prompt),mode+' must show F when aircraft is ready');
+    assert.ok(!scene.strings.includes('E / DELIVER ORDINARY CARGO'));
+  }
 });
