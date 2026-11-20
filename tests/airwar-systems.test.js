@@ -1,0 +1,142 @@
+// SPDX-License-Identifier: Apache-2.0
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createGame,createDogfightGame,createAirWarGame,stepGame,snapshot} from '../src/core.js';
+import {createAirWarCombat,stepAirWarCombat,inspectAirWarTactics,
+  createAirWarInterceptor,AIRWAR_FORMAT,AIRWAR_TACTICS_PERIOD,
+  AIRWAR_TRAJECTORY_PERIOD, AIRWAR_TRAJECTORY_STEP} from '../src/airwar.js';
+import {createAirWarProject,exportAirWarWorld,verifyAirWarWorld,
+  selectAirWarWorld,drawAirWarWorld,inspectAirWarSight,AIRWAR_SOURCE,
+  AIRWAR_MAX_TRIANGLES_PER_FRAME} from '../src/airwar-world.js';
+import {AIRCOMBAT_WAVES,combatTargets} from '../src/aircombat.js';
+import {CREATOR_FORMAT} from '../vendor/vanillajs/creator-interop/index.js';
+import {createSightWorld,querySight} from '../vendor/vanillajs/sensing/index.js';
+import {createTacticsWorld,createTacticsState,stepTactics}
+  from '../vendor/vanillajs/tactics/index.js';
+import {stepTrajectory,TRAJECTORY_TICK} from '../vendor/vanillajs/trajectory/index.js';
+
+test('advanced airwar is opt-in, not a shortcut to Saturday or the old arcade',()=>{
+  const saturday=createGame(1988,'coupe');
+  const arcade=createDogfightGame(1988,'coupe');
+  const advanced=createAirWarGame(1988,'coupe');
+  assert.equal(saturday.airCombat,null);
+  assert.equal(arcade.gameMode,'dogfight');
+  assert.equal(Object.hasOwn(arcade.airCombat,'airwar'),false);
+  assert.equal(advanced.gameMode,'airwar');
+  assert.equal(advanced.airCombat.airwar.format,AIRWAR_FORMAT);
+  assert.equal(advanced.airCombat.stage,0);
+  assert.equal(advanced.airCombat.airwar.turn,0);
+  assert.equal(advanced.index,saturday.index);
+  assert.equal(advanced.moneyCents,saturday.moneyCents);
+  assert.deepEqual(advanced.body,saturday.body);
+  assert.equal(advanced.escape.flight,null,'no fictional flight completion');
+  assert.equal(advanced.escape.fundCents,0,'no economic bypass');
+  assert.deepEqual(snapshot(createAirWarGame(1988,'coupe')),
+    snapshot(advanced),'seeded creation must reproduce exactly');
+});
+test('CAD-003 original assets create an actual strict creator world and physical sight',()=>{
+  const project=createAirWarProject();
+  assert.equal(project.format,CREATOR_FORMAT);
+  assert.equal(project.assets.length,3);
+  assert.equal(project.placements.length,5);
+  assert.equal(project.zones.length,2);
+  assert.equal(project.assets.every(a=>a.dimension==='3d'&&
+    a.sourceRef==='qsol:cad-geometry:apache-2.0'),true);
+  assert.equal(project.assets.every(a=>a.vertices.length>3&&
+    a.triangles.length>3),true);
+  assert.equal(project.tactical,null,'aerial sidecar is a distinct opt-in authority');
+  assert.ok(Object.isFrozen(project.assets[0].vertices));
+  assert.match(AIRWAR_SOURCE,/e9121ea7297b0aeca1da131b695e7c3371a98745/);
+  const sight=inspectAirWarSight();
+  const west=querySight(sight,{position:[-32,172,-150],direction:[0,0,-1]},
+    {range:250,fov:2*Math.PI});
+  assert.ok(Array.isArray(west),'SENSE world is real and queryable');
+  assert.deepEqual(createAirWarProject(),project);
+});
+test('Creator-Interop-001 SHA-256 export/import is sealed, offline and tamper-rejecting',async()=>{
+  const payload=await exportAirWarWorld();
+  const checked=await verifyAirWarWorld(payload);
+  assert.deepEqual(checked,createAirWarProject());
+  const pkg=JSON.parse(payload);
+  assert.match(pkg.sha256,/^[a-f0-9]{64}$/);
+  assert.equal(pkg.hashes.length,3);
+  assert.ok(new TextEncoder().encode(payload).length<=262144);
+  assert.equal(await exportAirWarWorld(),payload,'deterministic project bytes');
+  const bad=JSON.parse(payload);
+  bad.project.placements[0].position[0]+=1;
+  await assert.rejects(verifyAirWarWorld(JSON.stringify(bad)),/integrity mismatch/);
+  await assert.rejects(verifyAirWarWorld('{}'));
+});
+test('WORLD-VIS-001 culls retained CAD terrain and never changes combat state',()=>{
+  const c=createAirWarCombat(1988),before=JSON.stringify(c);
+  const a=selectAirWarWorld(c,960,600);
+  const b=selectAirWarWorld(c,960,600);
+  assert.deepEqual(a,b,'identical view selection has stable order and LOD');
+  assert.ok(a.selected>0&&a.selected<=5);
+  assert.ok(a.selectedBytes<8*1024*1024);
+  assert.ok(a.rows.every(r=>['high','low'].includes(r.lod)));
+  let fill=0,lines=0;
+  const ctx={
+    beginPath(){},moveTo(){},lineTo(){},closePath(){},
+    fill(){fill++;},stroke(){lines++;}
+  };
+  const stats=drawAirWarWorld(ctx,c,960,600);
+  assert.ok(stats.drawnTriangles>0);
+  assert.ok(stats.drawnTriangles<=AIRWAR_MAX_TRIANGLES_PER_FRAME);
+  assert.equal(fill,lines);
+  assert.equal(JSON.stringify(c),before,'visibility never modifies actor authority');
+});
+test('TACTICS-001 actually plans finite SENSE orders and changes aerial formation offsets',()=>{
+  const a=inspectAirWarTactics(1988,1,0),b=inspectAirWarTactics(1988,1,5);
+  assert.equal(a.turn,0);assert.equal(b.turn,5);
+  assert.equal(Object.keys(a.offsets).length,3);
+  assert.ok(b.orders.length<=3);
+  assert.ok(b.orders.every(o=>['hold','move','suppress','retreat'].includes(o.action)));
+  assert.ok(b.visible>=0);
+  assert.ok(Object.isFrozen(b.offsets));
+  assert.deepEqual(inspectAirWarTactics(1988,1,5),b,'fixed seed replays tactical policy');
+  assert.throws(()=>inspectAirWarTactics(1988,9),RangeError);
+  assert.throws(()=>inspectAirWarTactics(1988,1,17),RangeError);
+  const combat=createAirWarCombat(1988);
+  assert.equal(AIRWAR_TACTICS_PERIOD,60);
+  for(let i=0;i<62;i++) {
+    const next=stepAirWarCombat(combat,{});
+    if(i===61)assert.ok(next.airwar.turn>=1);
+  }
+});
+test('TRAJECTORY-001 interceptor uses physical 120Hz swept actor contact without fake damage',()=>{
+  const c=createAirWarCombat(1988),shot=createAirWarInterceptor(c);
+  assert.ok(shot,'valid target must create an actual SENSE locked shot');
+  assert.equal(shot.state.status,'flying');
+  assert.equal(TRAJECTORY_TICK,1/120);
+  assert.equal(AIRWAR_TRAJECTORY_STEP,2);
+  let resolved=shot.state;
+  for(let i=0;i<400&&resolved.status==='flying';i++)
+    resolved=stepTrajectory(shot.world,resolved,2);
+  assert.equal(resolved.status,'hit','interceptor reaches swept actor contact');
+  assert.equal(resolved.event.kind,'actor');
+  assert.equal(resolved.event.id,'pilot');
+  assert.ok(resolved.event.fraction>=0&&resolved.event.fraction<=1);
+  assert.equal(c.hull,3,'trajectory telemetry never invents damage');
+});
+test('advanced fixed-tick policy is deterministic across identical inputs and keeps player hull',()=>{
+  const a=createAirWarGame(1988),b=createAirWarGame(1988);
+  for(let tick=0;tick<300;tick++){
+    const input={steer:tick%130<40?1:0,throttle:0,brake:false,missile:false};
+    stepGame(a,input);stepGame(b,input);
+  }
+  assert.deepEqual(snapshot(a),snapshot(b));
+  assert.equal(a.airCombat.airwar.format,AIRWAR_FORMAT);
+  assert.ok(a.airCombat.airwar.turn>=1);
+  assert.equal(a.airCombat.hull,3);
+  assert.equal(a.airCombat.airwar.stage,0);
+  assert.equal(a.index,0);
+  assert.equal(a.escape.fundCents,0);
+  assert.ok(a.airCombat.airwar.contacts>=0);
+  assert.equal(AIRWAR_TRAJECTORY_PERIOD,300);
+});
+test('rejects corrupt advanced combat source without changing replay state',()=>{
+  const game=createAirWarGame(17),before=snapshot(game);
+  assert.throws(()=>stepAirWarCombat({...game.airCombat,airwar:null}),TypeError);
+  assert.deepEqual(snapshot(game),before);
+});
