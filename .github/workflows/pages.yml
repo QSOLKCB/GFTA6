@@ -35,6 +35,8 @@ jobs:
       - name: Validate game before publishing
         run: |
           node --check src/core.js
+          node --check src/airwar.js
+          node --check src/airwar-world.js
           node --check src/audio-player.js
           node --check src/soundtrack.js
           node --check src/audio-cues.js
