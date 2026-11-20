@@ -34,7 +34,7 @@
         </div>
         <div class="street-radio" aria-live="off"><strong>STREET RADIO / NO INSIDE VOICES</strong><span id="street-caption">THE FOOTPATH HAS OPINIONS</span></div>
         <div class="viewport">
-          <canvas id="canvas" width="960" height="600" tabindex="0" aria-label="Overhead city driving game. W or Up drives, S or Down reverses and brakes, A or Left and D or Right steer. Press E near destinations, P pauses."></canvas>
+          <canvas id="canvas" width="960" height="600" tabindex="0" aria-label="Suburbania arcade driving. WASD or arrow keys steer and accelerate, Space brakes, E interacts near destinations, P pauses. Ambient cars and pedestrians are non-colliding comedy scenery."></canvas>
           <div id="intro" class="splash">
             <div class="splash-card">
               <img class="splash-art" src="./assets/gfta6-banner.svg" alt="GFTA6 satirical project banner: a car overloaded with shopping and an impossible mission alert">
@@ -57,7 +57,7 @@
                   </div>
                   <button id="start-airwar" type="button" class="button-arcade">ADVANCED AIR WAR — THE GROUP CHAT STRIKES BACK™ ↗</button>
                 </div>
-                <small>WASD / ARROWS DRIVE · SPACE BRAKE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW. CHIP MUSIC, THE ORIGINAL F-UH-K IDLE AND ROBOTIC STREET ARGUMENTS START WITH YOUR GAME CLICK; SFX MUTES ALL VOICES.</small>
+                <small>WASD / ARROWS DRIVE · SPACE BRAKE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW. CHIP MUSIC, THE ORIGINAL F-UH-K IDLE AND ROBOTIC STREET ARGUMENTS START WITH YOUR GAME CLICK. NPC VOICES CAN BE MUTED WITHOUT SILENCING THE CAR.</small>
               </div>
             </div>
           </div>
@@ -93,7 +93,8 @@
               title="Toggle between classic top-down and raised 2.5D scenery and car">VIEW: CLASSIC 2D</button>
             <button id="route-mode" class="tool-button" type="button" aria-pressed="false"
               title="Switch compass and mini-map guidance between errands and escape objectives">N / ROUTE: ERRANDS</button>
-            <button id="sound" class="tool-button" aria-pressed="true" title="Toggle original effects and synthesized profanity engine (only in Saturday driving)">SFX ON</button>
+            <button id="sound" class="tool-button" aria-pressed="true" title="Toggle all sound effects including the original swearing motor and street speech">SFX ON</button>
+            <button id="street-voices" class="tool-button" type="button" aria-pressed="true" title="Toggle nearby synthetic NPC voices; captions, traffic, pedestrians, and the player car engine remain unchanged">NPC VOICES ON</button>
             <button id="import-airwar" type="button" class="tool-button" hidden title="Open a sealed original World Foundry JSON file with SHA-256 verification">IMPORT AIRWAR WORLD</button>
             <input id="airwar-file" type="file" accept=".json,application/json" hidden aria-label="Air War sealed content file">
             <button id="export-airwar" type="button" class="tool-button" hidden title="Export original Air War Foundry content in a SHA-256 sealed offline JSON package">EXPORT AIRWAR WORLD</button>
