@@ -3,21 +3,9 @@
 // Motion is supplied by a pinned Apache-2.0 VANILLAJS module (see NOTICE).
 import {createBody2D} from '../vendor/vanillajs/motion2d.js';
 import {stepCar, vehicleSpec, DEFAULT_VEHICLE} from './vehicle.js';
+import {WORLD, PLACES, BLOCKS} from './world.js';
+export {WORLD, PLACES, BLOCKS} from './world.js';
 
-export const WORLD = Object.freeze({width: 1120, height: 830, roadsX: [170, 560, 950], roadsY: [170, 435, 695]});
-export const TICK_HZ = 60;
-export const INTERACT_RADIUS = 72;
-const MOTOR_UNITS_PER_PIXEL = 64;
-export const PLACES = Object.freeze([
-  {id: 'home', name: 'HOME SWEET HOME', x: 170, y: 170, icon: '⌂', tint: '#f8c77f'},
-  {id: 'salon', name: 'NAIL SALON', x: 560, y: 170, icon: '✦', tint: '#fc97b6'},
-  {id: 'spa', name: 'HEALTH SPA', x: 950, y: 170, icon: '✺', tint: '#92e4c9'},
-  {id: 'fuel', name: 'PETROL', x: 170, y: 435, icon: '⛽', tint: '#e8b16c'},
-  {id: 'market', name: 'SUPERMARKET', x: 950, y: 435, icon: '▣', tint: '#93c9f5'},
-  {id: 'dry', name: 'DRY CLEANERS', x: 560, y: 695, icon: '◈', tint: '#c3aff9'},
-  {id: 'hardware', name: 'HARDWARE', x: 170, y: 695, icon: '⚒', tint: '#eeb07e'},
-  {id: 'parcel', name: 'PARCEL DEPOT', x: 950, y: 695, icon: '▤', tint: '#b7e3ee'}
-]);
 const PLACE_LOOKUP = new Map(PLACES.map(p => [p.id, p]));
 export function placeById(id) { return PLACE_LOOKUP.get(id) ?? null; }
 export function screenPosition(body) {
@@ -28,12 +16,6 @@ export function bodyAt(x, y, heading = 0) {
   return createBody2D({x: Math.round(x * MOTOR_UNITS_PER_PIXEL),
     y: Math.round((WORLD.height - y) * MOTOR_UNITS_PER_PIXEL), heading});
 }
-export const BLOCKS = Object.freeze([
-  {x: 297, y: 279, w: 119, h: 94, color: '#6186a6', label: 'FLATS'},
-  {x: 735, y: 285, w: 136, h: 86, color: '#aa86a2', label: 'OFFICES'},
-  {x: 324, y: 539, w: 129, h: 91, color: '#d09f70', label: 'SHOPS'},
-  {x: 752, y: 541, w: 126, h: 93, color: '#7aa48f', label: 'PARK'}
-]);
 function isBlocked(px, py) {
   const p = screenPosition({x: px, y: py});
   // Solid building rectangles have a small safety margin for the car body.
@@ -54,6 +36,14 @@ const BASIC_MISSIONS = Object.freeze([
     description: 'Find the exact items. Substitutions are apparently a war crime.'},
   {id: 'hardware', place: 'hardware', kind: 'hardware', title: 'ONE VERY SPECIFIC SCREW',
     description: 'Go to the hardware shop. The first four options are wrong.'},
+  {id: 'dogspa-run', place: 'dogspa', kind: 'drive', title: 'THE DOG HAS AN APPOINTMENT',
+    description: 'The dog needs a haircut. Somehow the dog has a better social life.'},
+  {id: 'furniture-run', place: 'furniture', kind: 'drive', title: 'IT FITS IN THE CAR, TRUST ME',
+    description: 'Collect the mystery furniture. No, nobody measured the boot.'},
+  {id: 'bread-run', place: 'bakery', kind: 'drive', title: 'BREAD. THE CORRECT KIND.',
+    description: 'The bakery has 37 varieties. The correct one is almost definitely sold out.'},
+  {id: 'takeaway-run', place: 'takeaway', kind: 'takeaway', title: 'WHATEVER YOU WANT FOR DINNER',
+    description: 'A seemingly simple dinner order becomes a multi-stage negotiation.'},
   {id: 'return', place: 'home', kind: 'drive', title: 'FINALLY GOING HOME',
     description: 'Your sofa exists. You remember it fondly.'},
   {id: 'laundry', place: 'home', kind: 'laundry', title: 'THE FITTED SHEET INCIDENT',
@@ -90,6 +80,11 @@ export const MINI_GAMES = Object.freeze({
     {prompt: 'Step one of 46:', choices: ['Install door first', 'Lay out and count the parts', 'Throw away instructions'], answer: 1},
     {prompt: 'The dowels belong...', choices: ['In the pre-drilled holes', 'In the coffee machine', 'Outside in the garden'], answer: 0},
     {prompt: 'The final step is...', choices: ['Skip the wall anchor', 'Use the wardrobe as a ladder', 'Secure it according to instructions'], answer: 2}
+  ],
+  takeaway: [
+    {prompt: '"Anything is fine." Which place?', choices: ['Sushi', 'The place she mentioned yesterday', 'The moon'], answer: 1},
+    {prompt: '"Not THAT place." What was the issue?', choices: ['Wrong packaging', 'Too much parking', 'The order was missing chips'], answer: 2},
+    {prompt: 'What must you check before leaving?', choices: ['Every item and the receipt', 'The phase of the moon', 'The roof rack'], answer: 0}
   ],
   boss: [
     {prompt: '"I THOUGHT YOU WERE GOING TO DO THAT TODAY." What do you say?',
@@ -158,11 +153,11 @@ export function stepGame(state, controls = {}) {
   if (state.fuel === 0 && state.tick % 150 === 0) addLog(state, 'FUEL EMPTY. Petrol station, please.');
   const mission = currentMission(state);
   if (mission?.id === 'return' && !state.ambushed && distanceToPlace(state, 'home') < 175) {
-    const where = state.seed % 2 === 0 ? 'spa' : 'parcel';
+    const where = ['spa', 'parcel', 'chemist', 'neighbour'][state.seed % 4];
     state.tasks.splice(state.index, 0, {
       id: 'ambush', place: where, kind: 'drive', title: 'ONE LAST THING (PROMISE)',
       description: 'While you are out, can you just swing by ' +
-        (where === 'spa' ? 'the health spa' : 'the parcel depot') + '?'
+        placeById(where).name.toLowerCase() + '?'
     });
     state.ambushed = true;
     addLog(state, 'NEW MESSAGE: "While you are out, can you just..."');
@@ -196,6 +191,9 @@ export function interact(state) {
       : 'MINI-GAME STARTED: ' + mission.title);
   } else {
     if (mission.id === 'salon') state.moneyCents -= 1200;
+    if (mission.id === 'dogspa-run') state.moneyCents -= 650;
+    if (mission.id === 'furniture-run') state.moneyCents -= 1250;
+    if (mission.id === 'bread-run') state.moneyCents -= 450;
     if (mission.id === 'ambush') state.moneyCents -= 850;
     addLog(state, 'ERRAND COMPLETE: ' + mission.title);
     advanceMission(state);
@@ -224,6 +222,7 @@ export function chooseMiniGame(state, selection) {
   if (state.miniGame.round === questions.length) {
     if (type === 'groceries') state.moneyCents -= 1620;
     if (type === 'hardware') state.moneyCents -= 625;
+    if (type === 'takeaway') state.moneyCents -= 1350;
     if (type === 'furniture') state.goodwill = Math.min(100, state.goodwill + 7);
     state.miniGame = null;
     addLog(state, 'MINI-GAME COMPLETE. No free time awarded.');
