@@ -200,7 +200,9 @@ window.addEventListener('keydown', event => {
   }
   if (event.code in bindings) {
     event.preventDefault();
-    if (started && !state.paused && !state.finished && !state.miniGame) {
+    // OS key repeats must not rearm controls cleared by a mini-game or pause.
+    // Require a fresh physical keydown after the key has been released.
+    if (!event.repeat && started && !state.paused && !state.finished && !state.miniGame) {
       keyHeld.add(event.code); syncKeys();
     }
     return;
