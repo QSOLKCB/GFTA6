@@ -99,7 +99,29 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-AIRCOMBAT-001A — JUST A FRIEND SQUADRON™ (review-stage PR)
+## GFTA6-MODES-001 — TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™ (review stage)
+
+You can now enter the **entire JUST A FRIEND SQUADRON™ air-combat arcade**
+directly from a **separate start-screen button**, with no need to beat
+the (deliberately difficult) Saturday campaign first.
+
+**START SATURDAY** still starts the original story, complete with the
+unchanged economy, errands, escape fund, aircraft restoration and hard
+flight. The optional ACT IV checkbox still extends that story after a
+successful escape. **Nothing has become easier.**
+
+**TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™** begins wave one of the
+existing three-wave encounter immediately, using the same physical cockpit
+sights, missile locks, seed-based opponent movement and fixed-tick rules.
+Use W/S + A/D to aim, Space for guns, M for missiles, and P to pause.
+Replay restarts the selected mode instead of throwing you into the other
+campaign. The standalone sidebar tracks actual combat waves, not grocery
+errands. The canonical Derek finale is unchanged.
+
+Read [GFTA6-MODES-001 mode separation and review criteria](docs/GFTA6_MODES_001.md).
+This new launch option reaches GitHub Pages only after review and merge.
+
+## GFTA6-AIRCOMBAT-001A — JUST A FRIEND SQUADRON™ (merged PR #11)
 
 The merged VANILLAJS COCKPIT-002 release now supplies the actual
 gun-sight geometry and deterministic missile module. A new **opt-in
@@ -125,7 +147,7 @@ cloud services, npm dependencies or GPL code.
 
 See [AIRCOMBAT-001A implementation and review gates](docs/GFTA6_AIRCOMBAT_001A.md)
 and [the locked campaign canon](docs/GFTA6_AIRCOMBAT_001.md).
-Not live on Pages until the PR is reviewed, accepted and merged.
+PR #11 is merged and the optional ACT IV combat is present in mainline GFTA6.
 
 ## GFTA6-POLISH-001 — Route Guidance and Flight HUD (merged PR #9)
 
