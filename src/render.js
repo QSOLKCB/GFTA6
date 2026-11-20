@@ -5,6 +5,7 @@ import {vehicleArt} from './vehicle-art.js';
 import {PARKING_BAYS} from './world.js';
 import {getCityProjection, projectCityGroundPoint} from './scene25d.js';
 import {drawFlightScene} from './flight-view.js';
+import {waypoint, ROUTE_MODES} from './navigation.js';
 
 const TAU = Math.PI * 2;
 const BUILDING_BY_ID = new Map(BLOCKS.map(b => [b.id, b]));
@@ -186,20 +187,46 @@ function raisedCity(ctx, state, carPoint) {
     text(ctx,source.label,centerX,centerY+5,'bold 13px system-ui','#fff5dc');
   }
 }
-function miniMap(ctx, state) {
+function routeOverlay(ctx, width, nav) {
+  if (!nav) return;
+  const left=width-228, y=12;
+  rect(ctx,left,y,216,94,'rgba(10,25,42,.93)');
+  ctx.strokeStyle=nav.mode==='escape'?'#ffd69b':'#a9e9d7';
+  ctx.lineWidth=2;
+  ctx.strokeRect(left,y,216,94);
+  ctx.save();
+  ctx.translate(left+34,y+45);
+  ctx.rotate(nav.bearing);
+  ctx.fillStyle=nav.mode==='escape'?'#ffd69b':'#a9e9d7';
+  ctx.beginPath();
+  ctx.moveTo(20,0);ctx.lineTo(-11,-13);ctx.lineTo(-5,0);
+  ctx.lineTo(-11,13);ctx.closePath();ctx.fill();
+  ctx.restore();
+  text(ctx,nav.mode==='escape'?'ESCAPE ROUTE':'ERRAND ROUTE',
+    left+121,y+19,'bold 10px system-ui','#c9d2d9');
+  text(ctx,nav.label.slice(0,22),left+120,y+44,
+    '900 13px system-ui','#fff5de');
+  text(ctx,nav.distance+' u AWAY',left+120,y+63,
+    'bold 12px system-ui','#ffe3b3');
+  text(ctx,'N: SWITCH ROUTE',left+120,y+82,
+    'bold 10px system-ui','#a9e9d7');
+}
+function miniMap(ctx, state, nav) {
   const x = 12, y = 12, w = 170, h = 120;
   rect(ctx, x - 4, y - 4, w + 8, h + 8, 'rgba(9,22,38,.90)');
   ctx.strokeStyle = '#718692'; ctx.strokeRect(x - 4, y - 4, w + 8, h + 8);
   const sx = w / WORLD.width, sy = h / WORLD.height;
   for (const rx of WORLD.roadsX) rect(ctx, x + rx * sx - 3, y, 6, h, '#60748c');
   for (const ry of WORLD.roadsY) rect(ctx, x, y + ry * sy - 3, w, 6, '#60748c');
-  const mission = currentMission(state), target = placeById(mission?.place);
-  for (const p of PLACES) ellipse(ctx, x + p.x * sx, y + p.y * sy, p.id === target?.id ? 4 : 2, p.id === target?.id ? 4 : 2, p.tint);
+  const target = nav?.id;
+  for (const p of PLACES) ellipse(ctx, x + p.x * sx, y + p.y * sy,
+    p.id === target ? 5 : 2, p.id === target ? 5 : 2, p.tint);
   const c = screenPosition(state.body);
   ellipse(ctx, x + c.x * sx, y + c.y * sy, 5, 5, '#ffebaf');
   text(ctx, 'CITY MAP', x + w - 6, y + h - 7, 'bold 9px system-ui', '#e5d8bd', 'right');
 }
-export function drawScene(canvas, state, {mode = 'classic'} = {}) {
+export function drawScene(canvas, state, {mode = 'classic', route = 'errands'} = {}) {
+  if (!ROUTE_MODES.includes(route)) throw new RangeError('invalid route mode');
   // Reject an unsupported visual mode before touching canvas or game state.
   getCityProjection(mode);
   if (state.escape?.flight) {
@@ -218,16 +245,18 @@ export function drawScene(canvas, state, {mode = 'classic'} = {}) {
   const raised = mode === 'raised';
   scenery(ctx, !raised);
   const mission = currentMission(state);
+  const nav=waypoint(state,route);
   if (raised) {
     raisedCity(ctx, state, carPoint);
     // Destination hints stay readable even where tall scenery overlaps.
-    for (const p of PLACES) marker(ctx, p, mission?.place === p.id, state.tick);
+    for (const p of PLACES) marker(ctx, p, nav?.id === p.id, state.tick);
   } else {
-    for (const p of PLACES) marker(ctx, p, mission?.place === p.id, state.tick);
+    for (const p of PLACES) marker(ctx, p, nav?.id === p.id, state.tick);
     car(ctx, carPoint.x, carPoint.y, state.headingFine, vehicleArt(state.profile));
   }
   ctx.restore();
-  miniMap(ctx, state);
+  miniMap(ctx, state, nav);
+  routeOverlay(ctx, w, nav);
   const target = mission?.place;
   if (target && state.miniGame === null && Math.hypot(
     carPoint.x - placeById(target).x, carPoint.y - placeById(target).y
