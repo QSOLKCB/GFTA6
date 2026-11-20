@@ -86,6 +86,7 @@ export function launchFlight(escape,place) {
   if (escape.activeGig)return freeze({state:escape,ok:false,
     message:'Finish the paid delivery before taking off.'});
   if (escape.flight?.status==='escaped')return freeze({state:escape,ok:false,message:'You already escaped. Allegedly.'});
+  if (escape.flight?.status==='flying')return freeze({state:escape,ok:false,message:'Currently airborne. Finish your flight first.'});
   return freeze({state:freeze({...escape,flight:createFlight()}),ok:true,
     message:'OPERATION FREEDOM FLIGHT: W accelerate, Space lift, A/D bank. Do not forget the milk.'});
 }
