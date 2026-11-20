@@ -9,11 +9,11 @@ import {createAudioPlayer} from '../src/audio-player.js';
 import {combatAudioCues} from '../src/audio-cues.js';
 import {createAirCombat,stepAirCombat} from '../src/aircombat.js';
 
-test('original Saturday, flight and dogfight themes render genuine stereo chip PCM',()=>{
+test('original Saturday, flight, dogfight and final boss themes render stereo PCM',()=>{
   assert.equal(CHIP_AUDIO_FORMAT,'qsol.vanillajs.chip-audio.v1');
   assert.equal(CHIP_AUDIO_CHANNELS,4);
   assert.equal(CHIP_AUDIO_RATE,48000);
-  assert.deepEqual(MUSIC_MODES,['saturday','flight','dogfight']);
+  assert.deepEqual(MUSIC_MODES,['saturday','flight','dogfight','boss']);
   for(const mode of MUSIC_MODES){
     const a=createGameMusic(mode),b=createGameMusic(mode);
     assert.ok(isChipAudio(a));

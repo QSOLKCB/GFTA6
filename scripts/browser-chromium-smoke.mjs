@@ -157,7 +157,7 @@ async function main(){
     x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSource').length;
   const beforeWeaponSounds=countSources();
   const gunHUD=()=>cdp.eval(el('escape-goal')+'.textContent');
-  assert.match(await gunHUD(),/\bWAVE 1\/3\b.*\bGUN HITS 0\b/);
+  assert.match(await gunHUD(),/\bWAVE 1\/6\b.*\bGUN HITS 0\b/);
   await key('Space',true);
   try{
     await until(async()=>/\bGUN HITS [1-9]\d*\b/.test(await gunHUD()),'gun hit from physical Space');
@@ -170,6 +170,37 @@ async function main(){
   console.log('PASS: physical gun and missile inputs emit source-backed SFX voices');
   await screenshot('dogfight.png');
   console.log('PASS: real arcade click, Canvas, M missile and Space gun');
+  // Independent *render-only fixture*: import the checked source and draw the
+  // final boss to a second real Chromium Canvas. No game state is modified or
+  // gameplay victory bypassed; full six-wave victory is covered by Node tests.
+  const bossView=await cdp.eval(`(async()=>{
+    const mod=await import('./src/aircombat.js');
+    const render=await import('./src/aircombat-view.js');
+    const first=mod.createAirCombat(1988);
+    const spec=mod.AIRCOMBAT_WAVES.at(-1).members[0];
+    const boss=Object.freeze({...first,stage:mod.AIRCOMBAT_WAVES.length-1,
+      opponents:Object.freeze([Object.freeze({...spec,hp:spec.hp,
+        maxHp:spec.hp,role:'boss',disengaged:false})])});
+    const canvas=document.createElement('canvas');canvas.width=960;canvas.height=600;
+    canvas.id='ci-boss-visual-evidence';
+    canvas.style.cssText='display:block;max-width:100%;height:auto;margin:24px auto';
+    document.body.append(canvas);
+    render.drawAirCombat(canvas,boss);
+    canvas.scrollIntoView({block:'center',behavior:'instant'});
+    const pixels=canvas.getContext('2d').getImageData(0,0,960,600).data;
+    const colors=new Set();
+    for(let i=0;i<pixels.length;i+=1853*4)
+      colors.add(pixels[i]+','+pixels[i+1]+','+pixels[i+2]);
+    return {wave:mod.AIRCOMBAT_WAVES.length,contacts:mod.AIRCOMBAT_WAVES
+      .reduce((n,w)=>n+w.members.length,0),bossHp:boss.opponents[0].hp,
+      colors:colors.size};
+  })()`);
+  assert.equal(bossView.wave,6);
+  assert.equal(bossView.contacts,14);
+  assert.equal(bossView.bossHp,12);
+  assert.ok(bossView.colors>6,'Chromium did not paint the final boss Canvas');
+  await screenshot('boss-render-fixture.png');
+  console.log('PASS: independently rendered original final-boss silhouette in real Chromium');
   await cdp.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   const mobile=await cdp.eval(`({
     width: innerWidth,

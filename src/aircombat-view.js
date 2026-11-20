@@ -3,8 +3,8 @@
 // Gun and missile hit authority remains in src/aircombat.js and VANILLAJS.
 import {projectCockpitPoint,inspectCockpitSight} from '../vendor/vanillajs/cockpit-rig/index.js';
 import {missileLock} from '../vendor/vanillajs/missiles.js';
-import {combatPose,combatTargets,combatCamera,combatRackSummary,
-  AIRCOMBAT_WAVES} from './aircombat.js';
+import {combatPose,combatTargets,combatCamera,combatRackSummary,bossPhase,
+  BOSS_PHASE_LINES,AIRCOMBAT_WAVES} from './aircombat.js';
 const rect=(ctx,x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
 function poly(ctx,pts,color) {
   ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...pts[0]);
@@ -25,6 +25,20 @@ function fighter(ctx,x,y,radius,color,disabled) {
     [-s*.08,s*.82],[-s*.15,.38*s],[-s,.65*s],[-s,.4*s],
     [-s*.22,-s*.08]],color);
   rect(ctx,-s*.06,-s*.42,s*.12,s*.38,'#94abb4');
+  ctx.restore();
+}
+// Extra-large original fictional command aircraft, intentionally distinct
+// from the smaller pursuing fighters. No imported model or raster artwork.
+function bossAircraft(ctx,x,y,disabled){
+  ctx.save();ctx.translate(x,y);ctx.globalAlpha=disabled?.32:1;
+  poly(ctx,[[-18,-66],[18,-66],[34,-25],[108,0],[115,20],[42,17],
+    [29,69],[9,53],[0,77],[-9,53],[-29,69],[-42,17],
+    [-115,20],[-108,0],[-34,-25]],'#b15d86');
+  poly(ctx,[[-81,8],[-40,-3],[-18,27],[-54,22]],'#612e50');
+  poly(ctx,[[81,8],[40,-3],[18,27],[54,22]],'#612e50');
+  poly(ctx,[[-10,-55],[10,-55],[17,10],[0,29],[-17,10]],'#9cd4d1');
+  rect(ctx,-5,-62,10,28,'#fff0b5');
+  rect(ctx,-105,11,23,5,'#f7cc97');rect(ctx,82,11,23,5,'#f7cc97');
   ctx.restore();
 }
 // Deterministic particles are drawn from immutable gameplay hit receipts.
@@ -96,11 +110,13 @@ export function drawAirCombat(canvas,combat) {
     const p=projectCockpitPoint(camera,[...t.center],{width:w,height:h});
     if(!p.visible||p.x< -80||p.x>w+80||p.y< -80||p.y>h+80)continue;
     const size=340/Math.max(65,p.depth);
-    fighter(ctx,p.x,p.y,Math.max(14,size*13),t.paint,t.disengaged);
+    if(t.role==='boss')bossAircraft(ctx,p.x,p.y,t.disengaged);
+    else fighter(ctx,p.x,p.y,Math.max(14,size*13),t.paint,t.disengaged);
     if(t.disengaged)continue;
     ctx.strokeStyle='#efce91';ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(p.x,p.y,Math.max(18,size*17),0,2*Math.PI);ctx.stroke();
-    text(ctx,t.name+' ['+t.hp+'/2]',p.x,p.y-28,12,'#fff0c9','center');
+    text(ctx,t.name+' ['+t.hp+'/'+t.maxHp+']',p.x,
+      p.y-(t.role==='boss'?89:28),12,'#fff0c9','center');
   }
   for(const shot of combat.rack.active) {
     const p=projectCockpitPoint(camera,[...shot.position],{width:w,height:h});
@@ -147,7 +163,8 @@ export function drawAirCombat(canvas,combat) {
     rack.ammo===0 ? 'EMPTY' :
     rack.cooldownTicks>0 ? 'COOLDOWN' :
     lock?.locked ? 'LOCKED' : (lock?.reason??'NO CONTACT').toUpperCase().replaceAll('-',' ');
-  text(ctx,'JUST A FRIEND SQUADRON™  ·  WAVE '+(stage+1)+'/3',26,42,17,'#ffe5b7');
+  text(ctx,'JUST A FRIEND SQUADRON™  ·  WAVE '+(stage+1)+'/'+
+    AIRCOMBAT_WAVES.length,26,42,17,'#ffe5b7');
   text(ctx,wave.name,26,71,15,'#b7e4d8');
   text(ctx,'GUNS: SPACE  ·  MISSILES: M  ·  AIM: WASD / ARROWS',26,98,12);
   text(ctx,'MISSILES '+rack.ammo+'  ·  '+lockStatus,
@@ -158,8 +175,27 @@ export function drawAirCombat(canvas,combat) {
   text(ctx,'CONTACTS: '+combat.opponents.filter(o=>o.disengaged).length+
     '/'+combat.opponents.length+'  ·  GUN '+combat.gunHits+
     '  ·  MISSILE '+combat.missileHits+
-    '  ·  PURSUER '+(Number.isFinite(closest)?Math.round(closest)+' u':'CLEAR'),
+    '  ·  HULL '+combat.hull+'/3  ·  PURSUER '+
+    (Number.isFinite(closest)?Math.round(closest)+' u':'CLEAR'),
     25,h-40,13,'#c2e5dc');
+  const boss=combat.opponents.find(e=>e.role==='boss');
+  if(boss){
+    const phase=bossPhase(combat),barWidth=360;
+    rect(ctx,w/2-205,142,410,77,'rgba(17,20,40,.89)');
+    text(ctx,'FINAL BOSS — '+BOSS_PHASE_LINES[(phase??1)-1],
+      w/2,165,12,'#ffd1e5','center');
+    rect(ctx,w/2-barWidth/2,178,barWidth,12,'#38263e');
+    rect(ctx,w/2-barWidth/2,178,
+      Math.round(barWidth*boss.hp/boss.maxHp),12,'#ec85a8');
+    text(ctx,boss.hp+' / '+boss.maxHp+' HP',w/2,209,12,
+      '#ffdfef','center');
+    if(combat.bossAttack)
+      text(ctx,'LOCKED PERSONAL SPACE — EVADE WITH A / D',
+        w/2,h/2+120,19,'#ffd1a7','center');
+    if(combat.status==='shot-down')
+      text(ctx,'THE FINAL WORD WON — REPLAY TO TRY AGAIN',
+        w/2,h/2+80,23,'#ffbfb7','center');
+  }
   if(combat.status==='won')text(ctx,'MISSION ACCOMPLISHED.',w/2,h/2,32,'#ffe5b7','center');
 }
 // The shared rig is owned by the combat authority; expose a pure accessor

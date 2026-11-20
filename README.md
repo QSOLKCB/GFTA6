@@ -99,7 +99,31 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-AUDIO-001 — Chip soundtrack and impact polish (PR #15)
+## GFTA6-AIRCOMBAT-002 — THE FINAL WORD™ (review-stage PR #16)
+
+**TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™** now has a six-wave
+campaign: the original Derek and Group Chat encounters, followed by
+**THE MUTUAL FRIENDS™**, **THE READ RECEIPTS™**, and a formidable final
+boss, **THE FINAL WORD™**. There are now **14 unique aircraft contacts**.
+
+The boss has its own **original ADSR/Paula chip-music theme**. It is a large original 2.5D command plane with **12 HP, three
+dialogue/attack phases and a telegraphed personal-space interceptor**.
+When its warning appears, use **A/D to evade** the indicated attack lane.
+Three hits to your hull end the run, but Replay returns to the same
+seed and standalone game mode. The existing gun/missile physics,
+non-graphic explosions, original soundtrack and difficult Saturday
+missions are preserved.
+
+The familiar owner-locked **MISSION ACCOMPLISHED** / **"HE'S ACTUALLY A
+REALLY NICE GUY."™** dialogue still plays after the final boss is
+defeated; it has not been rewritten.
+
+Read [the expanded squadron contract, boss mechanics and review
+gates](docs/GFTA6_AIRCOMBAT_002.md).
+This expansion is **not live until PR #16 passes Codex/owner review and
+is merged**. No change to VANILLAJS or its source pins is required.
+
+## GFTA6-AUDIO-001 — Chip soundtrack and impact polish (merged PR #15)
 
 Three original, **offline-generated stereo soundtracks** now accompany
 Saturday errands, Freedom Flight, and **TOO CLOSE FOR GUNS™**. All use the
@@ -125,8 +149,8 @@ node scripts/export-chip-audio.mjs ./audio-previews
 ```
 
 See the [audio source pins, design and listening acceptance criteria](docs/GFTA6_AUDIO_001.md).
-This feature is not live until PR #15 has passed independent review,
-manual listening/play-through and merge.
+PR #15 is merged. The offline-generated chip soundtrack, SFX and
+impact effects are present on the published GFTA6 main branch.
 
 ## GFTA6-BROWSER-001 — Real Chromium CI/CD gate (merged PR #14)
 

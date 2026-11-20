@@ -224,6 +224,10 @@ export function stepGame(state, controls = {}) {
         state.finished = true;
         state.outcome = 'JUST A FRIEND SQUADRON COMPLETE';
         addLog(state,'MISSION ACCOMPLISHED. DEREK HAS DEPLOYED HIS PARACHUTE.');
+      } else if (state.airCombat.status === 'shot-down') {
+        state.finished = true;
+        state.outcome = 'THE FINAL WORD WON';
+        addLog(state,'THE FINAL WORD™: THIS CONVERSATION IS NOT OVER.');
       } else if (state.airCombat.status === 'timed-out') {
         state.finished = true;
         state.outcome = 'AIRCOMBAT TIMED OUT';

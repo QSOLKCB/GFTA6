@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {
   AIRCOMBAT_FORMAT, AIRCOMBAT_UPSTREAM, AIRCOMBAT_WAVES,
-  AIRCOMBAT_FINAL_TEXT, createAirCombat, combatTargets,
+  AIRCOMBAT_FINAL_TEXT, createAirCombat, combatTargets, bossPhase,
+  BOSS_PHASE_LINES, BOSS_ATTACK_PERIOD, BOSS_ATTACK_TELEGRAPH,
   combatCamera, combatPose, combatRackSummary, combatRig, stepAirCombat
 } from '../src/aircombat.js';
 import {createGame,stepGame,bodyAt,snapshot,currentMission} from '../src/core.js';
@@ -33,10 +34,10 @@ function enableFlight(profile='coupe',combat=true) {
   return game;
 }
 test('campaign source is exact pinned and scripted final text matches canonical brief',async()=>{
-  assert.equal(AIRCOMBAT_FORMAT,'gfta6.aircombat.v1');
+  assert.equal(AIRCOMBAT_FORMAT,'gfta6.aircombat.v2');
   assert.match(AIRCOMBAT_UPSTREAM,/ae0b594f006ec3c1add71574c830ddde9ff5fa66/);
-  assert.deepEqual(AIRCOMBAT_WAVES.map(w=>w.members.length),[1,3,1]);
-  assert.equal(new Set(AIRCOMBAT_WAVES.flatMap(w=>w.members.map(m=>m.id))).size,5);
+  assert.deepEqual(AIRCOMBAT_WAVES.map(w=>w.members.length),[1,3,1,4,4,1]);
+  assert.equal(new Set(AIRCOMBAT_WAVES.flatMap(w=>w.members.map(m=>m.id))).size,14);
   const design=await readFile(new URL('../docs/GFTA6_AIRCOMBAT_001.md',import.meta.url),'utf8');
   const match=/```text\n([\s\S]*?)\n```/.exec(design);
   assert.ok(match,'canonical ending fenced block is required');
@@ -80,7 +81,7 @@ test('missile lock and ammo come from unchanged COCKPIT-002 rack, not sprite ove
   assert.throws(()=>stepAirCombat(s,{steer:2}),RangeError);
   assert.throws(()=>stepAirCombat(s,{missile:1}),TypeError);
 });
-test('all five rivals can disengage with physical gun alignment in three waves',()=>{
+test('all fourteen rivals and the final boss can disengage with physical gun alignment in six waves',()=>{
   let a=createAirCombat(1988),b=createAirCombat(1988);
   let steps=0;
   while(a.status==='active'&&steps++<3500) {
@@ -91,9 +92,9 @@ test('all five rivals can disengage with physical gun alignment in three waves',
     const input={steer,throttle:0,brake:true,missile:false};
     a=stepAirCombat(a,input);b=stepAirCombat(b,input);
   }
-  assert.equal(a.status,'won','all three waves must be completable');
-  assert.equal(a.stage,3);
-  assert.ok(a.gunHits>=5);
+  assert.equal(a.status,'won','all six waves must be completable');
+  assert.equal(a.stage,AIRCOMBAT_WAVES.length);
+  assert.ok(a.gunHits>=14);
   assert.equal(a.missileHits,0);
   assert.deepEqual(a,b,'same seed and controls must reproduce complete receipts');
   assert.throws(()=>stepAirCombat(a,{brake:true}),RangeError);
@@ -171,7 +172,7 @@ test('gun-only full alternate campaign reaches the owner-locked mission ending o
   assert.ok(s.finished,'ACT IV reaches a real ending');
   assert.equal(s.outcome,'JUST A FRIEND SQUADRON COMPLETE');
   assert.equal(s.airCombat.status,'won');
-  assert.equal(s.airCombat.stage,3);
+  assert.equal(s.airCombat.stage,AIRCOMBAT_WAVES.length);
   const final=snapshot(s);
   stepGame(s,{brake:true,missile:true});
   assert.deepEqual(snapshot(s),final,'ending is immutable after completion');

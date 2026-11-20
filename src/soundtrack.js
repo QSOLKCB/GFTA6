@@ -5,7 +5,7 @@
 import {createChipAudio,makeChipWave,PAULA_CLOCK,CHIP_AUDIO_RATE}
   from '../vendor/vanillajs/chip-audio/index.js';
 
-export const MUSIC_MODES=Object.freeze(['saturday','flight','dogfight']);
+export const MUSIC_MODES=Object.freeze(['saturday','flight','dogfight','boss']);
 export const SFX_KINDS=Object.freeze([
   'ui','warning','pickup','gun','missile','hit','explosion','disengage','wave','victory'
 ]);
@@ -35,13 +35,18 @@ const THEMES=Object.freeze({
   dogfight:Object.freeze({
     lead:Object.freeze([220,262,294,349,392,349,330,262,196,233,294,349,440,392,294,220]),
     bass:Object.freeze([110,110,130.8,130.8,98,98,123.5,110]),
-    pad:Object.freeze([174.6,196,164.8,146.8]),drums:185})
+    pad:Object.freeze([174.6,196,164.8,146.8]),drums:185}),
+  boss:Object.freeze({
+    lead:Object.freeze([147,175,196,220,233,220,196,175,
+      164.8,196,220,262,294,262,220,147]),
+    bass:Object.freeze([73.4,82.4,98,82.4,73.4,87.3,65.4,73.4]),
+    pad:Object.freeze([147,130.8,123.5,110]),drums:220})
 });
 /** Exactly eight seconds, aligned to sixteen 24,000-frame steps. */
 export function createGameMusic(mode){
   if(!Object.hasOwn(THEMES,mode))throw RangeError('unknown GFTA6 music mode');
   const theme=THEMES[mode],events=[];let id=1;
-  const punch=mode==='dogfight';
+  const punch=mode==='dogfight'||mode==='boss';
   for(let i=0;i<16;i++){
     const step=i*24000;
     events.push(tone(id++,0,step,22000,15500,theme.lead[i],W.lead,

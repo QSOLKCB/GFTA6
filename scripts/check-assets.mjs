@@ -25,7 +25,7 @@ assert.ok(app.includes("createDogfightGame(seed, $('vehicle').value)"),
   'standalone launch must use a separate game factory');
 assert.ok(app.includes("state.gameMode === 'dogfight'"),
   'Replay must preserve the independent arcade game mode');
-assert.ok(sw.includes('gfta6-static-v0.2.0'),
+assert.ok(sw.includes('gfta6-static-v0.2.1'),
   'new chip audio modules must rotate the offline asset cache');
 const core = await readFile(resolve(root, 'src/core.js'), 'utf8');
 const world = await readFile(resolve(root, 'src/world.js'), 'utf8');

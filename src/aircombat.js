@@ -8,7 +8,7 @@ import {createCockpitRig, cockpitGunRays, testCockpitTarget, sampleCockpitCamera
 import {createMissileRack, missileLock, launchMissile, stepMissiles,
   missileSummary, MISSILE_STEP} from '../vendor/vanillajs/missiles.js';
 
-export const AIRCOMBAT_FORMAT='gfta6.aircombat.v1';
+export const AIRCOMBAT_FORMAT='gfta6.aircombat.v2';
 export const AIRCOMBAT_UPSTREAM='QSOLKCB/VANILLAJS@ae0b594f006ec3c1add71574c830ddde9ff5fa66';
 export const AIRCOMBAT_MAX_TICKS=36000;
 const freeze=Object.freeze;
@@ -24,8 +24,43 @@ export const AIRCOMBAT_WAVES=freeze([
     ])}),
   freeze({name:'TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™',
     radio:'COMPUTER: TOO CLOSE FOR MISSILES. PLAYER: THAT WAS NOT THE PLAN.',
-    members:freeze([freeze({id:'derek-final',name:'DEREK AGAIN',paint:'#252c35',x:0,y:0,range:225})])})
+    members:freeze([freeze({id:'derek-final',name:'DEREK AGAIN',paint:'#252c35',x:0,y:0,range:225})])}),
+  freeze({name:'THE MUTUAL FRIENDS™',
+    radio:'FRANK: I ONLY CAME BECAUSE SHE SAID THERE WOULD BE SNACKS.',
+    members:freeze([
+      freeze({id:'frank',name:'FRANK',paint:'#3e4750',x:-34,y:5,range:184}),
+      freeze({id:'plus-one',name:'THE PLUS ONE',paint:'#76584e',x:-12,y:-4,range:202}),
+      freeze({id:'steve',name:'STEVE',paint:'#30333d',x:18,y:6,range:212,hp:3,role:'interceptor'}),
+      freeze({id:'ryan',name:'RYAN',paint:'#66564d',x:37,y:-6,range:232})
+    ])}),
+  freeze({name:'THE READ RECEIPTS™',
+    radio:'BLUE TICKS: SHE SAW THAT YOU SAW THAT SHE SAW.',
+    members:freeze([
+      freeze({id:'seen-01',name:'SEEN 09:41',paint:'#48454c',x:-34,y:-4,range:176}),
+      freeze({id:'typing',name:'STILL TYPING',paint:'#6b5147',x:-11,y:5,range:195,hp:3,role:'interceptor'}),
+      freeze({id:'left-on-read',name:'LEFT ON READ',paint:'#343f49',x:14,y:-5,range:216}),
+      freeze({id:'last-seen',name:'LAST SEEN',paint:'#75605a',x:35,y:4,range:230,hp:3,role:'interceptor'})
+    ])}),
+  freeze({name:'FINAL BOSS — THE FINAL WORD™',
+    radio:'GIRLFRIEND: I JUST WANTED TO TALK. WHY ARE YOU FLYING?',
+    boss:true,
+    members:freeze([freeze({id:'final-word',name:'THE FINAL WORD™',
+      paint:'#b15d86',x:0,y:0,range:220,hp:12,role:'boss'})])})
 ]);
+export const BOSS_PHASE_LINES=freeze([
+  'THE FINAL WORD™ — PHASE 1: I\'M FINE.',
+  'THE FINAL WORD™ — PHASE 2: YOU SHOULD HAVE KNOWN.',
+  'THE FINAL WORD™ — PHASE 3: WE NEED TO TALK.'
+]);
+export const BOSS_ATTACK_PERIOD=140;
+export const BOSS_ATTACK_TELEGRAPH=30;
+export const BOSS_ATTACK_IMPACT=75;
+export function bossPhase(combat) {
+  if(!combat || combat.format!==AIRCOMBAT_FORMAT)return null;
+  const rival=combat.opponents.find(x=>x.role==='boss');
+  if(!rival)return null;
+  return rival.hp>8?1:rival.hp>4?2:3;
+}
 export const AIRCOMBAT_FINAL_TEXT=[
   'MISSION ACCOMPLISHED.',
   '',
@@ -46,7 +81,8 @@ const RIG=createCockpitRig({
 });
 export const combatRig=()=>RIG;
 const freshOpponents=wave=>freeze(AIRCOMBAT_WAVES[wave].members.map(
-  m=>freeze({...m,hp:2,disengaged:false})
+  m=>freeze({...m,role:m.role??'fighter',maxHp:m.hp??2,
+    hp:m.hp??2,disengaged:false})
 ));
 function int(v,a,b,label) {
   if(!Number.isSafeInteger(v)||v<a||v>b)throw RangeError(label+' out of bounds');
@@ -57,6 +93,7 @@ export function createAirCombat(seed) {
   return freeze({format:AIRCOMBAT_FORMAT,seed,stage:0,tick:0,waveTick:0,
     opponents:freshOpponents(0),yaw:0,pitch:0,gunCooldown:0,
     shots:0,gunHits:0,missileHits:0,lastMissile:false,effects:freeze([]),
+    hull:3,bossAttack:null,
     rack:createMissileRack({ammo:8}),missileTargetId:null,status:'active',
     radio:AIRCOMBAT_WAVES[0].radio});
 }
@@ -73,13 +110,19 @@ export function combatTargets(combat) {
   const t=combat.waveTick, phase=(t+combat.seed%53)%200;
   const triangle=phase<=100?phase:200-phase;
   const drift=Math.trunc((triangle-50)/12);
-  return freeze(combat.opponents.map((enemy,i)=>freeze({
-    id:enemy.id,name:enemy.name,paint:enemy.paint,hp:enemy.hp,
-    disengaged:enemy.disengaged,center:freeze([
-      enemy.x+(i%2===0?drift:-drift),180+enemy.y,
-      40-(enemy.range-Math.min(85,Math.trunc(t/7)))
-    ]),radius:14
-  })));
+  return freeze(combat.opponents.map((enemy,i)=>{
+    const phase=enemy.role==='boss'?bossPhase(combat):null;
+    const strafe=enemy.role==='boss'?drift*(phase===3?4:phase===2?3:2):
+      (i%2===0?drift:-drift);
+    return freeze({
+      id:enemy.id,name:enemy.name,paint:enemy.paint,hp:enemy.hp,
+      maxHp:enemy.maxHp,role:enemy.role,disengaged:enemy.disengaged,
+      center:freeze([
+        enemy.x+strafe,180+enemy.y,
+        40-(enemy.range-Math.min(85,Math.trunc(t/7)))
+      ]),radius:enemy.role==='boss'?26:enemy.role==='interceptor'?16:14
+    });
+  }));
 }
 export function combatCamera(combat,mode='cockpit') {
   return sampleCockpitCamera(combatPose(combat),RIG,mode,{yaw:0,pitch:0});
@@ -116,6 +159,8 @@ export function stepAirCombat(combat,control={}) {
   let opponents=combat.opponents,rack=combat.rack,gunCooldown=Math.max(0,combat.gunCooldown-1);
   let shots=combat.shots,gunHits=combat.gunHits,missileHits=combat.missileHits;
   let radio=combat.radio,missileTargetId=combat.missileTargetId;
+  let hull=combat.hull,bossAttack=combat.bossAttack;
+  const phaseBefore=bossPhase(combat);
   // Retain only bounded presentation receipts; never change damage, score,
   // physical sight checks, missile-target ownership or campaign progression.
   const effects=combat.effects.filter(e=>tick-e.tick<70);
@@ -171,19 +216,40 @@ export function stepAirCombat(combat,control={}) {
       radio=focused.name+': THAT WAS AN UNFRIENDLY FRIENDLY WARNING.';
     } else radio='GUNS: SIGHT ALIGNMENT REQUIRED.';
   }
-  let stage=combat.stage,status='active',waveTick=view.waveTick;
-  if(opponents.every(e=>e.disengaged)&&rack.active.length===0) {
+  // The boss alone has a telegraphed interception. The target lane
+  // is latched 45 ticks before impact, so A/D can evade it. This never
+  // changes any projectile, muzzle ray, missile lock or prior wave.
+  const boss=opponents.find(x=>x.role==='boss');
+  if(boss&&!boss.disengaged){
+    const phase=boss.hp>8?1:boss.hp>4?2:3;
+    if(phaseBefore!==null&&phaseBefore!==phase)radio=BOSS_PHASE_LINES[phase-1];
+    if(view.waveTick%BOSS_ATTACK_PERIOD===BOSS_ATTACK_TELEGRAPH){
+      bossAttack=freeze({aim:yaw,until:view.waveTick+
+        BOSS_ATTACK_IMPACT-BOSS_ATTACK_TELEGRAPH});
+      radio='WARNING: THE FINAL WORD HAS LOCKED YOUR PERSONAL SPACE. DODGE A/D!';
+    }
+    if(bossAttack&&view.waveTick>=bossAttack.until){
+      if(Math.abs(yaw-bossAttack.aim)<.18){
+        hull=Math.max(0,hull-1);
+        radio=hull===0?'HULL BREACHED — REPLAY TO ARGUE ANOTHER DAY.':
+          'THE FINAL WORD HIT YOUR HULL. PERSONAL SPACE VIOLATED.';
+      }else radio='DODGED: THE FINAL WORD HAS NOTHING FURTHER TO ADD.';
+      bossAttack=null;
+    }
+  }else bossAttack=null;
+  let stage=combat.stage,status=hull===0?'shot-down':'active',waveTick=view.waveTick;
+  if(status==='active'&&opponents.every(e=>e.disengaged)&&rack.active.length===0) {
     stage++;
     if(stage===AIRCOMBAT_WAVES.length) {
       status='won';
       radio='MISSION ACCOMPLISHED. ALL CONTACTS DISENGAGED.';
     } else {
       opponents=freshOpponents(stage);
-      waveTick=0;
+      waveTick=0;bossAttack=null;
       radio=AIRCOMBAT_WAVES[stage].radio;
     }
   }
   return freeze({...combat,tick,waveTick,yaw,pitch,gunCooldown,shots,gunHits,
     missileHits,lastMissile:missile,missileTargetId,opponents,rack,stage,status,radio,
-    effects:freeze(effects.slice(-16))});
+    effects:freeze(effects.slice(-16)),hull,bossAttack});
 }
