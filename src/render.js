@@ -261,8 +261,9 @@ export function drawScene(canvas, state, {mode = 'classic', route = 'errands'} =
     let prompt='E / COMPLETE ERRAND';
     if (nav.mode === 'escape') {
       prompt=state.escape.activeGig ? 'G / DELIVER PAID JOB' :
-        nav.id === 'parcel' ? (state.cargo ?
-          'DELIVER ORDINARY CARGO FIRST' : 'G / ACCEPT PAID JOB') :
+        state.cargo ? (state.cargo.loaded.length ?
+          'E / DELIVER ORDINARY CARGO' : 'E / COLLECT REMAINING CARGO') :
+        nav.id === 'parcel' ? 'G / ACCEPT PAID JOB' :
         state.escape.upgrades.length === 4 ? 'F / START ESCAPE FLIGHT' :
           'U / RESTORE AIRCRAFT';
     }
