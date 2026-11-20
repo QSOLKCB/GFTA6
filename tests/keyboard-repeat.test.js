@@ -38,11 +38,11 @@ function keyboardHarness() {
     "for (const button of document.querySelectorAll('[data-drive]'))"), sandbox);
   runInContext(section('function clearControls() {',
     "window.addEventListener('blur'"), sandbox);
-  function dispatch(type, code, repeat = false) {
+  function dispatch(type, code, repeat = false, target = {}) {
     const callback = listeners.get(type);
     assert.equal(typeof callback, 'function', 'missing production ' + type + ' handler');
     let prevented = false;
-    callback({code, repeat, target: {}, preventDefault() {prevented = true;}});
+    callback({code, repeat, target, preventDefault() {prevented = true;}});
     return prevented;
   }
   return {
@@ -96,4 +96,16 @@ test('multiple physical keys survive independent releases, but repeat cannot res
   h.dispatch('keyup', 'Space');
   h.dispatch('keydown', 'Space');
   assert.ok(h.keys.has('brake'), 'fresh brake keydown works');
+});
+
+test('vehicle dropdown keeps native arrow navigation while gameplay keys stay safe', () => {
+  const h = keyboardHarness();
+  const select = {closest(selector) {
+    assert.equal(selector, 'select,textarea,button');
+    return {tagName: 'SELECT'};
+  }};
+  assert.equal(h.dispatch('keydown', 'ArrowDown', false, select), false);
+  assert.equal(h.keys.has('reverse'), false);
+  assert.equal(h.dispatch('keydown', 'KeyW'), true);
+  assert.equal(h.keys.has('forward'), true);
 });
