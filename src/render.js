@@ -3,8 +3,10 @@
 import {WORLD, PLACES, BLOCKS, currentMission, placeById, screenPosition, INTERACT_RADIUS} from './core.js';
 import {vehicleArt} from './vehicle-art.js';
 import {PARKING_BAYS} from './world.js';
+import {getCityProjection, projectCityGroundPoint} from './scene25d.js';
 
 const TAU = Math.PI * 2;
+const BUILDING_BY_ID = new Map(BLOCKS.map(b => [b.id, b]));
 function rect(ctx, x, y, w, h, fill) { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); }
 function ellipse(ctx, x, y, rx, ry, fill) {
   ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); ctx.fillStyle = fill; ctx.fill();
@@ -65,7 +67,7 @@ function building(ctx, b) {
   rect(ctx, roofX + w / 2 - 24, roofY + h - 29, 48, 14, '#394c5d');
   text(ctx, b.label, roofX + w / 2, roofY + h / 2 + 2, 'bold 12px system-ui', '#f9efcf');
 }
-function scenery(ctx) {
+function scenery(ctx, classicBuildings = true) {
   rect(ctx, 0, 0, WORLD.width, WORLD.height, '#1d3e43');
   for (let y = 45; y < WORLD.height; y += 120) {
     for (let x = 50; x < WORLD.width; x += 112) {
@@ -95,7 +97,7 @@ function scenery(ctx) {
     ctx.strokeRect(bay.x - 13, bay.y - 10, 26, 19);
     text(ctx, 'P', bay.x, bay.y + 4, 'bold 12px system-ui', '#e6e8be');
   }
-  for (const b of BLOCKS) building(ctx, b);
+  if (classicBuildings) for (const b of BLOCKS) building(ctx, b);
   text(ctx, 'SUBURBANIA', 543, 37, '900 32px system-ui', '#93b1a3');
   text(ctx, 'NO FREE TIME ZONE', 543, 60, 'bold 12px system-ui', '#93b1a3');
   // Benches and traffic cones do not participate in vehicle physics.
@@ -151,6 +153,38 @@ function car(ctx, x, y, headingFine, skin) {
   ellipse(ctx, 15, -23, 10, 7, '#e8bb88'); ellipse(ctx, 1, -26, 11, 8, '#eee2bb');
   ctx.restore();
 }
+// Draw only the geometry supplied by the pinned VANILLAJS projection system.
+// Sorted with the moving car by the base ground-plane depth key: a building
+// in front of the car now correctly obscures it. This is not new game physics.
+function raisedCity(ctx, state, carPoint) {
+  const {scene} = getCityProjection('raised');
+  for (const shadow of scene.shadows)
+    polygon(ctx, shadow.points, 'rgba(6,14,24,.30)');
+  const entries = [
+    ...scene.solids.map(s => ({id: s.id, depth: s.depthKey, solid: s})),
+    {id: '~player', depth: carPoint.y, solid: null}
+  ];
+  entries.sort((a,b) => a.depth - b.depth ||
+    (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  for (const entry of entries) {
+    if (!entry.solid) {
+      const [x, y] = projectCityGroundPoint('raised', carPoint.x, carPoint.y);
+      car(ctx, x, y, state.headingFine, vehicleArt(state.profile));
+      continue;
+    }
+    const solid = entry.solid, source = BUILDING_BY_ID.get(solid.id);
+    polygon(ctx, solid.sideZ, '#45556a');
+    polygon(ctx, solid.sideX, '#31445b');
+    polygon(ctx, solid.roof, source.color);
+    ctx.strokeStyle = '#f1d9b8'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(...solid.roof[0]);
+    for (let i = 1; i < solid.roof.length; i++) ctx.lineTo(...solid.roof[i]);
+    ctx.closePath(); ctx.stroke();
+    const centerX = solid.roof.reduce((sum,p) => sum + p[0],0) / 4;
+    const centerY = solid.roof.reduce((sum,p) => sum + p[1],0) / 4;
+    text(ctx,source.label,centerX,centerY+5,'bold 13px system-ui','#fff5dc');
+  }
+}
 function miniMap(ctx, state) {
   const x = 12, y = 12, w = 170, h = 120;
   rect(ctx, x - 4, y - 4, w + 8, h + 8, 'rgba(9,22,38,.90)');
@@ -164,7 +198,9 @@ function miniMap(ctx, state) {
   ellipse(ctx, x + c.x * sx, y + c.y * sy, 5, 5, '#ffebaf');
   text(ctx, 'CITY MAP', x + w - 6, y + h - 7, 'bold 9px system-ui', '#e5d8bd', 'right');
 }
-export function drawScene(canvas, state) {
+export function drawScene(canvas, state, {mode = 'classic'} = {}) {
+  // Reject an unsupported visual mode before touching canvas or game state.
+  getCityProjection(mode);
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D is unavailable');
   const w = canvas.width, h = canvas.height;
@@ -174,10 +210,17 @@ export function drawScene(canvas, state) {
   const cy = Math.max(0, Math.min(WORLD.height - h, carPoint.y - h / 2));
   ctx.save();
   ctx.translate(-cx, -cy);
-  scenery(ctx);
+  const raised = mode === 'raised';
+  scenery(ctx, !raised);
   const mission = currentMission(state);
-  for (const p of PLACES) marker(ctx, p, mission?.place === p.id, state.tick);
-  car(ctx, carPoint.x, carPoint.y, state.headingFine, vehicleArt(state.profile));
+  if (raised) {
+    raisedCity(ctx, state, carPoint);
+    // Destination hints stay readable even where tall scenery overlaps.
+    for (const p of PLACES) marker(ctx, p, mission?.place === p.id, state.tick);
+  } else {
+    for (const p of PLACES) marker(ctx, p, mission?.place === p.id, state.tick);
+    car(ctx, carPoint.x, carPoint.y, state.headingFine, vehicleArt(state.profile));
+  }
   ctx.restore();
   miniMap(ctx, state);
   const target = mission?.place;
