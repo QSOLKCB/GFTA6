@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Publish GFTA6 to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gfta6-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+      - name: Set up Node 24 for validation (no npm install)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate game before publishing
+        run: |
+          node --check src/core.js
+          node --check src/app.js
+          node --check src/render.js
+          node --check sw.js
+          node --test tests/*.test.js
+          node scripts/check-assets.mjs
+      - name: Stage only the static browser game
+        run: |
+          mkdir -p _site
+          cp index.html sw.js _site/
+          cp -R src assets vendor _site/
+          touch _site/.nojekyll
+          test -f _site/index.html
+          test -f _site/vendor/vanillajs/motion2d.js
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static game
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy GFTA6
+        id: deployment
+        uses: actions/deploy-pages@v4
