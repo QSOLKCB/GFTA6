@@ -98,7 +98,7 @@ test('nearest actual ray intersection wins, independent of enemy enumeration',()
   const hit=selectGunTarget(pose,rig,[farther,nearer]);
   assert.equal(hit.id,'near');
   assert.equal(selectGunTarget(pose,rig,[nearer,farther]).id,'near');
-  assert.equal(selectGunTarget(pose,rig,[freeze({...nearer,disengaged:true})]).id===undefined,false);
+  assert.equal(selectGunTarget(pose,rig,[freeze({...nearer,disengaged:true})]),null);
 });
 test('missed gun shots render a visible miss without changing hit count',()=>{
   const original=createAirCombat(1988);
