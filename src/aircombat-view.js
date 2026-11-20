@@ -2,8 +2,8 @@
 // GFTA6 2.5D arcade presentation of immutable cockpit/missile geometry.
 // Gun and missile hit authority remains in src/aircombat.js and VANILLAJS.
 import {projectCockpitPoint,inspectCockpitSight} from '../vendor/vanillajs/cockpit-rig/index.js';
-import {missileLockDisplay,MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
-import {combatPose,combatTargets,combatCamera,combatRackSummary,bossPhase,
+import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
+import {combatPose,combatTargets,combatCamera,combatRackSummary,combatLockStatus,bossPhase,
   BOSS_PHASE_LINES,AIRCOMBAT_WAVES} from './aircombat.js';
 const rect=(ctx,x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
 function poly(ctx,pts,color) {
@@ -107,7 +107,7 @@ export function drawAirCombat(canvas,combat) {
   const camera=combatCamera(combat);
   const targets=combatTargets(combat);
   const rack=combatRackSummary(combat);
-  const lock=missileLockDisplay(combat,targets,pose,rack);
+  const lock=combatLockStatus(combat);
   for(const t of targets) {
     const p=projectCockpitPoint(camera,[...t.center],{width:w,height:h});
     if(!p.visible||p.x< -80||p.x>w+80||p.y< -80||p.y>h+80)continue;
