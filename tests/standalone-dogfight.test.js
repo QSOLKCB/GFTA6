@@ -99,7 +99,7 @@ test('missile stays bound to original rival after guns force a disengagement',()
   assert.equal(priorHp,0);
 });
 
-test('direct arcade mode can beat all three waves and preserve canonical ending',()=>{
+test('direct arcade mode beats all six waves including boss and preserves canon',()=>{
   const game=createDogfightGame(1988,'van');
   let ticks=0;
   while(!game.finished && ticks++<3500) {
@@ -124,7 +124,7 @@ test('direct arcade mode can beat all three waves and preserve canonical ending'
   stepGame(game,{brake:true,missile:true});
   assert.deepEqual(snapshot(game),finished,'win receipts cannot be duplicated');
 });
-test('production HUD displays five contacts and exactly 100% on final victory',async()=>{
+test('production HUD counts fourteen contacts and exactly 100% on boss victory',async()=>{
   const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
   const start=source.indexOf('  const totalContacts = AIRCOMBAT_WAVES.reduce(');
   const end=source.indexOf("  $('task-count').textContent = combat ?",start);
@@ -156,11 +156,15 @@ test('production HUD displays five contacts and exactly 100% on final victory',a
       stageProgress.set(game.airCombat.stage,pct);
   }
   assert.equal(game.airCombat.status,'won');
-  assert.equal(game.airCombat.stage,3);
-  assert.deepEqual([...stageProgress.entries()].filter(([stage])=>stage>0),
-    [[1,20],[2,80],[3,100]]);
-  assert.equal(progress(game),100,'five contacts must not be counted as six');
-  assert.equal(game.airCombat.opponents.length,1,'the final defeated rival is retained');
+  assert.equal(game.airCombat.stage,AIRCOMBAT_WAVES.length);
+  const total=AIRCOMBAT_WAVES.reduce((n,w)=>n+w.members.length,0);
+  const expected=AIRCOMBAT_WAVES.map((w,index)=>[
+    index+1,100*AIRCOMBAT_WAVES.slice(0,index+1)
+      .reduce((n,w)=>n+w.members.length,0)/total
+  ]);
+  assert.deepEqual([...stageProgress.entries()].filter(([stage])=>stage>0),expected);
+  assert.equal(progress(game),100,'fourteen contacts must not be counted as fifteen');
+  assert.equal(game.airCombat.opponents.length,1,'the final boss is retained');
   assert.equal(game.airCombat.opponents[0].disengaged,true);
   const after=snapshot(game);
   assert.equal(progress(game),100,'HUD must remain stable after victory');
