@@ -6,7 +6,7 @@ import {stepCar, vehicleSpec, DEFAULT_VEHICLE} from './vehicle.js';
 import {createCargoJob, loadCargo, deliverCargo, cargoFinished,
   cargoJobById, cargoUsed, cargoCapacity} from './cargo.js';
 import {WORLD, PLACES, BLOCKS} from './world.js';
-import {createEscape, gigAction, gigNext, nextUpgrade, purchaseUpgrade,
+import {createEscape, gigAction, nextUpgrade, purchaseUpgrade,
   launchFlight, stepEscape, flightActive, flightSucceeded} from './escape.js';
 export {WORLD, PLACES, BLOCKS} from './world.js';
 
@@ -248,7 +248,7 @@ export function stepGame(state, controls = {}) {
   return state;
 }
 export function interact(state) {
-  if (state.paused || state.finished || state.miniGame) return false;
+  if (state.paused || state.finished || state.miniGame || state.escape.flight) return false;
   const mission = currentMission(state);
   if (!mission) return false;
   const fuelHere = distanceToPlace(state, 'fuel') <= INTERACT_RADIUS;
@@ -294,6 +294,7 @@ export function interact(state) {
 export function interactEscape(state, action) {
   if (state.paused || state.finished || state.miniGame) return false;
   if (!['gig','upgrade','fly'].includes(action))throw RangeError('unknown escape action');
+  if (flightActive(state.escape)) return false;
   if (Math.abs(state.speed) > 22) {
     addLog(state,'PARK FIRST. Secret operations do not happen at road speed.');
     return false;
