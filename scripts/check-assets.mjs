@@ -93,6 +93,20 @@ for(const [path,expected] of pins) {
     .update(bytes).digest('hex');
   assert.equal(hash,expected,'exact upstream Git blob mismatch: '+path);
 }
+assert.ok(page.includes('id="music"'),'music toggle missing');
+assert.ok(page.includes('id="sound"'),'sound-effects toggle missing');
+assert.ok(paths.includes('src/soundtrack.js')&&
+  paths.includes('src/audio-player.js')&&paths.includes('src/audio-cues.js'),
+  'offline cache missing game soundtrack or audio device adapter');
+assert.ok(paths.includes('vendor/vanillajs/chip-audio/index.js'),
+  'offline cache missing source-pinned chip module');
+assert.ok(app.includes("from './audio-player.js'"),
+  'game must instantiate the Web Audio adapter on game start');
+const chipBytes=await readFile(resolve(root,'vendor/vanillajs/chip-audio/index.js'));
+const chipBlob=createHash('sha1').update('blob '+chipBytes.length+'\\0')
+  .update(chipBytes).digest('hex');
+assert.equal(chipBlob,'4b7f219deaf273fa7178558a3bb214bb003d8b6d',
+  'chip-audio module differs from exact upstream Git blob');
 const notice = await readFile(resolve(root, 'NOTICE'), 'utf8');
 assert.ok(notice.includes('394fd455c6ce3bec9f0bf2c5d2a672b8c5454ab1'), 'pin missing');
 console.log('Static browser entry, offline cache, originals, and engine pin: PASS');
