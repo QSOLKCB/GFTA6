@@ -8,6 +8,8 @@ export function combatAudioCues(before,after) {
   const cues=[];
   if (after.shots>before.shots) cues.push('gun');
   if (after.rack.launched>before.rack.launched) cues.push('missile');
+  if (after.lockTicks===48 && before.lockTicks<48 &&
+      after.lockTargetId===before.lockTargetId) cues.push('pickup');
   if (!before.bossAttack && after.bossAttack) cues.push('warning');
   if (after.hull<before.hull) cues.push('hit');
   for(const effect of after.effects??[]) {
