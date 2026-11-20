@@ -26,6 +26,51 @@ function fighter(ctx,x,y,radius,color,disabled) {
   rect(ctx,-s*.06,-s*.42,s*.12,s*.38,'#94abb4');
   ctx.restore();
 }
+// Deterministic particles are drawn from immutable gameplay hit receipts.
+// No collision, targeting, damage or extra simulation is inferred from pixels.
+function impactFX(ctx,camera,combat,w,h){
+  for(const effect of combat.effects??[]){
+    const age=combat.tick-effect.tick;
+    if(age<0||age>=70)continue;
+    const point=projectCockpitPoint(camera,[...effect.center],{width:w,height:h});
+    if(!point.visible)continue;
+    const intensity=1-age/70,burst=effect.kind==='explosion';
+    const radius=(burst?19:9)+age*(burst?.86:.35);
+    let hash=0;
+    for(const c of effect.id)hash=(Math.imul(hash,33)+c.charCodeAt(0))>>>0;
+    ctx.save();
+    ctx.globalAlpha=Math.max(0,intensity*.70);
+    // Expanding blast shells in the source-derived projected location.
+    for(let shell=0;shell<3;shell++){
+      const r=radius*(.38+shell*.37);
+      ctx.strokeStyle=shell===0?'#fff3c0':shell===1?'#ffae59':'#bb5f3b';
+      ctx.lineWidth=burst?4-shell:2;
+      ctx.beginPath();ctx.arc(point.x,point.y,r,0,2*Math.PI);ctx.stroke();
+    }
+    for(let i=0;i<(burst?16:9);i++){
+      const angle=(i*2.3999632297)+(hash%29)*.07;
+      const range=radius*(.4+((i*7+hash)%11)/12);
+      const x=point.x+Math.cos(angle)*range;
+      const y=point.y+Math.sin(angle)*range*.72;
+      ctx.strokeStyle=i%3===0?'#fff2a8':i%3===1?'#ffc272':'#e87248';
+      ctx.lineWidth=i%4===0?3:2;
+      ctx.beginPath();ctx.moveTo(x,y);
+      ctx.lineTo(x+Math.cos(angle)*(9+age*.08),
+        y+Math.sin(angle)*(9+age*.08));ctx.stroke();
+    }
+    if(burst){
+      for(let i=0;i<4;i++){
+        const offset=(i*17+(hash%19));
+        ctx.fillStyle='#415768';
+        ctx.globalAlpha=Math.max(0,.38*(1-age/70));
+        ctx.beginPath();ctx.arc(point.x+(i-1.6)*(7+age*.18),
+          point.y-5-age*.22-offset*.1,Math.max(2,6+age*.18),
+          0,Math.PI*2);ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+}
 /** Read-only projection and overlay. No timing or target hits occur here. */
 export function drawAirCombat(canvas,combat) {
   if(!combat)throw TypeError('combat state required');
@@ -59,15 +104,27 @@ export function drawAirCombat(canvas,combat) {
   for(const shot of combat.rack.active) {
     const p=projectCockpitPoint(camera,[...shot.position],{width:w,height:h});
     if(!p.visible)continue;
-    ctx.strokeStyle='#ffcb78';ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(p.x-4,p.y+5);ctx.lineTo(p.x+4,p.y-5);ctx.stroke();
+    const tail=shot.position.map((v,i)=>v-shot.direction[i]*14);
+    const back=projectCockpitPoint(camera,tail,{width:w,height:h});
+    ctx.strokeStyle='#ffd890';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(p.x,p.y);
+    if(back.visible)ctx.lineTo(back.x,back.y);
+    else ctx.lineTo(p.x-4,p.y+8);
+    ctx.stroke();
+    ctx.strokeStyle='rgba(217,224,217,.46)';ctx.lineWidth=7;
+    ctx.beginPath();ctx.arc(p.x,p.y,6,0,2*Math.PI);ctx.stroke();
   }
+  impactFX(ctx,camera,combat,w,h);
   // The reticle is projected from the ACTUAL gun convergence target, not
   // screen centre, and cannot feed back into hit detection.
   const sight=inspectCockpitSight(pose,combatRig(),camera,
     {range:205,width:w,height:h});
   if(sight.reticle.visible) {
     const {x,y}=sight.reticle;
+    if(combat.gunCooldown>=9&&combat.shots>0){
+      ctx.strokeStyle='#ffe6a8';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(x,y,25,0,Math.PI*2);ctx.stroke();
+    }
     ctx.strokeStyle='#ffe6a5';ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(x,y,16,0,2*Math.PI);
     ctx.moveTo(x-35,y);ctx.lineTo(x-20,y);
