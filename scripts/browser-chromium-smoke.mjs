@@ -77,7 +77,7 @@ async function screenshot(name){
   await mkdir(OUT,{recursive:true});await writeFile(join(OUT,name),Buffer.from(r.data,'base64'));
 }
 async function ready(){
-  await until(()=>cdp.eval(el('route-mode')+'.disabled===true'),'module initialisation');
+  await until(()=>cdp.eval(el('route-mode')+'?.disabled===true'),'module initialisation');
   assert.equal(await cdp.eval('document.readyState'),'complete');
 }
 async function navigate(url){await cdp.call('Page.navigate',{url});await ready();}
