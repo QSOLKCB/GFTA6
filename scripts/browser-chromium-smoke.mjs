@@ -32,6 +32,9 @@ class Client{
         if(o.error)pending.reject(Error(o.error.message));else pending.resolve(o.result??{});
       }else if(o.method==='Runtime.exceptionThrown'){
         this.errors.push('Uncaught: '+(o.params.exceptionDetails.text??'unknown'));
+      }else if(o.method==='Runtime.consoleAPICalled'&&o.params.type==='error'){
+        const message=o.params.args.map(arg=>arg.value??arg.unserializableValue??arg.description??arg.type).join(' ');
+        this.errors.push('console.error: '+message);
       }else if(o.method==='Log.entryAdded'&&o.params.entry.level==='error'){
         this.errors.push('Console: '+o.params.entry.text);
       }
@@ -80,8 +83,8 @@ async function screenshot(name){
   await mkdir(OUT,{recursive:true});await writeFile(join(OUT,name),Buffer.from(r.data,'base64'));
 }
 async function ready(){
-  await until(()=>cdp.eval(el('route-mode')+'?.disabled===true'),'module initialisation');
-  assert.equal(await cdp.eval('document.readyState'),'complete');
+  await until(()=>cdp.eval('document.readyState==="complete" && '+el('route-mode')+'?.disabled===true && '+el('intro')+'?.hidden===false'),
+    'document load and game initialisation');
 }
 async function navigate(url){await cdp.call('Page.navigate',{url});await ready();}
 async function canvasCheck(){
@@ -126,15 +129,27 @@ async function main(){
   await until(()=>cdp.eval(el('intro')+'.hidden&&'+el('task-count')+'.textContent.includes("DOGFIGHT")'),'standalone arcade launch');
   await canvasCheck();
   assert.match(await cdp.eval(el('velocity')+'.textContent'),/8 MISSILES/);
+  const gunHUD=()=>cdp.eval(el('escape-goal')+'.textContent');
+  assert.match(await gunHUD(),/\bWAVE 1\/3\b.*\bGUN HITS 0\b/);
+  await key('Space',true);
+  try{
+    await until(async()=>/\bGUN HITS [1-9]\d*\b/.test(await gunHUD()),'gun hit from physical Space');
+  }finally{await key('Space',false);}
   await key('KeyM',true);await sleep(110);await key('KeyM',false);
   await until(()=>cdp.eval(el('velocity')+'.textContent.includes("7 MISSILES")'),'missile launch from physical M');
-  await key('Space',true);await sleep(200);await key('Space',false);
-  assert.match(await cdp.eval(el('escape-goal')+'.textContent'),/GUN HITS/);
   await screenshot('dogfight.png');
   console.log('PASS: real arcade click, Canvas, M missile and Space gun');
   await cdp.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  const mobile=await cdp.eval('({width:innerWidth,canvas:('+el('canvas')+').getBoundingClientRect().width,buttons:[...document.querySelectorAll("[data-drive]")].filter(x=>!x.hidden).length})');
-  assert.ok(mobile.width===390&&mobile.canvas>250&&mobile.buttons>=5,'mobile layout: '+JSON.stringify(mobile));
+  const mobile=await cdp.eval(`({
+    width: innerWidth,
+    canvas: document.getElementById('canvas').getBoundingClientRect().width,
+    buttons: [...document.querySelectorAll('.touch-controls button[data-drive]')].filter(button=>{
+      const {width,height}=button.getBoundingClientRect();
+      return width>0 && height>0 && button.checkVisibility({visibilityProperty:true,opacityProperty:true});
+    }).map(button=>button.dataset.drive).sort()
+  })`);
+  assert.ok(mobile.width===390&&mobile.canvas>250,'mobile layout: '+JSON.stringify(mobile));
+  assert.deepEqual(mobile.buttons,['brake','forward','left','missile','reverse','right'],'visible mobile combat controls');
   await screenshot('dogfight-mobile.png');
   console.log('PASS: mobile viewport and touch controls');
   await cdp.call('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
