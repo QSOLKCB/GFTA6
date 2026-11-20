@@ -37,6 +37,14 @@ assert.ok(page.includes('id="view-mode"'), '2.5D opt-in control missing');
 assert.ok(app.includes("drawScene(canvas, state, {mode: renderMode})"),
   'render mode must be presentation-only');
 assert.ok(paths.includes('src/scene25d.js'), 'offline cache missing projection adapter');
+assert.ok(paths.includes('src/escape.js'), 'offline cache missing escape economy');
+assert.ok(paths.includes('src/flight-view.js'), 'offline cache missing 2.5D flight vignette');
+const escape = await readFile(resolve(root,'src/escape.js'),'utf8');
+assert.ok(escape.includes('ESCAPE_VERSION'), 'flight state must declare version');
+assert.ok(core.includes("from './escape.js'"), 'optional campaign must use pure escape state');
+assert.ok(app.includes("interactEscape(state,action)"), 'escape action controls not wired');
+assert.ok(page.includes('id="takeoff"'), 'airfield takeoff button not wired');
+
 assert.ok(paths.includes('vendor/vanillajs/projection25d.js'),
   'offline cache missing pinned projection engine');
 const projectionAdapter = await readFile(resolve(root,'src/scene25d.js'),'utf8');
