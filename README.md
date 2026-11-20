@@ -99,7 +99,24 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-ESCAPE-001 — Operation Freedom Flight™ (review-stage)
+## GFTA6-POLISH-001 — Route Guidance and Flight HUD (review-stage)
+
+The next review-stage slice adds an **N / ROUTE** switch between errands and
+the optional secret escape objective. Both Classic and Raised views show a
+directional indicator, highlighted mini-map destination and world-unit
+distance. Paid courier gigs, aircraft upgrades and unfinished ordinary
+cargo now have context-sensitive navigation and interaction hints.
+
+Keyboard focus returns to the game canvas after toolbar actions, the first
+mini-game choice receives focus, and **Replay** receives focus exactly once
+when either ending appears. The provisional flight HUD now has clearly
+labelled arcade indicators, takeoff/climb/departure progress bars, and a
+runway that fades as altitude increases.
+
+See [GFTA6-POLISH-001 review and regression criteria](docs/GFTA6_POLISH_001.md).
+This polish is not live until its PR is reviewed and merged.
+
+## GFTA6-ESCAPE-001 — Operation Freedom Flight™ (merged PR #8)
 
 The secret alternate campaign is now playable in a **provisional 2.5D
 airfield and flight vignette**: earn cash through paid courier deliveries,
@@ -120,18 +137,17 @@ and climbs, and A/D banks. Fly far enough and high enough to unlock the
 alternate ending. Failed takeoffs can be retried with F.
 
 **Important:** This is a stylised arcade flight *skeleton*, **not** aircraft
-physics or an official Spitfire model. The upcoming VANILLAJS Cockpit &
-Spitfire Lab integration will replace the temporary flight model only
-after an approved, pinned upstream API exists. The regular deterministic
-driving, errands, cargo and original ending are preserved.
+physics or an official Spitfire model. VANILLAJS Cockpit & Physics Lab PR #136
+is now merged at `0bfe21979a42365345c6690b9a8f28758dcfae50`, but GFTA6
+will adopt it only in a separate exact-SHA adapter PR. The regular deterministic
+driving, errands, cargo and original ending remain preserved.
 
 [See the complete escape design, contracts and review gates](docs/GFTA6_ESCAPE_001.md).
-The feature is not deployed until its PR passes CI, review and merge.
+PR #8 is merged and the escape skeleton is included on main.
 
 ## GFTA6-25D-001 — VANILLAJS Raised 2.5D integration (merged PR #7)
 
-The upstream `VANILLAJS-25D-001` projection API is now merged. This
-**review-stage** GFTA6 integration vendors its **unchanged** Apache-2.0
+The upstream `VANILLAJS-25D-001` projection API is now merged. This GFTA6 integration vendors the **unchanged** Apache-2.0
 projection module at commit
 `9014a9dc175ea18653c289f9f2956cccb33ea7f8` and makes it available
 without an online engine dependency.

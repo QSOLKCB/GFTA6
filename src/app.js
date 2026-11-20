@@ -5,6 +5,7 @@ import {drawScene} from './render.js';
 import {cargoCapacity, cargoUsed, cargoItemById, cargoJobById} from './cargo.js';
 import {interactEscape, escapeObjective} from './core.js';
 import {RESTORATION, ESCAPE_TARGET_CENTS, nextUpgrade} from './escape.js';
+import {waypoint} from './navigation.js';
 
 const $ = id => {
   const element = document.getElementById(id);
@@ -16,10 +17,13 @@ let state = createGame(1988);
 let started = false;
 // Presentation only. This value must never become part of deterministic game state.
 let renderMode = 'classic';
+let routeMode = 'errands';
 let soundEnabled = false;
 let soundContext = null;
 let shownMiniKey = '';
+let endingWasShown = false;
 let lastHUDTick = -1;
+let lastFlightStatus = null;
 const keys = new Set();
 const touch = new Set();
 const moneyFmt = new Intl.NumberFormat('en-AU', {style: 'currency', currency: 'AUD'});
@@ -85,12 +89,17 @@ function controls() {
     brake: controlHeld('brake')
   };
 }
+function focusGame() {
+  if (started && !state.finished && !state.miniGame)
+    canvas.focus({preventScroll: true});
+}
 function interactNow() {
   if (!started || state.finished || state.paused) return;
   if (state.miniGame) return;
   const result = interact(state);
   if (result) ping(800);
   refreshHUD();
+  focusGame();
 }
 function answer(index) {
   if (!started || !state.miniGame || state.paused || state.finished) return;
@@ -98,17 +107,24 @@ function answer(index) {
   ping(correct ? 880 : 260);
   shownMiniKey = '';
   refreshHUD();
+  focusGame();
 }
 function togglePause() {
   if (!started || state.finished) return;
   setPaused(state, !state.paused);
   clearControls();
   refreshHUD();
+  focusGame();
 }
 function refreshMini() {
   const mini = state.miniGame;
   $('mini').hidden = !started || !mini;
   $('ending').hidden = !started || !state.finished;
+  if (!state.finished) endingWasShown = false;
+  if (state.finished && !endingWasShown) {
+    endingWasShown = true;
+    $('play-again').focus({preventScroll: true});
+  }
   if (state.finished) {
     const mins = Math.floor(state.tick / 22);
     const escaped = state.outcome === 'YOU FORGOT THE MILK';
@@ -146,6 +162,7 @@ function refreshMini() {
     return button;
   });
   $('mini-choices').replaceChildren(...choices);
+  choices[0]?.focus({preventScroll: true});
 }
 function refreshHUD() {
   const mission = currentMission(state);
@@ -159,14 +176,28 @@ function refreshHUD() {
   const minutes = timeMinutes % 60;
   $('clock').textContent = (timeMinutes >= 24 * 60 ? 'SUN ' : 'SAT ') +
     String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-  $('odo').textContent = Math.floor(state.distance) + ' u';
-  $('velocity').textContent = Math.round(Math.abs(state.speed) * TICK_HZ / 64) + ' u/s';
+  $('odo').textContent = state.escape.flight ?
+    state.escape.flight.distance + ' FLIGHT u' : Math.floor(state.distance) + ' u';
+  $('velocity').textContent = state.escape.flight ?
+    state.escape.flight.speed + ' ARCADE' :
+    Math.round(Math.abs(state.speed) * TICK_HZ / 64) + ' u/s';
   $('seed-readout').textContent = String(state.seed);
   $('vehicle-readout').textContent = state.profile.toUpperCase();
   $('mission-title').textContent = mission?.title ?? 'WEEKEND OVER';
   $('mission-detail').textContent = mission?.description ?? 'Go and have a lie-down. You earned it.';
   $('destination').textContent = placeById(mission?.place)?.name ?? 'NONE';
   $('distance').textContent = mission ? Math.round(distanceToPlace(state, mission.place)) + ' m' : '0 m';
+  const navigation=waypoint(state,routeMode);
+  $('nav-target').textContent = navigation ?
+    (routeMode === 'escape' ? 'ESCAPE ROUTE · ' : 'ERRAND ROUTE · ') +
+      navigation.label : 'ROUTE OFF · FLIGHT IN PROGRESS';
+  $('nav-distance').textContent = navigation ? navigation.distance + ' u' : '—';
+  $('nav-instruction').textContent = navigation ?
+    navigation.instruction : 'Use flight controls for takeoff and climb.';
+  $('route-mode').textContent = state.escape.flight ? 'N / ROUTE: IN FLIGHT' :
+    'N / ROUTE: ' + routeMode.toUpperCase();
+  $('route-mode').disabled = Boolean(state.escape.flight || state.finished || !started);
+  $('route-mode').setAttribute('aria-pressed', String(routeMode === 'escape'));
   $('task-progress').style.width = (100 * state.index / state.tasks.length) + '%';
   $('task-count').textContent = 'MISSION ' + Math.min(state.index + 1, state.tasks.length) +
     ' / ' + state.tasks.length + (state.ambushed ? ' • BONUS ERRAND UNLOCKED' : '');
@@ -235,6 +266,13 @@ $('view-mode').addEventListener('click', () => {
   $('view-mode').textContent = renderMode === 'raised' ?
     'VIEW: RAISED 2.5D' : 'VIEW: CLASSIC 2D';
   $('view-mode').setAttribute('aria-pressed', String(renderMode === 'raised'));
+  focusGame();
+});
+$('route-mode').addEventListener('click', () => {
+  if (!started || state.escape.flight || state.finished) return;
+  routeMode = routeMode === 'errands' ? 'escape' : 'errands';
+  refreshHUD();
+  focusGame();
 });
 $('interact').addEventListener('click', interactNow);
 function escapeNow(action) {
@@ -243,6 +281,7 @@ function escapeNow(action) {
   if (ok) ping(action==='fly'?960:720);
   clearControls();
   refreshHUD();
+  focusGame();
 }
 $('gig').addEventListener('click',()=>escapeNow('gig'));
 $('repair').addEventListener('click',()=>escapeNow('upgrade'));
@@ -252,6 +291,7 @@ $('sound').addEventListener('click', () => {
   $('sound').textContent = soundEnabled ? 'SOUND ON' : 'SOUND OFF';
   $('sound').setAttribute('aria-pressed', String(soundEnabled));
   if (soundEnabled) ping(680);
+  focusGame();
 });
 const bindings = Object.freeze({
   KeyW: 'forward', ArrowUp: 'forward', KeyS: 'reverse', ArrowDown: 'reverse',
@@ -266,8 +306,13 @@ function syncKeys() {
 }
 window.addEventListener('keydown', event => {
   // Preserve native keyboard navigation on the vehicle selector and buttons.
+  // Mini-game choices receive focus. Permit digit answers AND P/Escape
+  // pause/resume through their button focus, but never let driving keys through.
+  const choiceShortcut = Boolean(state.miniGame) &&
+    (/^Digit[1-4]$/.test(event.code) ||
+      event.code === 'KeyP' || event.code === 'Escape');
   if (event.target instanceof HTMLInputElement ||
-      event.target?.closest?.('select,textarea,button')) {
+      (event.target?.closest?.('select,textarea,button') && !choiceShortcut)) {
     if (event.target instanceof HTMLInputElement &&
         event.code === 'Enter' && !started) { event.preventDefault(); begin(); }
     return;
@@ -281,7 +326,7 @@ window.addEventListener('keydown', event => {
     }
     return;
   }
-  if (['KeyE', 'KeyP', 'KeyG', 'KeyU', 'KeyF', 'Escape', 'Enter', 'Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(event.code))
+  if (['KeyE', 'KeyP', 'KeyG', 'KeyU', 'KeyF', 'KeyN', 'Escape', 'Enter', 'Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(event.code))
     event.preventDefault();
   if (event.repeat) return;
   if (!started && event.code === 'Enter') return begin();
@@ -289,6 +334,11 @@ window.addEventListener('keydown', event => {
   if (!started) return;
   if (state.miniGame && /^Digit[1-4]$/.test(event.code))
     return answer(Number(event.code.slice(-1)) - 1);
+  if (event.code === 'KeyN' && !state.escape.flight && !state.finished) {
+    routeMode = routeMode === 'errands' ? 'escape' : 'errands';
+    refreshHUD();
+    return;
+  }
   if (event.code === 'KeyG') return escapeNow('gig');
   if (event.code === 'KeyU') return escapeNow('upgrade');
   if (event.code === 'KeyF') return escapeNow('fly');
@@ -342,11 +392,15 @@ function frame(time) {
     }
     if (steps === 8) accumulator = 0;
   } else accumulator = 0;
-  drawScene(canvas, state, {mode: renderMode});
-  if (state.tick !== lastHUDTick || state.paused || state.finished) {
-    if (state.tick % 6 === 0 || lastHUDTick < 0 || state.paused || state.finished) {
+  drawScene(canvas, state, {mode: renderMode, route: routeMode});
+  const flightStatus = state.escape.flight?.status ?? null;
+  if (state.tick !== lastHUDTick || state.paused || state.finished ||
+      flightStatus !== lastFlightStatus) {
+    if (state.tick % 6 === 0 || lastHUDTick < 0 || state.paused ||
+        state.finished || flightStatus !== lastFlightStatus) {
       refreshHUD();
       lastHUDTick = state.tick;
+      lastFlightStatus = flightStatus;
     }
   }
   requestAnimationFrame(frame);

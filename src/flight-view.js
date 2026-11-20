@@ -32,7 +32,11 @@ export function drawFlightScene(canvas,flight) {
   // An authored pseudo-perspective runway. Longitudinal movement drives lane
   // marks; this is not reusable projection code or cockpit instrumentation.
   const center=w/2-flight.lateral*.21, runTop=35, runBottom=255;
-  path(ctx,[[center-runTop/2,horizon],[center+runTop/2,horizon],
+  // Fade the receding runway with altitude. No aircraft physics is changed.
+  if (flight.altitude<350) {
+    ctx.save();
+    ctx.globalAlpha=Math.max(.08,1-flight.altitude/350);
+    path(ctx,[[center-runTop/2,horizon],[center+runTop/2,horizon],
     [center+runBottom,h],[center-runBottom,h]],'#354858');
   path(ctx,[[center-runTop/2-7,horizon],[center-runTop/2,horizon],
     [center-runBottom,h],[center-runBottom-15,h]],'#d7c4a0');
@@ -45,6 +49,8 @@ export function drawFlightScene(canvas,flight) {
     const y=horizon+depth*(h-horizon);
     const lineH=3+depth*42, lineW=2+depth*10;
     rect(ctx,center-lineW/2,y,lineW,lineH,'#f2e6be');
+    }
+    ctx.restore();
   }
   // Small airport hangar, mountains and departure guidance as visual-only cues.
   path(ctx,[[28,horizon+6],[135,horizon+6],[128,horizon-44],
@@ -69,14 +75,30 @@ export function drawFlightScene(canvas,flight) {
   rect(ctx,15,13,385,124,'rgba(12,25,45,.81)');
   const detail=[
     'OPERATION FREEDOM FLIGHT / 2.5D PROTOTYPE',
-    'SPEED '+flight.speed+' KNOTS (ARCADE)   ALT '+flight.altitude+' m',
-    'DISTANCE '+flight.distance+' / 2600 m   FUEL '+flight.fuel+'%',
+    'SPEED '+flight.speed+' (ARCADE)   ALT '+flight.altitude+' u',
+    'DISTANCE '+flight.distance+' / 2600 u   FUEL '+flight.fuel+'%',
     'W POWER   SPACE LIFT   A/D BANK   S SLOW'
   ];
   for(let i=0;i<detail.length;i++) {
     ctx.textAlign='left';ctx.font=(i===0?'900 15px':'bold 13px')+' system-ui';
     ctx.fillStyle=i===0?'#ffe4a9':'#f1f3e9';
     ctx.fillText(detail[i],28,39+i*28);
+  }
+  // Progress instrumentation reports the game goals, not flight certification.
+  const panelX=w-268,panelY=13;
+  rect(ctx,panelX,panelY,252,128,'rgba(12,25,45,.89)');
+  const goals=[
+    ['TAKEOFF SPEED',Math.min(100,Math.round(flight.speed/78*100))],
+    ['CLIMB',Math.min(100,Math.round(flight.altitude/160*100))],
+    ['DEPARTURE',Math.min(100,Math.round(flight.distance/2600*100))]
+  ];
+  for(let i=0;i<goals.length;i++){
+    const y=panelY+18+i*35;
+    ctx.font='bold 11px system-ui';ctx.textAlign='left';
+    ctx.fillStyle='#e9f0e5';ctx.fillText(goals[i][0],panelX+12,y);
+    rect(ctx,panelX+12,y+6,191,8,'#33485b');
+    rect(ctx,panelX+12,y+6,191*goals[i][1]/100,8,'#a9dfb8');
+    ctx.fillStyle='#ffe4a9';ctx.fillText(goals[i][1]+'%',panelX+208,y+12);
   }
   if(flight.status==='grounded') {
     rect(ctx,0,0,w,h,'rgba(5,16,30,.62)');

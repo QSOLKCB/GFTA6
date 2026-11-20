@@ -321,10 +321,18 @@ export function interactEscape(state, action) {
 }
 export function escapeObjective(state) {
   const escape=state.escape;
-  if (escape.flight) return escape.flight.status==='grounded' ?
-    'Airfield: press F to retry takeoff' : 'OPERATION FREEDOM FLIGHT';
-  if (escape.activeGig) return 'Paid delivery: '+placeById(escape.activeGig.to).name;
-  if (nextUpgrade(escape)) return 'G at PARCEL DEPOT for gigs · U at AIRFIELD to restore';
+  if (escape.flight) {
+    if (escape.flight.status==='grounded') return 'Flight aborted · press F at airfield to retry';
+    if (escape.flight.status==='escaped') return 'ESCAPED · YOU FORGOT THE MILK';
+    return escape.flight.phase==='runway' ?
+      'Runway · reach 78 arcade speed, then hold Space' :
+      'Climb to 160 u, travel 2600 u and stay near the centre';
+  }
+  if (escape.activeGig) return 'Paid delivery: '+placeById(escape.activeGig.to).name+' (G)';
+  const upgrade=nextUpgrade(escape);
+  if (upgrade) return escape.fundCents>=upgrade.costCents ?
+    'Upgrade affordable · drive to AIRFIELD and press U' :
+    'Collect another paid gig at PARCEL DEPOT (G)';
   return 'Aircraft restored · drive to AIRFIELD and press F';
 }
 export function chooseMiniGame(state, selection) {
