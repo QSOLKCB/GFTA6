@@ -21,3 +21,20 @@ Vendored file: vendor/vanillajs/projection25d.js
 VANILLAJS licence: Apache License 2.0
 No external CDN, network runtime, unlicensed car meshes or copied GPL racing
 engine code is required for the opt-in presentation mode.
+
+Three additional unmodified Apache-2.0 VANILLAJS sources for opt-in GFTA6
+JUST A FRIEND SQUADRON™ arcade flight encounter:
+Source repository: https://github.com/QSOLKCB/VANILLAJS
+Pinned source commit: ae0b594f006ec3c1add71574c830ddde9ff5fa66
+- Source file: modules/math/index.js
+  Vendored file: vendor/vanillajs/math/index.js
+  Git blob SHA: 45e5fc4d6c6daa472a89fa59c80e6fd70b2c1455
+- Source file: modules/cockpit-rig/index.js
+  Vendored file: vendor/vanillajs/cockpit-rig/index.js
+  Git blob SHA: 74010bb24625900e6eeb812c3064bda09d9898cb
+- Source file: demos/cockpit-physics-lab/missiles.js
+  Vendored file: vendor/vanillajs/missiles.js
+  Git blob SHA: 86094c7c0bf7d33ac962919b62eac7a72a68926d
+These exact Git blobs are independently checked during static CI.
+The original GFTA6 squadron rules, UI and authoring retain the repository's
+Apache-2.0 licence. No external art or GPL engine code is imported.
