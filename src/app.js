@@ -51,7 +51,11 @@ function sceneForState() {
 function syncAudio() {
   audio.setScene(started?sceneForState():null);
   audio.setPaused(!started || state.paused || document.hidden);
-  audio.setEngine(started&&!document.hidden?engineFeedback(state,controls()):null);
+  // Ignore driving inputs once paused/hidden; the engine must stop on blur
+  // even before another animation frame or an input sampling pass.
+  const driving=started&&!document.hidden&&!state.paused&&!state.finished&&
+    !state.miniGame&&!state.airCombat&&!state.escape.flight;
+  audio.setEngine(driving?engineFeedback(state,controls()):null);
 }
 function activateAudio() {
   try {
