@@ -7,6 +7,7 @@ import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {resolve,dirname,join,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {synthStreetLine} from '../src/street-voice.js';
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const OUT=resolve(ROOT,'test-results/headless');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -111,6 +112,20 @@ async function main(){
   for(const name of ['Page.enable','Runtime.enable','Log.enable','Network.enable','WebAudio.enable'])
     await cdp.call(name);
   await cdp.call('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
+  // Capture *started* Web Audio sources and their actual PCM buffer length,
+  // before the app's first module runs. A raw >=3 source count is invalid:
+  // music + original engine + startup UI already generate three sources.
+  await cdp.call('Page.addScriptToEvaluateOnNewDocument',{source:`
+    (() => {
+      const nativeStart=AudioBufferSourceNode.prototype.start;
+      const started=[];
+      Object.defineProperty(window,'__gfta6StartedAudio',{value:started});
+      AudioBufferSourceNode.prototype.start=function(...args){
+        started.push({frames:this.buffer?.length??0,loop:this.loop});
+        return nativeStart.apply(this,args);
+      };
+    })();`
+  });
   console.log('HEADLESS-CHROMIUM: '+binary);
   await navigate(url);
   assert.equal(await cdp.eval(el('intro')+'.hidden'),false);
@@ -131,9 +146,14 @@ async function main(){
     'original speech-motor buffer loops alongside chip soundtrack');
   await until(()=>cdp.eval(el('street-caption')+'.textContent!=="THE FOOTPATH HAS OPINIONS"'),
     'authored street NPC caption reacts to nearby seeded actor');
-  await until(()=>cdp.audioEvents.filter(x=>x.method==='WebAudio.audioNodeCreated'&&
-    x.nodeType==='AudioBufferSource').length>=3,
-    'real synthetic NPC voice buffer under Web Audio');
+  // The fixed seed/cast produces the cab's ARSEHOLE or nearby walker's
+  // OUTTA utterance at ticks 30/90. Identify *actual source.start() calls*
+  // using their original PCM lengths, not CDP's cumulative buffer-node count.
+  const npcFrames=[synthStreetLine('arsehole','cab').frames,
+    synthStreetLine('outta','newyork').frames];
+  await until(()=>cdp.eval('window.__gfta6StartedAudio?.some(s=>!s.loop&&'+
+    JSON.stringify(npcFrames)+'.includes(s.frames))'),
+    'actual unlooped NPC PCM voice source started (not startup UI, music or motor)');
   console.log('PASS: deterministic traffic and pedestrian radio dialogue plays actual synthesized voices');
   await click('sound');
   assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX OFF/);
