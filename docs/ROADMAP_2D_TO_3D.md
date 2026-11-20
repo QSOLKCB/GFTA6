@@ -53,9 +53,11 @@ initial cache installation. All CI tests pass.
 - Add original low-poly parked cars, moving vehicles, props and facades.
 - Depth-sort scenery and vehicles where they overlap, with consistent shadows,
   occlusion and collision that still use the original 2D world coordinates.
-- Layered traffic and NPC pedestrians with predictable interactions and sensible
-  pause/visibility semantics.
+- Layered *non-colliding atmospheric* traffic and NPC pedestrians with predictable
+  dialogue and sensible pause/visibility semantics. These actors are scenery,
+  not simulated hazards, by explicit owner design.
 - Separate authoritative collision geometry from render-only mesh geometry.
+  Keep car/building collisions as authored; do not introduce NPC contact.
 - Do not let a polygonal roof change where the player's car can physically drive.
 - Preserve keyboard/touch accessibility, offline installation and stable FPS.
 
@@ -98,6 +100,18 @@ receipts compare the new renderer against the classic baseline.
    the other. Losing focus or entering a mini-game releases held controls.
 10. Same seed and input trace produce the same complete gameplay snapshot.
 11. Offline reloading replaces old cached scripts after the new cache activates.
+
+## Explicit release-candidate boundary (v0.2.0)
+
+- Preserve the exact accepted player-car F-UH-K idle PCM source. Regression
+  tests pin the original source blob until an owner approves a change.
+- Keep the 12 moving street cast actors visual/audio-only forever unless the
+  owner **explicitly** revisits that design choice. Their presence must never
+  imply pedestrian collision or punishment.
+- Support independently mutable SFX, music and NPC voice presentation with
+  subtitles remaining available when NPC audio is muted.
+- Require deterministic test parity, offline asset pins, real Chromium
+  smoke and manual driving/audio/frame-time acceptance before tagging.
 
 ## Release discipline
 
