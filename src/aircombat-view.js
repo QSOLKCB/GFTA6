@@ -2,6 +2,7 @@
 // GFTA6 2.5D arcade presentation of immutable cockpit/missile geometry.
 // Gun and missile hit authority remains in src/aircombat.js and VANILLAJS.
 import {projectCockpitPoint,inspectCockpitSight} from '../vendor/vanillajs/cockpit-rig/index.js';
+import {missileLock} from '../vendor/vanillajs/missiles.js';
 import {combatPose,combatTargets,combatCamera,combatRackSummary,
   AIRCOMBAT_WAVES} from './aircombat.js';
 const rect=(ctx,x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
@@ -136,11 +137,21 @@ export function drawAirCombat(canvas,combat) {
   rect(ctx,12,14,440,120,'rgba(8,21,37,.87)');
   const stage=Math.min(combat.stage,AIRCOMBAT_WAVES.length-1),wave=AIRCOMBAT_WAVES[stage];
   const rack=combatRackSummary(combat);
+  const focused=targets.find(t=>!t.disengaged);
+  // Read-only status from the same physical body boresight test used to
+  // authorise actual missile launches. Sprite overlap cannot fake a lock.
+  const lock=focused ? missileLock(pose,{center:[...focused.center],
+    radius:focused.radius}) : null;
+  const lockStatus=combat.status!=='active' ? 'COMPLETE' :
+    rack.active>0 ? 'MISSILE IN FLIGHT' :
+    rack.ammo===0 ? 'EMPTY' :
+    rack.cooldownTicks>0 ? 'COOLDOWN' :
+    lock?.locked ? 'LOCKED' : (lock?.reason??'NO CONTACT').toUpperCase().replaceAll('-',' ');
   text(ctx,'JUST A FRIEND SQUADRON™  ·  WAVE '+(stage+1)+'/3',26,42,17,'#ffe5b7');
   text(ctx,wave.name,26,71,15,'#b7e4d8');
   text(ctx,'GUNS: SPACE  ·  MISSILES: M  ·  AIM: WASD / ARROWS',26,98,12);
-  text(ctx,'MISSILES '+rack.ammo+'  ·  LOCK '+(combat.status==='active'?'BORESIGHT':'COMPLETE'),
-    26,119,12,'#f1d5ad');
+  text(ctx,'MISSILES '+rack.ammo+'  ·  '+lockStatus,
+    26,119,12,lockStatus==='LOCKED'?'#a9efd2':'#f1d5ad');
   text(ctx,'RADIO: '+combat.radio.slice(0,106),25,h-75,14,'#fff0d7');
   const closest=targets.filter(t=>!t.disengaged).reduce((min,t)=>
     Math.min(min,Math.abs(40-t.center[2])),Infinity);
