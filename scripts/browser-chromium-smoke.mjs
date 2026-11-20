@@ -157,7 +157,7 @@ async function main(){
     x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSource').length;
   const beforeWeaponSounds=countSources();
   const gunHUD=()=>cdp.eval(el('escape-goal')+'.textContent');
-  assert.match(await gunHUD(),/\bWAVE 1\/3\b.*\bGUN HITS 0\b/);
+  assert.match(await gunHUD(),/\bWAVE 1\/6\b.*\bGUN HITS 0\b/);
   await key('Space',true);
   try{
     await until(async()=>/\bGUN HITS [1-9]\d*\b/.test(await gunHUD()),'gun hit from physical Space');
