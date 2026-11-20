@@ -99,7 +99,30 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-ERRANDS-003 — The Errand Economy™ (PR #6 candidate)
+## GFTA6-25D-001 — VANILLAJS Raised 2.5D integration (PR #7)
+
+The upstream `VANILLAJS-25D-001` projection API is now merged. This
+**review-stage** GFTA6 integration vendors its **unchanged** Apache-2.0
+projection module at commit
+`9014a9dc175ea18653c289f9f2956cccb33ea7f8` and makes it available
+without an online engine dependency.
+
+The game adds a **VIEW: CLASSIC 2D / VIEW: RAISED 2.5D** toolbar switch.
+Raised mode uses upstream-projectable building extrusion, height-aware
+shadows and painter ordering relative to the player's car. The original
+Classic view remains the default and switching views cannot change
+vehicle physics, cargo, missions, input events or saved game state.
+
+This is the first **genuine upstream projection integration**, not yet a
+3D-model renderer. No external OBJ, GGBot or Quaternius car assets have
+been imported. The existing original low-poly-style Canvas cars remain
+the graphical fallback.
+
+See [GFTA6-25D-001 source pin and acceptance gates](docs/GFTA6_25D_001.md).
+This feature will reach the public Pages site **only after PR #7 is reviewed
+and merged**.
+
+## GFTA6-ERRANDS-003 — The Errand Economy™ (merged PR #6)
 
 The next GFTA6 game-specific phase adds a **physical cargo manifest** to
 shopping, parcel pickups and furniture deliveries. Finish the selection
@@ -117,10 +140,9 @@ no changes to car physics or collision, no new cloud dependencies, and no
 upstream rendering APIs copied or pre-emptively integrated.
 
 See [GFTA6-ERRANDS-003 delivery and replay contracts](docs/GFTA6_ERRANDS_003.md).
-The feature stays on a review branch until PR #6 passes CI, Codex review and
-manual play-through; the live Pages site continues serving merged `main`.
+PR #6 is merged; this cargo system is part of the current mainline game.
 
-## GFTA6-WORLD-002 — Suburbania (review-stage PR #5)
+## GFTA6-WORLD-002 — Suburbania (merged PR #5)
 
 The next GFTA6-specific feature slice expands the original city from eight
 to **fourteen destinations** and introduces four new errands: dog grooming,
@@ -141,7 +163,7 @@ GFTA6 will consume approved projection and asset-foundry APIs at reviewed
 commit SHAs, not duplicate or replace them.
 
 See [GFTA6-WORLD-002 content and integration contracts](docs/GFTA6_WORLD_002.md).
-This content is **not live on GitHub Pages until PR #5 is reviewed and merged**.
+PR #5 is merged and its world content is included in mainline GFTA6.
 
 ## Play online
 

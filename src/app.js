@@ -12,6 +12,8 @@ const $ = id => {
 const canvas = $('canvas');
 let state = createGame(1988);
 let started = false;
+// Presentation only. This value must never become part of deterministic game state.
+let renderMode = 'classic';
 let soundEnabled = false;
 let soundContext = null;
 let shownMiniKey = '';
@@ -196,6 +198,12 @@ $('start').addEventListener('click', begin);
 $('restart').addEventListener('click', restart);
 $('play-again').addEventListener('click', restart);
 $('pause').addEventListener('click', togglePause);
+$('view-mode').addEventListener('click', () => {
+  renderMode = renderMode === 'classic' ? 'raised' : 'classic';
+  $('view-mode').textContent = renderMode === 'raised' ?
+    'VIEW: RAISED 2.5D' : 'VIEW: CLASSIC 2D';
+  $('view-mode').setAttribute('aria-pressed', String(renderMode === 'raised'));
+});
 $('interact').addEventListener('click', interactNow);
 $('sound').addEventListener('click', () => {
   soundEnabled = !soundEnabled;
@@ -289,7 +297,7 @@ function frame(time) {
     }
     if (steps === 8) accumulator = 0;
   } else accumulator = 0;
-  drawScene(canvas, state);
+  drawScene(canvas, state, {mode: renderMode});
   if (state.tick !== lastHUDTick || state.paused || state.finished) {
     if (state.tick % 6 === 0 || lastHUDTick < 0 || state.paused || state.finished) {
       refreshHUD();

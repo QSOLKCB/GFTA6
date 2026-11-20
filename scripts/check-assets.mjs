@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // No NPM packages, network, frameworks or build steps.
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile, access} from 'node:fs/promises';
 import {resolve, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -32,6 +33,21 @@ assert.ok(paths.includes('src/vehicle-art.js'), 'offline cache must include GFTA
 assert.ok(core.includes("from './world.js'"), 'city must be authored outside engine');
 assert.ok(world.includes('CITY_VERSION'), 'city needs a stable schema marker');
 assert.ok(art.includes('modelPath: null'), 'unlicensed third-party models must not be bundled');
+assert.ok(page.includes('id="view-mode"'), '2.5D opt-in control missing');
+assert.ok(app.includes("drawScene(canvas, state, {mode: renderMode})"),
+  'render mode must be presentation-only');
+assert.ok(paths.includes('src/scene25d.js'), 'offline cache missing projection adapter');
+assert.ok(paths.includes('vendor/vanillajs/projection25d.js'),
+  'offline cache missing pinned projection engine');
+const projectionAdapter = await readFile(resolve(root,'src/scene25d.js'),'utf8');
+assert.ok(projectionAdapter.includes("from '../vendor/vanillajs/projection25d.js'"),
+  'GFTA6 must consume the pinned upstream module');
+const projectionData = await readFile(resolve(root,'vendor/vanillajs/projection25d.js'));
+const gitBlobHash = createHash('sha1')
+  .update('blob ' + projectionData.length + '\0')
+  .update(projectionData).digest('hex');
+assert.equal(gitBlobHash,'be6a75a90ab3d4061486442b263457e6b97e16df',
+  'vendored projection source differs from exact upstream Git blob');
 const notice = await readFile(resolve(root, 'NOTICE'), 'utf8');
 assert.ok(notice.includes('394fd455c6ce3bec9f0bf2c5d2a672b8c5454ab1'), 'pin missing');
 console.log('Static browser entry, offline cache, originals, and engine pin: PASS');
