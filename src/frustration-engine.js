@@ -35,7 +35,11 @@ export function synthFrustratedEngine(seed=1988){
       Math.sin(phase*5)*.14+Math.sin(phase*9)*.08;
     const vowel=throat*(.54+.15*Math.sin(TAU*550*t)+
       .10*Math.sin(TAU*1220*t));
-    const piston=(Math.sin(TAU*43*t)+.3*Math.sin(TAU*86*t))*.09;
+    // Exact integer numbers of piston cycles over the full 2.4 s loop.
+    // Do not reset motor phase at syllable boundaries (avoids clicks).
+    const motorTime=i/ENGINE_SAMPLE_RATE;
+    const piston=(Math.sin(TAU*40*motorTime)+
+      .3*Math.sin(TAU*80*motorTime))*.09;
     const signal=clamp(piston+f*hiss*.19+v*vowel*.85+
       k*(white*.19+Math.sin(TAU*110*t)*.12),-.92,.92);
     const seam=clamp(i/(ENGINE_SAMPLE_RATE*.025),0,1)*
@@ -56,7 +60,7 @@ export function engineFeedback(state,controls={}){
   const throttle=controls.throttle??0;
   if(![-1,0,1].includes(throttle))throw RangeError('invalid throttle');
   const motion=clamp(Math.abs(state.speed)/spec.maxForward,0,1);
-  const pedal=throttle===1?1:throttle===-1?.5:0;
+  const pedal=throttle===1?1:(throttle===-1?0.5:0);
   const gear=clamp(1+Math.floor(motion*4),1,4);
   const rpm=Math.round(850+motion*3800+pedal*1050);
   // Rate changes every driving tick, but the synthesized source is continuous.
