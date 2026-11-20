@@ -66,8 +66,12 @@ The cockpit rig determines gun muzzle rays and sight projection. The
 missile rack determines boresight lock, wing-launch positions, 120Hz homing,
 swept-sphere hit events, ammo and cooldowns. GFTA6 advances the rack in
 **exactly two 1/120-second steps for each 1/60-second game tick**. Only one
-missile is active to keep each rack associated with one authored target,
-rather than silently reassigning homing targets mid-flight.
+missile is active, and the GFTA6 encounter now stores the exact launch-time
+opponent ID until that missile resolves. If gunfire disengages that rival
+before the missile hits/expires, homing continues against the original
+target instead of crashing or transferring to a new enemy. This is a
+game-owned correctness receipt; the upstream rack and weapon tuning are
+unchanged.
 
 The rendered sprite's location never determines hits: it is projected
 from the same read-only 3D encounter target as the upstream gun/rack code.
