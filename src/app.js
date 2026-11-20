@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {createGame, stepGame, currentMission, distanceToPlace, placeById,
+import {createGame, createDogfightGame, stepGame, currentMission, distanceToPlace, placeById,
   interact, chooseMiniGame, setPaused, MINI_GAMES, TICK_HZ} from './core.js';
 import {drawScene} from './render.js';
 import {cargoCapacity, cargoUsed, cargoItemById, cargoJobById} from './cargo.js';
@@ -57,11 +57,13 @@ function ping(frequency = 660) {
     console.warn('Optional sound effect unavailable:', error);
   }
 }
-function begin() {
+function begin(mode = 'saturday') {
   try {
     const seed = Number($('seed').value);
-    state = createGame(seed, $('vehicle').value,
-      {airCombat: $('aircombat-opt').checked});
+    state = mode === 'dogfight' ?
+      createDogfightGame(seed, $('vehicle').value) :
+      createGame(seed, $('vehicle').value,
+        {airCombat: $('aircombat-opt').checked});
     $('seed').setCustomValidity('');
   } catch {
     $('seed').setCustomValidity('Enter an integer seed between 0 and 4294967295');
@@ -78,8 +80,10 @@ function begin() {
 }
 function restart() {
   if (!started) return begin();
-  state = createGame(state.seed, state.profile,
-    {airCombat: state.airCombatEnabled});
+  state = state.gameMode === 'dogfight' ?
+    createDogfightGame(state.seed, state.profile) :
+    createGame(state.seed, state.profile,
+      {airCombat: state.airCombatEnabled});
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   clearControls(); shownMiniKey = ''; lastHUDTick = -1;
   refreshHUD(); canvas.focus({preventScroll: true});
@@ -209,16 +213,18 @@ function refreshHUD() {
     combat.opponents.filter(e=>!e.disengaged).length + ' CONTACT(S)' :
     mission ? Math.round(distanceToPlace(state, mission.place)) + ' m' : '0 m';
   const navigation=waypoint(state,routeMode);
-  $('nav-target').textContent = navigation ?
-    (routeMode === 'escape' ? 'ESCAPE ROUTE · ' : 'ERRAND ROUTE · ') +
+  $('nav-target').textContent = combat ? 'DOGFIGHT / JUST A FRIEND SQUADRON' :
+    navigation ? (routeMode === 'escape' ? 'ESCAPE ROUTE · ' : 'ERRAND ROUTE · ') +
       navigation.label : 'ROUTE OFF · FLIGHT IN PROGRESS';
   $('nav-distance').textContent = navigation ? navigation.distance + ' u' : '—';
   $('nav-instruction').textContent = combat ?
     'W/S PITCH · A/D YAW · SPACE GUNS · M MISSILES' :
     navigation ? navigation.instruction : 'Use flight controls for takeoff and climb.';
-  $('route-mode').textContent = state.escape.flight ? 'N / ROUTE: IN FLIGHT' :
+  $('route-mode').textContent = state.airCombat ? 'N / ROUTE: AIR COMBAT' :
+    state.escape.flight ? 'N / ROUTE: IN FLIGHT' :
     'N / ROUTE: ' + routeMode.toUpperCase();
-  $('route-mode').disabled = Boolean(state.escape.flight || state.finished || !started);
+  $('route-mode').disabled = Boolean(state.airCombat || state.escape.flight ||
+    state.finished || !started);
   $('route-mode').setAttribute('aria-pressed', String(routeMode === 'escape'));
   $('task-progress').style.width = (100 * state.index / state.tasks.length) + '%';
   $('task-count').textContent = 'MISSION ' + Math.min(state.index + 1, state.tasks.length) +
@@ -285,7 +291,8 @@ function refreshHUD() {
   $('pause').textContent = state.paused ? 'RESUME' : 'PAUSE';
   refreshMini();
 }
-$('start').addEventListener('click', begin);
+$('start').addEventListener('click', () => begin());
+$('start-dogfight').addEventListener('click', () => begin('dogfight'));
 $('restart').addEventListener('click', restart);
 $('play-again').addEventListener('click', restart);
 $('pause').addEventListener('click', togglePause);
@@ -297,7 +304,7 @@ $('view-mode').addEventListener('click', () => {
   focusGame();
 });
 $('route-mode').addEventListener('click', () => {
-  if (!started || state.escape.flight || state.finished) return;
+  if (!started || state.airCombat || state.escape.flight || state.finished) return;
   routeMode = routeMode === 'errands' ? 'escape' : 'errands';
   refreshHUD();
   focusGame();
@@ -362,7 +369,8 @@ window.addEventListener('keydown', event => {
   if (!started) return;
   if (state.miniGame && /^Digit[1-4]$/.test(event.code))
     return answer(Number(event.code.slice(-1)) - 1);
-  if (event.code === 'KeyN' && !state.escape.flight && !state.finished) {
+  if (event.code === 'KeyN' && !state.airCombat && !state.escape.flight &&
+      !state.finished) {
     routeMode = routeMode === 'errands' ? 'escape' : 'errands';
     refreshHUD();
     return;
