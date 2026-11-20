@@ -186,3 +186,25 @@ test('combat draw is read-only and rejects absent canvas or state',()=>{
   assert.throws(()=>drawAirCombat(null,c),TypeError);
   assert.throws(()=>drawAirCombat({getContext:()=>null},c),/Canvas 2D/);
 });
+
+test('combat HUD displays real physical missile-lock and in-flight status',()=>{
+  const initial=createAirCombat(1988),before=structuredClone({
+    tick:initial.tick,stage:initial.stage,opponents:initial.opponents
+  });
+  const ready=canvas();
+  drawAirCombat(ready.canvas,initial);
+  assert.ok(ready.labels.some(x=>x.includes('LOCKED')),
+    'initial aligned boresight must show a real valid lock');
+  const misaligned=Object.freeze({...initial,yaw:.58});
+  const blocked=canvas();
+  drawAirCombat(blocked.canvas,misaligned);
+  assert.ok(blocked.labels.some(x=>x.includes('OFF BORESIGHT')),
+    'misaligned physical sight must not claim a lock');
+  const launched=stepAirCombat(initial,{missile:true});
+  const flying=canvas();
+  drawAirCombat(flying.canvas,launched);
+  assert.ok(flying.labels.some(x=>x.includes('MISSILE IN FLIGHT')),
+    'missile status must come from the rack, not projected pixels');
+  assert.deepEqual({tick:initial.tick,stage:initial.stage,
+    opponents:initial.opponents},before,'HUD may not change combat state');
+});
