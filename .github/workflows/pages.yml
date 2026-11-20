@@ -35,6 +35,7 @@ jobs:
       - name: Validate game before publishing
         run: |
           node --check src/core.js
+          node --check src/navigation.js
           node --check src/escape.js
           node --check src/flight-view.js
           node --check src/vehicle.js
@@ -54,6 +55,7 @@ jobs:
           test -f _site/src/vehicle.js
           test -f _site/src/escape.js
           test -f _site/src/flight-view.js
+          test -f _site/src/navigation.js
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload static game
