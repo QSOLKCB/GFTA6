@@ -99,6 +99,24 @@ test('all five rivals can disengage with physical gun alignment in three waves',
   assert.throws(()=>stepAirCombat(a,{brake:true}),RangeError);
   assert.ok(steps<3500);
 });
+test('rivals pursue from finite range and their relative approach resets per wave',()=>{
+  let c=createAirCombat(1988);
+  const initial=combatTargets(c)[0];
+  for(let i=0;i<120;i++)c=stepAirCombat(c,{});
+  const approached=combatTargets(c)[0];
+  const initialRange=Math.abs(40-initial.center[2]);
+  const nextRange=Math.abs(40-approached.center[2]);
+  assert.ok(nextRange<initialRange,'rival craft must actually close range');
+  assert.ok(nextRange>=initialRange-85,'pursuit has a bounded approach');
+  assert.equal(c.waveTick,120);
+  assert.equal(c.status,'active');
+  // Complete this wave by properly aligned gunfire, then verify the
+  // next wave has its own independent closing-distance clock.
+  for(let i=0;i<200&&c.stage===0;i++) c=stepAirCombat(c,{brake:true});
+  assert.equal(c.stage,1,'the first contact must disengage');
+  assert.equal(c.waveTick,0,'each subsequent squadron wave starts at its authored range');
+  assert.ok(combatTargets(c).every(t=>Math.abs(40-t.center[2])>=170));
+});
 test('air combat is opt-in after the original 2.5D escape flight',()=>{
   for(const active of [false,true]){
     const s=enableFlight('hatchback',active),oldBody=snapshot(s).body;
