@@ -11,8 +11,8 @@ import {VEHICLES} from '../src/vehicle.js';
 test('Suburbania content is bounded, connected, unique and immutable', () => {
   assert.equal(CITY_VERSION, 'suburbania.v2');
   assert.deepEqual(validateWorld(), []);
-  assert.equal(PLACES.length, 14);
-  assert.equal(BLOCKS.length, 9);
+  assert.equal(PLACES.length, 15);
+  assert.equal(BLOCKS.length, 10);
   assert.equal(PARKING_BAYS.length, PLACES.length);
   assert.ok(Object.isFrozen(WORLD));
   assert.ok(Object.isFrozen(PLACES));
