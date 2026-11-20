@@ -39,6 +39,13 @@ assert.ok(app.includes("drawScene(canvas, state, {mode: renderMode})"),
 assert.ok(paths.includes('src/scene25d.js'), 'offline cache missing projection adapter');
 assert.ok(paths.includes('src/escape.js'), 'offline cache missing escape economy');
 assert.ok(paths.includes('src/flight-view.js'), 'offline cache missing 2.5D flight vignette');
+assert.ok(paths.includes('src/navigation.js'), 'offline cache missing route wayfinding');
+assert.ok(app.includes('route: routeMode'), 'route switch must reach canvas presentation');
+assert.ok(page.includes('id="route-mode"'), 'navigation toggle must be accessible');
+const navigation=await readFile(resolve(root,'src/navigation.js'),'utf8');
+assert.ok(navigation.includes('export function waypoint('),
+  'pure GFTA6 waypoint helper missing');
+
 const escape = await readFile(resolve(root,'src/escape.js'),'utf8');
 assert.ok(escape.includes('ESCAPE_VERSION'), 'flight state must declare version');
 assert.ok(core.includes("from './escape.js'"), 'optional campaign must use pure escape state');
