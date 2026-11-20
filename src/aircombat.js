@@ -54,7 +54,7 @@ function int(v,a,b,label) {
 }
 export function createAirCombat(seed) {
   int(seed,0,0xffffffff,'seed');
-  return freeze({format:AIRCOMBAT_FORMAT,seed,stage:0,tick:0,
+  return freeze({format:AIRCOMBAT_FORMAT,seed,stage:0,tick:0,waveTick:0,
     opponents:freshOpponents(0),yaw:0,pitch:0,gunCooldown:0,
     shots:0,gunHits:0,missileHits:0,lastMissile:false,
     rack:createMissileRack({ammo:8}),status:'active',
@@ -70,14 +70,14 @@ export function combatPose(combat) {
   return freeze({position:[0,180,40],velocity:[0,0,-90],orientation:q});
 }
 export function combatTargets(combat) {
-  const t=combat.tick, phase=(t+combat.seed%53)%200;
+  const t=combat.waveTick, phase=(t+combat.seed%53)%200;
   const triangle=phase<=100?phase:200-phase;
   const drift=Math.trunc((triangle-50)/12);
   return freeze(combat.opponents.map((enemy,i)=>freeze({
     id:enemy.id,name:enemy.name,paint:enemy.paint,hp:enemy.hp,
     disengaged:enemy.disengaged,center:freeze([
       enemy.x+(i%2===0?drift:-drift),180+enemy.y,
-      40-enemy.range
+      40-(enemy.range-Math.min(85,Math.trunc(t/7)))
     ]),radius:14
   })));
 }
@@ -109,7 +109,7 @@ export function stepAirCombat(combat,control={}) {
     return freeze({...combat,status:'timed-out',radio:'THE GROUP CHAT IS STILL TYPING.'});
   const yaw=clamp(combat.yaw+steer*.012,-.58,.58);
   const pitch=clamp(combat.pitch+throttle*.009,-.32,.32);
-  const view={...combat,tick,yaw,pitch};
+  const view={...combat,tick,waveTick:combat.waveTick+1,yaw,pitch};
   const targets=combatTargets(view);
   const focused=targets.find(e=>!e.disengaged);
   const pose=combatPose(view);
@@ -156,7 +156,7 @@ export function stepAirCombat(combat,control={}) {
       radio=focused.name+': THAT WAS AN UNFRIENDLY FRIENDLY WARNING.';
     } else radio='GUNS: SIGHT ALIGNMENT REQUIRED.';
   }
-  let stage=combat.stage,status='active';
+  let stage=combat.stage,status='active',waveTick=view.waveTick;
   if(opponents.every(e=>e.disengaged)&&rack.active.length===0) {
     stage++;
     if(stage===AIRCOMBAT_WAVES.length) {
@@ -164,9 +164,10 @@ export function stepAirCombat(combat,control={}) {
       radio='MISSION ACCOMPLISHED. ALL CONTACTS DISENGAGED.';
     } else {
       opponents=freshOpponents(stage);
+      waveTick=0;
       radio=AIRCOMBAT_WAVES[stage].radio;
     }
   }
-  return freeze({...combat,tick,yaw,pitch,gunCooldown,shots,gunHits,
+  return freeze({...combat,tick,waveTick,yaw,pitch,gunCooldown,shots,gunHits,
     missileHits,lastMissile:missile,opponents,rack,stage,status,radio});
 }
