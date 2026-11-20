@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // Cache only our own static assets. No trackers, CDN resources or background sync.
-const CACHE_NAME = 'gfta6-static-v0.5.0';
+const CACHE_NAME = 'gfta6-static-v0.6.0';
 const ASSETS = [
   './', './index.html', './src/style.css', './src/app.js', './src/render.js',
   './src/core.js', './src/cargo.js', './src/world.js', './src/vehicle.js', './src/vehicle-art.js',
   './src/car-25d.js', './src/frustration-engine.js',
-  './src/street-life.js', './src/street-voice.js',
+  './src/street-life.js', './src/street-voice.js', './src/street-presentation.js',
   './src/scene25d.js', './src/escape.js', './src/flight-view.js',
   './src/navigation.js', './src/aircombat.js', './src/aircombat-view.js',
   './src/combat-targeting.js',
