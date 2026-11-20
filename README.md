@@ -128,7 +128,7 @@ See the [audio source pins, design and listening acceptance criteria](docs/GFTA6
 This feature is not live until PR #15 has passed independent review,
 manual listening/play-through and merge.
 
-## GFTA6-BROWSER-001 — Real Chromium CI/CD gate (review stage)
+## GFTA6-BROWSER-001 — Real Chromium CI/CD gate (merged PR #14)
 
 A new dependency-free Node 24 acceptance harness starts **real headless
 Chromium/Chrome** in GitHub Actions and uses the DevTools Protocol to
@@ -141,9 +141,9 @@ unit tests pass. Screenshots are preserved as uniquely named Actions
 artifacts for independent review.
 
 [Executed browser acceptance and local instructions](docs/GFTA6_BROWSER_001.md).
-PR #14 remains pending review before this gate can reach `main`.
+PR #14 is merged. The real-browser gate is active on `main` and in the production Pages workflow.
 
-## GFTA6-MODES-001 — TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™ (review stage)
+## GFTA6-MODES-001 — TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™ (merged PR #13)
 
 You can now enter the **entire JUST A FRIEND SQUADRON™ air-combat arcade**
 directly from a **separate start-screen button**, with no need to beat
@@ -163,7 +163,7 @@ campaign. The standalone sidebar tracks actual combat waves, not grocery
 errands. The canonical Derek finale is unchanged.
 
 Read [GFTA6-MODES-001 mode separation and review criteria](docs/GFTA6_MODES_001.md).
-This new launch option reaches GitHub Pages only after review and merge.
+PR #13 is merged; the separate arcade launch is available on the live Pages game.
 
 ## GFTA6-AIRCOMBAT-001A — JUST A FRIEND SQUADRON™ (merged PR #11)
 
