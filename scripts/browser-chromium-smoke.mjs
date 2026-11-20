@@ -149,8 +149,14 @@ let failed=false;
 try{await main();}catch(e){failed=true;console.error('BROWSER FAILURE:',e.stack??e);}
 finally{
   try{cdp?.ws.close();}catch{}
-  if(browser)browser.kill('SIGTERM');
+  if(browser&&browser.exitCode===null){
+    const exit=new Promise(resolve=>browser.once('exit',resolve));
+    browser.kill('SIGTERM');
+    await Promise.race([exit,sleep(2000)]);
+    if(browser.exitCode===null)browser.kill('SIGKILL');
+  }
   if(server.listening)await new Promise(r=>server.close(r));
-  if(profile)await rm(profile,{recursive:true,force:true});
+  if(profile)await rm(profile,{recursive:true,force:true,
+    maxRetries:12,retryDelay:100});
 }
 if(failed)process.exitCode=1;
