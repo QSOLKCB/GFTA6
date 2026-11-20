@@ -3,6 +3,8 @@ import {createGame, stepGame, currentMission, distanceToPlace, placeById,
   interact, chooseMiniGame, setPaused, MINI_GAMES, TICK_HZ} from './core.js';
 import {drawScene} from './render.js';
 import {cargoCapacity, cargoUsed, cargoItemById, cargoJobById} from './cargo.js';
+import {interactEscape, escapeObjective} from './core.js';
+import {RESTORATION, ESCAPE_TARGET_CENTS, nextUpgrade} from './escape.js';
 
 const $ = id => {
   const element = document.getElementById(id);
@@ -109,9 +111,19 @@ function refreshMini() {
   $('ending').hidden = !started || !state.finished;
   if (state.finished) {
     const mins = Math.floor(state.tick / 22);
-    $('ending-stats').textContent = 'ERRANDS: ' + state.index + ' • IN-GAME MINUTES LOST: ' +
-      mins + ' • BANK BALANCE: ' + moneyFmt.format(state.moneyCents / 100) +
-      ' • FREE WEEKEND: NOT UNLOCKED';
+    const escaped = state.outcome === 'YOU FORGOT THE MILK';
+    $('ending-title').textContent = escaped ? 'FREEDOM FLIGHT COMPLETE!' :
+      'MISSION FAILED SUCCESSFULLY.';
+    $('ending-blurb').textContent = escaped ?
+      'You made it into the sky. Your phone still has one more assignment.' :
+      'No quest marker. No briefing. You were meant to know what the task was.';
+    $('ending-stats').textContent = escaped ?
+      'NEW MESSAGE: "YOU FORGOT THE MILK." • PAID GIGS: '+
+        state.escape.completedGigs+' • FLIGHT DISTANCE: '+
+        state.escape.flight.distance+' m' :
+      'ERRANDS: ' + state.index + ' • IN-GAME MINUTES LOST: ' +
+        mins + ' • BANK BALANCE: ' + moneyFmt.format(state.moneyCents / 100) +
+        ' • FREE WEEKEND: NOT UNLOCKED';
   }
   if (!mini) { shownMiniKey = ''; return; }
   const miniKey = mini.type + ':' + mini.round;
@@ -138,7 +150,10 @@ function refreshMini() {
 function refreshHUD() {
   const mission = currentMission(state);
   $('mode-label').textContent = !started ? 'AWAITING SATURDAY' :
-    state.finished ? 'SATURDAY LOST' : state.paused ? 'SATURDAY PAUSED' : 'DOMESTIC SURVIVAL ACTIVE';
+    state.finished ? (state.outcome === 'YOU FORGOT THE MILK' ?
+      'ESCAPE ACHIEVED — MILK FORGOTTEN' : 'SATURDAY LOST') :
+    state.paused ? 'SATURDAY PAUSED' :
+    state.escape.flight ? 'OPERATION FREEDOM FLIGHT' : 'DOMESTIC SURVIVAL ACTIVE';
   const timeMinutes = 9 * 60 + Math.floor(state.tick / 22);
   const hours = Math.floor(timeMinutes / 60) % 24;
   const minutes = timeMinutes % 60;
@@ -182,6 +197,23 @@ function refreshHUD() {
   }));
   $('cargo-trips').textContent = state.completedCargo.reduce((sum, job) => sum + job.trips, 0) +
     ' TRIP(S) COMPLETED';
+  const flight=state.escape.flight;
+  const next=nextUpgrade(state.escape);
+  $('escape-fund').textContent = moneyFmt.format(state.escape.fundCents/100);
+  $('escape-bar').style.width = Math.min(100,
+    (state.escape.fundCents+state.escape.spentCents)/ESCAPE_TARGET_CENTS*100)+'%';
+  $('escape-title').textContent = flight ?
+    'AIRBORNE OPERATION: '+flight.status.toUpperCase() :
+    state.escape.upgrades.length===RESTORATION.length ?
+    'THE WAR BIRD IS READY' : 'SECRET ESCAPE FUND';
+  $('escape-goal').textContent = flight ?
+    'ALT '+flight.altitude+' m • SPEED '+flight.speed+' • '+flight.distance+' m traveled' :
+    'RESTORED '+state.escape.upgrades.length+'/'+RESTORATION.length+
+    ' • GOAL '+moneyFmt.format(ESCAPE_TARGET_CENTS/100);
+  $('escape-next').textContent = next && !flight ?
+    'NEXT: '+next.label+' ('+moneyFmt.format(next.costCents/100)+') · '+escapeObjective(state) :
+    escapeObjective(state);
+  $('escape-gigs').textContent = state.escape.completedGigs+' SECRET COURIER JOBS';
   $('message').textContent = state.message;
   const i = Math.floor(state.tick / 480) % feed.length;
   $('feed-channel').textContent = feed[i][0];
@@ -205,6 +237,16 @@ $('view-mode').addEventListener('click', () => {
   $('view-mode').setAttribute('aria-pressed', String(renderMode === 'raised'));
 });
 $('interact').addEventListener('click', interactNow);
+function escapeNow(action) {
+  if (!started) return;
+  const ok=interactEscape(state,action);
+  if (ok) ping(action==='fly'?960:720);
+  clearControls();
+  refreshHUD();
+}
+$('gig').addEventListener('click',()=>escapeNow('gig'));
+$('repair').addEventListener('click',()=>escapeNow('upgrade'));
+$('takeoff').addEventListener('click',()=>escapeNow('fly'));
 $('sound').addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   $('sound').textContent = soundEnabled ? 'SOUND ON' : 'SOUND OFF';
@@ -239,7 +281,7 @@ window.addEventListener('keydown', event => {
     }
     return;
   }
-  if (['KeyE', 'KeyP', 'Escape', 'Enter', 'Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(event.code))
+  if (['KeyE', 'KeyP', 'KeyG', 'KeyU', 'KeyF', 'Escape', 'Enter', 'Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(event.code))
     event.preventDefault();
   if (event.repeat) return;
   if (!started && event.code === 'Enter') return begin();
@@ -247,6 +289,9 @@ window.addEventListener('keydown', event => {
   if (!started) return;
   if (state.miniGame && /^Digit[1-4]$/.test(event.code))
     return answer(Number(event.code.slice(-1)) - 1);
+  if (event.code === 'KeyG') return escapeNow('gig');
+  if (event.code === 'KeyU') return escapeNow('upgrade');
+  if (event.code === 'KeyF') return escapeNow('fly');
   if (event.code === 'KeyE' || event.code === 'Enter') interactNow();
 });
 window.addEventListener('keyup', event => {

@@ -6,6 +6,8 @@ import {stepCar, vehicleSpec, DEFAULT_VEHICLE} from './vehicle.js';
 import {createCargoJob, loadCargo, deliverCargo, cargoFinished,
   cargoJobById, cargoUsed, cargoCapacity} from './cargo.js';
 import {WORLD, PLACES, BLOCKS} from './world.js';
+import {createEscape, gigAction, nextUpgrade, purchaseUpgrade,
+  launchFlight, stepEscape, flightActive, flightSucceeded} from './escape.js';
 export {WORLD, PLACES, BLOCKS} from './world.js';
 
 // These authoritative game constants remain local to the GFTA6 simulation.
@@ -125,7 +127,8 @@ export function createGame(seed = 1988, profile = DEFAULT_VEHICLE) {
     moneyCents: 8760, patience: 100,
     goodwill: 83, fuel: 100, driveTicks: 0, distance: 0, index: 0,
     ambushed: false, paused: false, finished: false, outcome: '',
-    miniGame: null, cargo: null, completedCargo: [], message: '', log: [],
+    miniGame: null, cargo: null, completedCargo: [], escape: createEscape(seed),
+    message: '', log: [],
     tasks: BASIC_MISSIONS.map(m => ({...m}))
   };
   addLog(state, 'SATURDAY 09:00 — "Just one tiny favour..."');
@@ -190,6 +193,22 @@ function dropCargo(state, mission) {
 }
 export function stepGame(state, controls = {}) {
   if (state.paused || state.finished || state.miniGame) return state;
+  // The optional airfield mini-game uses the SAME fixed simulation tick and
+  // driver inputs, but does not drive/mutate the authoritative 2D car.
+  if (state.escape.flight) {
+    if (flightActive(state.escape)) {
+      state.escape = stepEscape(state.escape, controls);
+      state.tick += 1;
+      if (flightSucceeded(state.escape)) {
+        state.finished = true;
+        state.outcome = 'YOU FORGOT THE MILK';
+        addLog(state,'ESCAPE ACHIEVED. INCOMING MESSAGE: "Can you pick up milk?"');
+      } else if (state.escape.flight.status === 'grounded') {
+        addLog(state,'THE AIRCRAFT RETURNED TO THE GROUND. Press F to retry.');
+      }
+    }
+    return state;
+  }
   const steer = controls.steer ?? 0, throttle = controls.throttle ?? 0;
   const brake = controls.brake ?? false;
   if (![-1, 0, 1].includes(steer) || ![-1, 0, 1].includes(throttle) ||
@@ -229,7 +248,7 @@ export function stepGame(state, controls = {}) {
   return state;
 }
 export function interact(state) {
-  if (state.paused || state.finished || state.miniGame) return false;
+  if (state.paused || state.finished || state.miniGame || state.escape.flight) return false;
   const mission = currentMission(state);
   if (!mission) return false;
   const fuelHere = distanceToPlace(state, 'fuel') <= INTERACT_RADIUS;
@@ -267,6 +286,46 @@ export function interact(state) {
     advanceMission(state);
   }
   return true;
+}
+/** GFTA6-owned secondary campaign. No normal mission progress, car dynamics
+ * or cargo rules are modified by earning cash or buying aircraft parts.
+ * Actions are accepted only when parked near the actual mapped location.
+ */
+export function interactEscape(state, action) {
+  if (state.paused || state.finished || state.miniGame) return false;
+  if (!['gig','upgrade','fly'].includes(action))throw RangeError('unknown escape action');
+  if (flightActive(state.escape)) return false;
+  if (Math.abs(state.speed) > 22) {
+    addLog(state,'PARK FIRST. Secret operations do not happen at road speed.');
+    return false;
+  }
+  let wanted = 'airfield';
+  if (action === 'gig') {
+    wanted = state.escape.activeGig?.to ?? 'parcel';
+    if (state.cargo) {
+      addLog(state,'DELIVER THE REGULAR SHOPPING FIRST. THE BOOT IS FULL.');
+      return false;
+    }
+  }
+  if (distanceToPlace(state, wanted) > INTERACT_RADIUS) {
+    addLog(state,'SECRET OBJECTIVE: Drive to '+placeById(wanted).name+'.');
+    return false;
+  }
+  let result;
+  if (action === 'gig') result = gigAction(state.escape,wanted);
+  else if (action === 'upgrade') result = purchaseUpgrade(state.escape,wanted);
+  else result = launchFlight(state.escape,wanted);
+  if (result.ok) state.escape = result.state;
+  addLog(state,result.message);
+  return result.ok;
+}
+export function escapeObjective(state) {
+  const escape=state.escape;
+  if (escape.flight) return escape.flight.status==='grounded' ?
+    'Airfield: press F to retry takeoff' : 'OPERATION FREEDOM FLIGHT';
+  if (escape.activeGig) return 'Paid delivery: '+placeById(escape.activeGig.to).name;
+  if (nextUpgrade(escape)) return 'G at PARCEL DEPOT for gigs · U at AIRFIELD to restore';
+  return 'Aircraft restored · drive to AIRFIELD and press F';
 }
 export function chooseMiniGame(state, selection) {
   if (!state.miniGame || state.paused || state.finished) return false;
@@ -320,6 +379,7 @@ export function snapshot(state) {
     ambushed: state.ambushed, finished: state.finished,
     outcome: state.outcome, miniGame: state.miniGame,
     cargo: state.cargo, completedCargo: state.completedCargo.map(job => ({...job})),
+    escape: state.escape,
     tasks: state.tasks.map(t => ({id: t.id, kind: t.kind, place: t.place, job: t.job ?? null}))
   };
 }

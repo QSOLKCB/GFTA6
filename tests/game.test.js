@@ -10,7 +10,7 @@ test('seed validation and stable starting state', () => {
   assert.throws(() => createGame(1.5), RangeError);
   assert.deepEqual(snapshot(createGame(1988)), snapshot(createGame(1988)));
   assert.equal(currentMission(createGame(1988)).id, 'salon');
-  assert.equal(PLACES.length, 14);
+  assert.equal(PLACES.length, 15);
   assert.deepEqual(WORLD.roadsX, [170, 560, 950, 1340]);
   assert.deepEqual(WORLD.roadsY, [170, 435, 695, 970]);
 });

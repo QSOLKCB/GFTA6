@@ -102,3 +102,13 @@ main{max-width:1580px;margin:auto;padding:30px 24px 54px}
 .cargo-list{padding-left:18px;margin:5px 0 10px;font-size:12px;color:var(--ink)}
 .cargo-list li{padding:2px 0}
 .cargo-panel small{font-size:10px;color:var(--muted);letter-spacing:.05em}
+
+/* GFTA6 optional airfield campaign — no third-party UI runtime. */
+.escape-panel{border-color:#967d66!important}
+.escape-panel .eyebrow{color:#ffce91}
+.escape-panel #escape-title{display:block;font-size:15px;margin:0 0 12px}
+.escape-panel .cargo-top{font-size:13px}
+.escape-panel .cargo-top strong{color:var(--gold)}
+.escape-panel .track{margin:10px 0}
+.escape-panel small{font-size:10px;color:var(--muted);font-weight:750}
+#gig,#repair,#takeoff{border-color:#bea17e;color:#ffe0a5}

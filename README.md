@@ -99,7 +99,36 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-25D-001 — VANILLAJS Raised 2.5D integration (PR #7)
+## GFTA6-ESCAPE-001 — Operation Freedom Flight™ (review-stage)
+
+The secret alternate campaign is now playable in a **provisional 2.5D
+airfield and flight vignette**: earn cash through paid courier deliveries,
+buy four warbird-restoration milestones, and take off from the Old Airfield.
+Successful flight earns the glorious message: **"YOU FORGOT THE MILK."**
+
+The Old Airfield is a fifteenth destination in Suburbania, with an original
+hangar that uses our existing upstream-pinned VANILLAJS raised-city renderer.
+
+**New controls:** Park at the **Parcel Depot** and press **G** to collect a
+paid side gig. Drive to its named destination and press G again to deliver.
+Return to the depot to collect another. At **Old Airfield**, press **U**
+to buy the next restoration component with your secret fund, then **F**
+to launch once all four components are ready.
+
+**In flight:** W accelerates, S slows, Space lifts off at sufficient speed
+and climbs, and A/D banks. Fly far enough and high enough to unlock the
+alternate ending. Failed takeoffs can be retried with F.
+
+**Important:** This is a stylised arcade flight *skeleton*, **not** aircraft
+physics or an official Spitfire model. The upcoming VANILLAJS Cockpit &
+Spitfire Lab integration will replace the temporary flight model only
+after an approved, pinned upstream API exists. The regular deterministic
+driving, errands, cargo and original ending are preserved.
+
+[See the complete escape design, contracts and review gates](docs/GFTA6_ESCAPE_001.md).
+The feature is not deployed until its PR passes CI, review and merge.
+
+## GFTA6-25D-001 — VANILLAJS Raised 2.5D integration (merged PR #7)
 
 The upstream `VANILLAJS-25D-001` projection API is now merged. This
 **review-stage** GFTA6 integration vendors its **unchanged** Apache-2.0
@@ -119,8 +148,7 @@ been imported. The existing original low-poly-style Canvas cars remain
 the graphical fallback.
 
 See [GFTA6-25D-001 source pin and acceptance gates](docs/GFTA6_25D_001.md).
-This feature will reach the public Pages site **only after PR #7 is reviewed
-and merged**.
+PR #7 is merged and the raised city view is available on GitHub Pages.
 
 ## GFTA6-ERRANDS-003 — The Errand Economy™ (merged PR #6)
 

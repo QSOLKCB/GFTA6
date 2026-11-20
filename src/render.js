@@ -4,6 +4,7 @@ import {WORLD, PLACES, BLOCKS, currentMission, placeById, screenPosition, INTERA
 import {vehicleArt} from './vehicle-art.js';
 import {PARKING_BAYS} from './world.js';
 import {getCityProjection, projectCityGroundPoint} from './scene25d.js';
+import {drawFlightScene} from './flight-view.js';
 
 const TAU = Math.PI * 2;
 const BUILDING_BY_ID = new Map(BLOCKS.map(b => [b.id, b]));
@@ -201,6 +202,10 @@ function miniMap(ctx, state) {
 export function drawScene(canvas, state, {mode = 'classic'} = {}) {
   // Reject an unsupported visual mode before touching canvas or game state.
   getCityProjection(mode);
+  if (state.escape?.flight) {
+    drawFlightScene(canvas, state.escape.flight);
+    return;
+  }
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D is unavailable');
   const w = canvas.width, h = canvas.height;
