@@ -2,7 +2,7 @@
 // GFTA6 game rules: deterministic, fixed-tick and DOM-independent.
 // Motion is supplied by a pinned Apache-2.0 VANILLAJS module (see NOTICE).
 import {createBody2D} from '../vendor/vanillajs/motion2d.js';
-import {stepCar} from './vehicle.js';
+import {stepCar, vehicleSpec, DEFAULT_VEHICLE} from './vehicle.js';
 
 export const WORLD = Object.freeze({width: 1120, height: 830, roadsX: [170, 560, 950], roadsY: [170, 435, 695]});
 export const TICK_HZ = 60;
@@ -101,11 +101,12 @@ function addLog(state, message) {
   state.log.unshift({tick: state.tick, message});
   if (state.log.length > 7) state.log.length = 7;
 }
-export function createGame(seed = 1988) {
+export function createGame(seed = 1988, profile = DEFAULT_VEHICLE) {
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 0xffffffff)
     throw new RangeError('seed must be an unsigned 32-bit integer');
+  vehicleSpec(profile); // fail before constructing a game with a bogus vehicle
   const state = {
-    seed, tick: 0, body: bodyAt(170, 170), speed: 0, headingQ: 0,
+    seed, profile, tick: 0, body: bodyAt(170, 170), speed: 0, headingQ: 0, headingFine: 0,
     moneyCents: 8760, patience: 100,
     goodwill: 83, fuel: 100, driveTicks: 0, distance: 0, index: 0,
     ambushed: false, paused: false, finished: false, outcome: '',
@@ -138,13 +139,15 @@ export function stepGame(state, controls = {}) {
   state.tick += 1;
   const before = state.body;
   const next = stepCar(
-    {body: before, speed: state.speed, headingQ: state.headingQ},
+    {body: before, speed: state.speed, headingQ: state.headingQ,
+      headingFine: state.headingFine, profile: state.profile},
     {steer, throttle: state.fuel > 0 ? throttle : 0, brake},
     {tick: state.tick, bounds: BOUNDS, blockedAt: isBlocked}
   );
   state.body = next.body;
   state.speed = next.speed;
   state.headingQ = next.headingQ;
+  state.headingFine = next.headingFine;
   const moved = Math.hypot(state.body.x - before.x, state.body.y - before.y) / MOTOR_UNITS_PER_PIXEL;
   state.distance += moved;
   if (throttle !== 0 && moved > 0) {
@@ -238,6 +241,7 @@ export function snapshot(state) {
   return {
     seed: state.seed, tick: state.tick, body: state.body,
     speed: state.speed, headingQ: state.headingQ,
+    headingFine: state.headingFine, profile: state.profile,
     moneyCents: state.moneyCents, patience: state.patience, goodwill: state.goodwill,
     fuel: state.fuel, driveTicks: state.driveTicks, index: state.index,
     ambushed: state.ambushed, finished: state.finished,
