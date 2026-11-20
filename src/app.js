@@ -204,6 +204,7 @@ function refreshHUD() {
   const combat = state.airCombat;
   const combatWave = combat ? AIRCOMBAT_WAVES[Math.min(combat.stage,2)] : null;
   $('combat-status').hidden = !combat;
+  $('mission-mode').textContent = combat ? 'AIR ARCADE / THREE WAVES' : '01 / CURRENT OBJECTIVE';
   $('mission-title').textContent = combatWave?.name ??
     (mission?.title ?? 'WEEKEND OVER');
   $('mission-detail').textContent = combat?.radio ??
