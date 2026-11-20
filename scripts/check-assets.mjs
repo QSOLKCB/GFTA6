@@ -34,8 +34,8 @@ assert.ok(core.includes("from './world.js'"), 'city must be authored outside eng
 assert.ok(world.includes('CITY_VERSION'), 'city needs a stable schema marker');
 assert.ok(art.includes('modelPath: null'), 'unlicensed third-party models must not be bundled');
 assert.ok(page.includes('id="view-mode"'), '2.5D opt-in control missing');
-assert.ok(app.includes("drawScene(canvas, state, {mode: renderMode})"),
-  'render mode must be presentation-only');
+assert.ok(app.includes("drawScene(canvas, state, {mode: renderMode, route: routeMode})"),
+  'render and route selection must stay in the presentation layer');
 assert.ok(paths.includes('src/scene25d.js'), 'offline cache missing projection adapter');
 assert.ok(paths.includes('src/escape.js'), 'offline cache missing escape economy');
 assert.ok(paths.includes('src/flight-view.js'), 'offline cache missing 2.5D flight vignette');
