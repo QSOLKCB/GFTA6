@@ -120,6 +120,8 @@ async function main(){
   await until(()=>cdp.eval(el('mode-label')+'.textContent.includes("DOMESTIC SURVIVAL")'),'active Saturday state');
   await until(()=>cdp.audioEvents.some(x=>x.method==='WebAudio.contextCreated'),
     'real user-gesture Web Audio context');
+  await sleep(700);
+  console.log('WebAudio event receipt (Saturday): '+JSON.stringify(cdp.audioEvents.slice(0,24)));
   await until(()=>cdp.audioEvents.some(x=>x.method==='WebAudio.audioNodeCreated'&&
     x.nodeType==='AudioBufferSourceNode'),'real stereo music buffer source');
   assert.match(await cdp.eval(el('music')+'.textContent'),/MUSIC ON/);
