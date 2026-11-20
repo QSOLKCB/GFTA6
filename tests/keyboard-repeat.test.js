@@ -156,3 +156,29 @@ test('real focusGame helper restores canvas only while driving is active', () =>
   runInContext('focusGame()',sandbox);
   assert.deepEqual(focused,[true],'must not steal focus from mini-games or ending');
 });
+
+test('both ending screens focus Replay exactly once and restore it on new completion',()=>{
+  const focused=[];
+  const ids=new Map();
+  const $=id=>{
+    if(!ids.has(id)) ids.set(id,{textContent:'',hidden:false,
+      focus(options) {focused.push({id,preventScroll:options.preventScroll});}});
+    return ids.get(id);
+  };
+  const state={finished:true,miniGame:null,tick:220,index:10,
+    outcome:'YOU FORGOT THE MILK',moneyCents:6500,
+    escape:{completedGigs:5,flight:{distance:2700}}};
+  const sandbox=createContext({state,started:true,endingWasShown:false,
+    shownMiniKey:'', $,moneyFmt:{format:n=>String(n)}});
+  runInContext(section('function refreshMini() {','function refreshHUD() {'),sandbox);
+  runInContext('refreshMini()',sandbox);
+  runInContext('refreshMini()',sandbox);
+  assert.deepEqual(focused,[{id:'play-again',preventScroll:true}]);
+  assert.match(ids.get('ending-title').textContent,/FREEDOM FLIGHT/);
+  state.finished=false;
+  runInContext('refreshMini()',sandbox);
+  state.finished=true;state.outcome='MISSION FAILED SUCCESSFULLY';
+  runInContext('refreshMini()',sandbox);
+  assert.equal(focused.length,2,'each new ending must focus Replay once');
+  assert.match(ids.get('ending-title').textContent,/MISSION FAILED/);
+});
