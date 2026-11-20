@@ -99,6 +99,21 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
+## GFTA6-BROWSER-001 — Real Chromium CI/CD gate (review stage)
+
+A new dependency-free Node 24 acceptance harness starts **real headless
+Chromium/Chrome** in GitHub Actions and uses the DevTools Protocol to
+exercise actual mouse clicks, keyboard input, Canvas drawing, mobile
+layout and a fully **offline service-worker reload**.
+
+The same smoke now gates pull-request CI and production GitHub Pages
+publishing: a failed browser assertion blocks the deployment even when
+unit tests pass. Screenshots are preserved as uniquely named Actions
+artifacts for independent review.
+
+[Executed browser acceptance and local instructions](docs/GFTA6_BROWSER_001.md).
+PR #14 remains pending review before this gate can reach `main`.
+
 ## GFTA6-MODES-001 — TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™ (review stage)
 
 You can now enter the **entire JUST A FRIEND SQUADRON™ air-combat arcade**

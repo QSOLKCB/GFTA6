@@ -48,6 +48,20 @@ jobs:
           node --check sw.js
           node --test tests/*.test.js
           node scripts/check-assets.mjs
+      - name: Headless Chromium acceptance before publishing
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME_BIN"
+          export CHROME_BIN
+          "$CHROME_BIN" --version
+          node scripts/browser-chromium-smoke.mjs
+      - name: Upload deployment browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gfta6-pages-browser-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/headless/
+          if-no-files-found: ignore
       - name: Stage only the static browser game
         run: |
           mkdir -p _site

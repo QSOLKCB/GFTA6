@@ -22,3 +22,17 @@ jobs:
         run: node --test tests/*.test.js
       - name: Verify offline assets and pin
         run: node scripts/check-assets.mjs
+      - name: Headless Chromium browser acceptance
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME_BIN"
+          export CHROME_BIN
+          "$CHROME_BIN" --version
+          node scripts/browser-chromium-smoke.mjs
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gfta6-browser-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/headless/
+          if-no-files-found: ignore
