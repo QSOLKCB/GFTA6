@@ -150,7 +150,10 @@ function refreshMini() {
 function refreshHUD() {
   const mission = currentMission(state);
   $('mode-label').textContent = !started ? 'AWAITING SATURDAY' :
-    state.finished ? 'SATURDAY LOST' : state.paused ? 'SATURDAY PAUSED' : 'DOMESTIC SURVIVAL ACTIVE';
+    state.finished ? (state.outcome === 'YOU FORGOT THE MILK' ?
+      'ESCAPE ACHIEVED — MILK FORGOTTEN' : 'SATURDAY LOST') :
+    state.paused ? 'SATURDAY PAUSED' :
+    state.escape.flight ? 'OPERATION FREEDOM FLIGHT' : 'DOMESTIC SURVIVAL ACTIVE';
   const timeMinutes = 9 * 60 + Math.floor(state.tick / 22);
   const hours = Math.floor(timeMinutes / 60) % 24;
   const minutes = timeMinutes % 60;
