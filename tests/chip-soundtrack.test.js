@@ -66,7 +66,9 @@ test('all original ADSR/Paula effects are non-silent, bounded and distinct',()=>
   assert.throws(()=>createGameSfx('gunshot-from-a-movie'),RangeError);
 });
 test('combat audio cues follow accepted weapon events, not raw key presses',()=>{
-  const before=createAirCombat(1988),fired=stepAirCombat(before,{brake:true,missile:true});
+  let before=createAirCombat(1988);
+  for(let i=0;i<48;i++)before=stepAirCombat(before,{});
+  const fired=stepAirCombat(before,{brake:true,missile:true});
   const cues=combatAudioCues(before,fired);
   assert.ok(cues.includes('gun'));
   assert.ok(cues.includes('missile'));
