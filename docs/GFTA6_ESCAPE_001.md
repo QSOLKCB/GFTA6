@@ -35,10 +35,14 @@ VANILLAJS-25D-001.** The `src/escape.js` flight envelope is an explicitly
 provisional, GFTA6-specific **arcade mission state**, not an aerodynamic
 or physical simulation.
 
-When Cockpit & Spitfire Demo Lab has an approved upstream module and exact SHA,
-we can add an adapter mapping the flight mission state to it, preserving the
-fund, restoration receipts, locations, completion semantics and ordinary game
-physics. This PR has zero changes to the VANILLAJS and OPT repositories.
+VANILLAJS COCKPIT-001 PR #136 is now merged at
+`0bfe21979a42365345c6690b9a8f28758dcfae50`. The experimental
+`modules/cockpit-rig` and `modules/airframe` APIs use physical SI pose and
+flight contracts, whereas this GFTA6 mission uses intentionally simplified
+arcade progress. A **separate, independently reviewed adapter** may bridge
+the two, preserving the secret fund, restoration receipts, locations,
+completion semantics, and ordinary car/cargo physics. No source from the
+Cockpit Lab is imported in the current escape skeleton.
 
 ## The secret courier economy
 
