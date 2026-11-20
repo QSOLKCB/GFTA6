@@ -58,16 +58,19 @@
             <div class="modal-card ending-card">
               <p class="eyebrow">SPECIAL ACHIEVEMENT / SATURDAY COMPLETE</p>
               <h2 id="ending-title">MISSION FAILED<br>SUCCESSFULLY.</h2>
-              <p>No quest marker. No briefing. No acknowledgement that the final objective existed five seconds ago.</p>
+              <p id="ending-blurb">No quest marker. No briefing. No acknowledgement that the final objective existed five seconds ago.</p>
               <p id="ending-stats" class="ending-stats"></p>
               <button id="play-again" class="button-primary">REPLAY SAME SATURDAY ↗</button>
             </div>
           </section>
         </div>
         <div class="game-toolbar">
-          <div class="shortcuts">W / ↑ THROTTLE <span>·</span> S / ↓ BRAKE + REVERSE <span>·</span> SPACE STOP <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
+          <div class="shortcuts">W / ↑ THROTTLE <span>·</span> G SIDE GIG <span>·</span> U RESTORE <span>·</span> F FLY <span>·</span> SPACE STOP <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
           <div class="toolbar-buttons">
             <button id="interact" class="tool-button">E / INTERACT</button>
+            <button id="gig" class="tool-button" type="button">G / PAID JOB</button>
+            <button id="repair" class="tool-button" type="button">U / REPAIR</button>
+            <button id="takeoff" class="tool-button" type="button">F / FLY</button>
             <button id="pause" class="tool-button">PAUSE</button>
             <button id="view-mode" class="tool-button" type="button" aria-pressed="false"
               title="Toggle between classic top-down and raised 2.5D scenery">VIEW: CLASSIC 2D</button>
@@ -104,6 +107,15 @@
           <p id="cargo-route" class="cargo-note">No parcels, no shopping, no excuses.</p>
           <ul id="cargo-items" class="cargo-list"></ul>
           <small id="cargo-trips">0 DELIVERIES COMPLETED</small>
+        </section>
+        <section class="escape-panel" aria-label="Secret escape operation">
+          <p class="eyebrow">OPERATION FREEDOM FLIGHT™</p>
+          <strong id="escape-title">SECRET ESCAPE FUND</strong>
+          <div class="cargo-top"><span>STASHED</span><strong id="escape-fund">$0.00</strong></div>
+          <div class="track"><div class="mint" id="escape-bar" style="width:0%"></div></div>
+          <p class="cargo-note" id="escape-goal">Restore a retired warbird with paid side deliveries.</p>
+          <p id="escape-next" class="cargo-note">Visit the parcel depot and press G.</p>
+          <small id="escape-gigs">0 SECRET COURIER JOBS</small>
         </section>
         <section class="phone-panel" aria-live="polite">
           <p class="eyebrow">03 / INCOMING MESSAGE</p>
