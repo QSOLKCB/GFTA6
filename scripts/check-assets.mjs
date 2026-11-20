@@ -25,7 +25,7 @@ assert.ok(app.includes("createDogfightGame(seed, $('vehicle').value)"),
   'standalone launch must use a separate game factory');
 assert.ok(app.includes("state.gameMode === 'dogfight'"),
   'Replay must preserve the independent arcade game mode');
-assert.ok(sw.includes('gfta6-static-v0.2.1'),
+assert.ok(sw.includes('gfta6-static-v0.2.2'),
   'new chip audio modules must rotate the offline asset cache');
 const core = await readFile(resolve(root, 'src/core.js'), 'utf8');
 const world = await readFile(resolve(root, 'src/world.js'), 'utf8');
@@ -78,6 +78,8 @@ assert.ok(gameCombat.includes('AIRCOMBAT_FORMAT'),'air combat state must be vers
 assert.ok(core.includes("from './aircombat.js'"),'the game core must own the optional combat transition');
 assert.ok(page.includes('id="aircombat-opt"'),'optional combat switch missing');
 assert.ok(page.includes('data-drive="missile"'),'mobile missile control missing');
+assert.ok(paths.includes('src/combat-targeting.js'),
+  'offline cache missing strict physical target acquisition and gun-ray selector');
 for(const path of ['src/aircombat.js','src/aircombat-view.js',
   'vendor/vanillajs/math/index.js','vendor/vanillajs/cockpit-rig/index.js',
   'vendor/vanillajs/missiles.js'])
