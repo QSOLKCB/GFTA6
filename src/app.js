@@ -21,6 +21,7 @@ let routeMode = 'errands';
 let soundEnabled = false;
 let soundContext = null;
 let shownMiniKey = '';
+let endingWasShown = false;
 let lastHUDTick = -1;
 let lastFlightStatus = null;
 const keys = new Set();
@@ -119,6 +120,11 @@ function refreshMini() {
   const mini = state.miniGame;
   $('mini').hidden = !started || !mini;
   $('ending').hidden = !started || !state.finished;
+  if (!state.finished) endingWasShown = false;
+  if (state.finished && !endingWasShown) {
+    endingWasShown = true;
+    $('play-again').focus({preventScroll: true});
+  }
   if (state.finished) {
     const mins = Math.floor(state.tick / 22);
     const escaped = state.outcome === 'YOU FORGOT THE MILK';
