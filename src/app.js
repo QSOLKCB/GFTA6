@@ -10,7 +10,7 @@ import {AIRCOMBAT_WAVES, AIRCOMBAT_FINAL_TEXT, combatRackSummary,combatLockStatu
 import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
 import {createAudioPlayer} from './audio-player.js';
 import {combatAudioCues} from './audio-cues.js';
-import {exportAirWarWorld,verifyAirWarWorld} from './airwar-world.js';
+import {exportAirWarWorld,verifyAirWarWorld,loadAirWarWorld} from './airwar-world.js';
 
 const $ = id => {
   const element = document.getElementById(id);
@@ -201,6 +201,7 @@ function refreshHUD() {
   document.body.classList.toggle('standalone-dogfight',
     state.gameMode==='dogfight'||state.gameMode==='airwar');
   $('export-airwar').hidden = !started || state.gameMode!=='airwar';
+  $('import-airwar').hidden = !started || state.gameMode!=='airwar';
   $('mode-label').textContent = !started ? 'AWAITING SATURDAY' :
     state.finished ? (state.outcome === 'JUST A FRIEND SQUADRON COMPLETE' ?
       'MISSION ACCOMPLISHED — DEREK PARACHUTING' :
@@ -344,6 +345,28 @@ function refreshHUD() {
 $('start').addEventListener('click', () => begin());
 $('start-dogfight').addEventListener('click', () => begin('dogfight'));
 $('start-airwar').addEventListener('click', () => begin('airwar'));
+$('import-airwar').addEventListener('click',()=>{
+  if(!started||state.gameMode!=='airwar')return;
+  $('airwar-file').click();
+});
+$('airwar-file').addEventListener('change',async()=>{
+  const file=$('airwar-file').files?.[0];
+  if(!file)return;
+  const button=$('import-airwar');button.disabled=true;
+  try{
+    if(file.size>262144)throw RangeError('offline package exceeds 256 KiB');
+    const payload=await file.text();
+    await loadAirWarWorld(payload);
+    button.textContent='WORLD LOADED ✓';
+    refreshHUD();
+  }catch(error){
+    console.warn('Air War World rejected:',error);
+    button.textContent='WORLD REJECTED';
+  }finally{
+    $('airwar-file').value='';
+    button.disabled=false;focusGame();
+  }
+});
 $('export-airwar').addEventListener('click', async () => {
   if(!started || state.gameMode!=='airwar')return;
   const button=$('export-airwar');button.disabled=true;
