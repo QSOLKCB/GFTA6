@@ -99,7 +99,36 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-BROWSER-001 — Real Chromium CI/CD gate (review stage)
+## GFTA6-AUDIO-001 — Chip soundtrack and impact polish (PR #15)
+
+Three original, **offline-generated stereo soundtracks** now accompany
+Saturday errands, Freedom Flight, and **TOO CLOSE FOR GUNS™**. All use the
+unchanged VANILLAJS four-channel SID-inspired ADSR × Paula-style PCM engine,
+pinned to merged commit `a4bfb2c200964061a2a3f06f68883f28f65b63a3`
+and checked by exact Git blob hash.
+
+The game now includes original weapon, missile-launch, aircraft-hit,
+explosion, UI, and victory sound effects. During dogfights the 2.5D
+renderer shows deterministic expanding shock rings, sparks, smoke and
+missile trails at **physically projected impact locations**. These are
+presentation effects and cannot change weapon damage or combat outcomes.
+
+Sound starts on the player's **Start Saturday / Start Dogfight click**
+(never on page load). Separate **MUSIC** and **SFX** toggles are available
+in the toolbar. Browser audio is optional and generated locally; no
+commercial music files, downloads, cloud service or npm dependencies.
+
+To audition all three original compositions and ten SFX as WAV files:
+
+```sh
+node scripts/export-chip-audio.mjs ./audio-previews
+```
+
+See the [audio source pins, design and listening acceptance criteria](docs/GFTA6_AUDIO_001.md).
+This feature is not live until PR #15 has passed independent review,
+manual listening/play-through and merge.
+
+## GFTA6-BROWSER-001 — Real Chromium CI/CD gate (merged PR #14)
 
 A new dependency-free Node 24 acceptance harness starts **real headless
 Chromium/Chrome** in GitHub Actions and uses the DevTools Protocol to
@@ -112,9 +141,9 @@ unit tests pass. Screenshots are preserved as uniquely named Actions
 artifacts for independent review.
 
 [Executed browser acceptance and local instructions](docs/GFTA6_BROWSER_001.md).
-PR #14 remains pending review before this gate can reach `main`.
+PR #14 is merged. The real-browser gate is active on `main` and in the production Pages workflow.
 
-## GFTA6-MODES-001 — TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™ (review stage)
+## GFTA6-MODES-001 — TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™ (merged PR #13)
 
 You can now enter the **entire JUST A FRIEND SQUADRON™ air-combat arcade**
 directly from a **separate start-screen button**, with no need to beat
@@ -134,7 +163,7 @@ campaign. The standalone sidebar tracks actual combat waves, not grocery
 errands. The canonical Derek finale is unchanged.
 
 Read [GFTA6-MODES-001 mode separation and review criteria](docs/GFTA6_MODES_001.md).
-This new launch option reaches GitHub Pages only after review and merge.
+PR #13 is merged; the separate arcade launch is available on the live Pages game.
 
 ## GFTA6-AIRCOMBAT-001A — JUST A FRIEND SQUADRON™ (merged PR #11)
 

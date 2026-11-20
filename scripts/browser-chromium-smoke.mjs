@@ -25,6 +25,7 @@ const server=createServer(async(req,res)=>{
 class Client{
   constructor(ws){
     this.ws=ws;this.id=0;this.pending=new Map();this.errors=[];
+    this.audioEvents=[];
     ws.addEventListener('message',event=>{
       let o;try{o=JSON.parse(event.data);}catch{return;}
       if(o.id){const pending=this.pending.get(o.id);if(!pending)return;
@@ -37,6 +38,10 @@ class Client{
         this.errors.push('console.error: '+message);
       }else if(o.method==='Log.entryAdded'&&o.params.entry.level==='error'){
         this.errors.push('Console: '+o.params.entry.text);
+      }else if(typeof o.method==='string'&&o.method.startsWith('WebAudio.')){
+        this.audioEvents.push({method:o.method,
+          nodeType:o.params?.node?.nodeType??null,
+          contextState:o.params?.context?.contextState??null});
       }
     });
   }
@@ -103,7 +108,8 @@ async function main(){
   const ws=new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((resolve,reject)=>{ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true});});
   cdp=new Client(ws);
-  for(const name of ['Page.enable','Runtime.enable','Log.enable','Network.enable'])await cdp.call(name);
+  for(const name of ['Page.enable','Runtime.enable','Log.enable','Network.enable','WebAudio.enable'])
+    await cdp.call(name);
   await cdp.call('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
   console.log('HEADLESS-CHROMIUM: '+binary);
   await navigate(url);
@@ -112,6 +118,22 @@ async function main(){
   await click('start');
   await until(()=>cdp.eval(el('intro')+'.hidden'),'start Saturday click');
   await until(()=>cdp.eval(el('mode-label')+'.textContent.includes("DOMESTIC SURVIVAL")'),'active Saturday state');
+  await until(()=>cdp.audioEvents.some(x=>x.method==='WebAudio.contextCreated'),
+    'real user-gesture Web Audio context');
+  await until(()=>cdp.audioEvents.some(x=>x.method==='WebAudio.audioNodeCreated'&&
+    x.nodeType==='AudioBufferSource'),'real stereo music buffer source');
+  assert.match(await cdp.eval(el('music')+'.textContent'),/MUSIC ON/);
+  assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX ON/);
+  const saturdaySources=cdp.audioEvents.filter(x=>
+    x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSource').length;
+  await click('music');
+  await until(()=>cdp.eval(el('music')+'.textContent.includes("MUSIC OFF")'),'music mute toggle');
+  await click('music');
+  await until(()=>cdp.eval(el('music')+'.textContent.includes("MUSIC ON")'),'music resume toggle');
+  await until(()=>cdp.audioEvents.filter(x=>x.method==='WebAudio.audioNodeCreated'&&
+    x.nodeType==='AudioBufferSource').length>saturdaySources,
+    'fresh music source after unmute');
+  console.log('PASS: original Saturday chip soundtrack creates Web Audio voices and toggles');
   await canvasCheck();
   await click('view-mode');
   await until(()=>cdp.eval(el('view-mode')+'.textContent.includes("RAISED 2.5D")'),'2.5D view toggle');
@@ -129,14 +151,23 @@ async function main(){
   await until(()=>cdp.eval(el('intro')+'.hidden&&'+el('task-count')+'.textContent.includes("DOGFIGHT")'),'standalone arcade launch');
   await canvasCheck();
   assert.match(await cdp.eval(el('velocity')+'.textContent'),/8 MISSILES/);
+  await until(()=>cdp.audioEvents.filter(x=>x.method==='WebAudio.contextCreated').length>=2,
+    'new user-gesture context on standalone arcade');
+  const countSources=()=>cdp.audioEvents.filter(x=>
+    x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSource').length;
+  const beforeWeaponSounds=countSources();
   const gunHUD=()=>cdp.eval(el('escape-goal')+'.textContent');
   assert.match(await gunHUD(),/\bWAVE 1\/3\b.*\bGUN HITS 0\b/);
   await key('Space',true);
   try{
     await until(async()=>/\bGUN HITS [1-9]\d*\b/.test(await gunHUD()),'gun hit from physical Space');
   }finally{await key('Space',false);}
+  await until(()=>countSources()>beforeWeaponSounds,'actual Web Audio gun SFX source');
+  const afterGunSounds=countSources();
   await key('KeyM',true);await sleep(110);await key('KeyM',false);
   await until(()=>cdp.eval(el('velocity')+'.textContent.includes("7 MISSILES")'),'missile launch from physical M');
+  await until(()=>countSources()>afterGunSounds,'actual Web Audio missile SFX source');
+  console.log('PASS: physical gun and missile inputs emit source-backed SFX voices');
   await screenshot('dogfight.png');
   console.log('PASS: real arcade click, Canvas, M missile and Space gun');
   await cdp.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});

@@ -38,3 +38,17 @@ Pinned source commit: ae0b594f006ec3c1add71574c830ddde9ff5fa66
 These exact Git blobs are independently checked during static CI.
 The original GFTA6 squadron rules, UI and authoring retain the repository's
 Apache-2.0 licence. No external art or GPL engine code is imported.
+
+Additional unchanged VANILLAJS CHIP-AUDIO-001 pure sound module:
+Source repository: https://github.com/QSOLKCB/VANILLAJS
+Source file: modules/chip-audio/index.js
+Pinned merged source commit: a4bfb2c200964061a2a3f06f68883f28f65b63a3
+Pinned source Git blob SHA: 4b7f219deaf273fa7178558a3bb214bb003d8b6d
+Vendored file: vendor/vanillajs/chip-audio/index.js
+Licence: Apache License 2.0
+The original GFTA6 song melodies, event recipes, sound effects, browser
+player and deterministic explosion presentation are game-authored.
+SID-style ADSR stages are linear approximations, not MOS SID emulation.
+The Paula-style 4-voice PCM, stereo panning and LED filter approximation
+are implemented by the unchanged upstream source, not copied ROMs,
+commercial recordings, tracker samples or protected music.

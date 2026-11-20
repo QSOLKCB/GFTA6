@@ -186,3 +186,55 @@ test('combat draw is read-only and rejects absent canvas or state',()=>{
   assert.throws(()=>drawAirCombat(null,c),TypeError);
   assert.throws(()=>drawAirCombat({getContext:()=>null},c),/Canvas 2D/);
 });
+
+test('accepted gun hits produce bounded immutable impact and explosion visuals',()=>{
+  const first=createAirCombat(1988),plain=canvas();
+  drawAirCombat(plain.canvas,first);
+  let next=stepAirCombat(first,{brake:true});
+  const hit=next.effects.find(e=>e.kind==='hit');
+  assert.ok(hit,'physically accepted gun hit must create a visual receipt');
+  assert.ok(Object.isFrozen(hit)&&Object.isFrozen(hit.center));
+  assert.equal(hit.id,'derek-1');
+  assert.equal(hit.source,'gun');
+  const hitScene=canvas();
+  drawAirCombat(hitScene.canvas,next);
+  assert.ok(hitScene.frames()>plain.frames()+30,
+    'hit visuals need additional shock rings and sparks');
+  assert.equal(first.effects.length,0,'rendering and stepping never mutate previous state');
+  for(let i=0;i<13&&next.stage===0;i++)
+    next=stepAirCombat(next,{brake:true});
+  const burst=next.effects.find(e=>e.kind==='explosion');
+  assert.ok(burst,'accepted final hit must produce an explosion receipt');
+  const burstScene=canvas();
+  const before=JSON.stringify(next);
+  drawAirCombat(burstScene.canvas,next);
+  assert.ok(burstScene.frames()>plain.frames()+45,
+    'explosion must produce more visual particles than the baseline scene');
+  assert.equal(JSON.stringify(next),before,'VFX rendering may not change authoritative combat');
+  for(let i=0;i<75;i++)next=stepAirCombat(next,{});
+  assert.ok(next.effects.every(e=>next.tick-e.tick<70),
+    'visual receipts must expire within the bounded visual lifetime');
+  assert.ok(next.effects.length<=16);
+});
+
+test('combat HUD displays real physical missile-lock and in-flight status',()=>{
+  const initial=createAirCombat(1988),before=structuredClone({
+    tick:initial.tick,stage:initial.stage,opponents:initial.opponents
+  });
+  const ready=canvas();
+  drawAirCombat(ready.canvas,initial);
+  assert.ok(ready.labels.some(x=>x.includes('LOCKED')),
+    'initial aligned boresight must show a real valid lock');
+  const misaligned=Object.freeze({...initial,yaw:.58});
+  const blocked=canvas();
+  drawAirCombat(blocked.canvas,misaligned);
+  assert.ok(blocked.labels.some(x=>x.includes('OFF BORESIGHT')),
+    'misaligned physical sight must not claim a lock');
+  const launched=stepAirCombat(initial,{missile:true});
+  const flying=canvas();
+  drawAirCombat(flying.canvas,launched);
+  assert.ok(flying.labels.some(x=>x.includes('MISSILE IN FLIGHT')),
+    'missile status must come from the rack, not projected pixels');
+  assert.deepEqual({tick:initial.tick,stage:initial.stage,
+    opponents:initial.opponents},before,'HUD may not change combat state');
+});

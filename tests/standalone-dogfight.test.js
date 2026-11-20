@@ -183,6 +183,7 @@ test('production launch and replay handlers preserve explicit standalone mode',a
     state:createGame(1988),started:false,shownMiniKey:'',lastHUDTick:10,
     $:id=>{assert.ok(input.has(id),'missing test element '+id);return input.get(id);},
     createGame,createDogfightGame,clearControls(){},refreshHUD(){},ping(){},
+    activateAudio(){},
     canvas:{focus(opts){focused.push(opts.preventScroll);}}
   });
   runInContext(source.slice(head,tail),sandbox);

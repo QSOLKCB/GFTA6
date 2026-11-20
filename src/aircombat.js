@@ -56,7 +56,7 @@ export function createAirCombat(seed) {
   int(seed,0,0xffffffff,'seed');
   return freeze({format:AIRCOMBAT_FORMAT,seed,stage:0,tick:0,waveTick:0,
     opponents:freshOpponents(0),yaw:0,pitch:0,gunCooldown:0,
-    shots:0,gunHits:0,missileHits:0,lastMissile:false,
+    shots:0,gunHits:0,missileHits:0,lastMissile:false,effects:freeze([]),
     rack:createMissileRack({ammo:8}),missileTargetId:null,status:'active',
     radio:AIRCOMBAT_WAVES[0].radio});
 }
@@ -116,6 +116,13 @@ export function stepAirCombat(combat,control={}) {
   let opponents=combat.opponents,rack=combat.rack,gunCooldown=Math.max(0,combat.gunCooldown-1);
   let shots=combat.shots,gunHits=combat.gunHits,missileHits=combat.missileHits;
   let radio=combat.radio,missileTargetId=combat.missileTargetId;
+  // Retain only bounded presentation receipts; never change damage, score,
+  // physical sight checks, missile-target ownership or campaign progression.
+  const effects=combat.effects.filter(e=>tick-e.tick<70);
+  const impact=(target,source,lethal)=>{
+    effects.push(freeze({tick,id:target.id,source,
+      kind:lethal?'explosion':'hit',center:freeze([...target.center])}));
+  };
   // Each one-at-a-time missile is bound to the *launch-time* opponent ID.
   // Gunfire can disengage that rival before the missile resolves; the rack
   // must still advance towards the original target, never retarget to the
@@ -137,6 +144,8 @@ export function stepAirCombat(combat,control={}) {
       rack=stepped.rack;
       for(const event of stepped.events) if(event.type==='hit') {
         missileHits++;
+        const old=opponents.find(e=>e.id===tracked.id);
+        if(old.hp>0)impact(tracked,'missile',old.hp<=2);
         opponents=damage(opponents,tracked.id,2);
         radio=tracked.name+' DISENGAGING. PARACHUTE DEPLOYED.';
       }
@@ -156,6 +165,8 @@ export function stepAirCombat(combat,control={}) {
     const results=testCockpitTarget(pose,RIG,[...focused.center],focused.radius);
     if(results.some(hit=>hit.hit)) {
       gunHits++;
+      const old=opponents.find(e=>e.id===focused.id);
+      if(old.hp>0)impact(focused,'gun',old.hp<=1);
       opponents=damage(opponents,focused.id,1);
       radio=focused.name+': THAT WAS AN UNFRIENDLY FRIENDLY WARNING.';
     } else radio='GUNS: SIGHT ALIGNMENT REQUIRED.';
@@ -173,5 +184,6 @@ export function stepAirCombat(combat,control={}) {
     }
   }
   return freeze({...combat,tick,waveTick,yaw,pitch,gunCooldown,shots,gunHits,
-    missileHits,lastMissile:missile,missileTargetId,opponents,rack,stage,status,radio});
+    missileHits,lastMissile:missile,missileTargetId,opponents,rack,stage,status,radio,
+    effects:freeze(effects.slice(-16))});
 }

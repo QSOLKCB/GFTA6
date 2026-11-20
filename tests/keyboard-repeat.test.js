@@ -183,6 +183,24 @@ test('both ending screens focus Replay exactly once and restore it on new comple
   assert.match(ids.get('ending-title').textContent,/MISSION FAILED/);
 });
 
+test('blur and hidden documents pause audio before the next animation frame',()=>{
+  for(const event of ['blur','visibilitychange']){
+    const window=new EventTarget(),document=new EventTarget();
+    const state={paused:false,finished:false,escape:{flight:null}};
+    const pauses=[];
+    const sandbox=createContext({window,document,started:true,state,
+      clearControls(){},setPaused(game,value){game.paused=value;},
+      audio:{setScene(){},setPaused(value){pauses.push(value);}}});
+    runInContext(section('function sceneForState()', 'function activateAudio()'),sandbox);
+    runInContext(section("window.addEventListener('blur'", 'let priorTime'),sandbox);
+    document.hidden=event==='visibilitychange';
+    const target=document.hidden?document:window;
+    target.dispatchEvent(new Event(event));
+    assert.equal(state.paused,true,event);
+    assert.deepEqual(pauses,[true],event);
+  }
+});
+
 test('P and Escape pause/resume from focused mini-game choice after window blur',()=>{
   const h=keyboardHarness();
   const button={closest(selector) {
