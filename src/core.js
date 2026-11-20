@@ -6,6 +6,11 @@ import {stepCar, vehicleSpec, DEFAULT_VEHICLE} from './vehicle.js';
 import {WORLD, PLACES, BLOCKS} from './world.js';
 export {WORLD, PLACES, BLOCKS} from './world.js';
 
+// These authoritative game constants remain local to the GFTA6 simulation.
+export const TICK_HZ = 60;
+export const INTERACT_RADIUS = 72;
+const MOTOR_UNITS_PER_PIXEL = 64;
+
 const PLACE_LOOKUP = new Map(PLACES.map(p => [p.id, p]));
 export function placeById(id) { return PLACE_LOOKUP.get(id) ?? null; }
 export function screenPosition(body) {
