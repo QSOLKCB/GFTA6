@@ -70,7 +70,13 @@ jobs:
       - name: Upload static game
         uses: actions/upload-pages-artifact@v4
         with:
+          # A job retry runs within the same workflow run. Without a unique
+          # artifact name, it creates multiple github-pages artifacts and the
+          # deploy action rejects the ambiguous metadata.
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: _site
       - name: Deploy GFTA6
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
