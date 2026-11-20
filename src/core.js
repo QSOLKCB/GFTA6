@@ -140,6 +140,20 @@ export function createGame(seed = 1988, profile = DEFAULT_VEHICLE, options = {})
   addLog(state, 'SATURDAY 09:00 — "Just one tiny favour..."');
   return state;
 }
+/** Standalone arcade launch: bypasses the economy in a *separate mode*.
+ * Deliberately delegates to the existing game factory and the exact same
+ * deterministic combat constructor. Never credits the escape fund, completes
+ * missions, or changes the difficulty of the ordinary Saturday campaign.
+ */
+export function createDogfightGame(seed = 1988, profile = DEFAULT_VEHICLE) {
+  const state = createGame(seed, profile);
+  state.gameMode = 'dogfight';
+  state.airCombatEnabled = true;
+  state.airCombat = createAirCombat(seed);
+  addLog(state, 'TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™');
+  addLog(state, 'ARCADE MODE: JUST A FRIEND SQUADRON. NO ERRANDS WERE SKIPPED.');
+  return state;
+}
 export function currentMission(state) {
   return state.tasks[state.index] ?? null;
 }
@@ -419,7 +433,7 @@ export function snapshot(state) {
     outcome: state.outcome, miniGame: state.miniGame,
     cargo: state.cargo, completedCargo: state.completedCargo.map(job => ({...job})),
     escape: state.escape, airCombatEnabled: state.airCombatEnabled,
-    airCombat: state.airCombat,
+    airCombat: state.airCombat, gameMode: state.gameMode ?? 'saturday',
     tasks: state.tasks.map(t => ({id: t.id, kind: t.kind, place: t.place, job: t.job ?? null}))
   };
 }

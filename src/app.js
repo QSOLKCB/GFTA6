@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {createGame, stepGame, currentMission, distanceToPlace, placeById,
+import {createGame, createDogfightGame, stepGame, currentMission, distanceToPlace, placeById,
   interact, chooseMiniGame, setPaused, MINI_GAMES, TICK_HZ} from './core.js';
 import {drawScene} from './render.js';
 import {cargoCapacity, cargoUsed, cargoItemById, cargoJobById} from './cargo.js';
@@ -57,11 +57,13 @@ function ping(frequency = 660) {
     console.warn('Optional sound effect unavailable:', error);
   }
 }
-function begin() {
+function begin(mode = 'saturday') {
   try {
     const seed = Number($('seed').value);
-    state = createGame(seed, $('vehicle').value,
-      {airCombat: $('aircombat-opt').checked});
+    state = mode === 'dogfight' ?
+      createDogfightGame(seed, $('vehicle').value) :
+      createGame(seed, $('vehicle').value,
+        {airCombat: $('aircombat-opt').checked});
     $('seed').setCustomValidity('');
   } catch {
     $('seed').setCustomValidity('Enter an integer seed between 0 and 4294967295');
@@ -78,8 +80,10 @@ function begin() {
 }
 function restart() {
   if (!started) return begin();
-  state = createGame(state.seed, state.profile,
-    {airCombat: state.airCombatEnabled});
+  state = state.gameMode === 'dogfight' ?
+    createDogfightGame(state.seed, state.profile) :
+    createGame(state.seed, state.profile,
+      {airCombat: state.airCombatEnabled});
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   clearControls(); shownMiniKey = ''; lastHUDTick = -1;
   refreshHUD(); canvas.focus({preventScroll: true});
@@ -173,6 +177,7 @@ function refreshMini() {
 }
 function refreshHUD() {
   const mission = currentMission(state);
+  document.body.classList.toggle('standalone-dogfight',state.gameMode === 'dogfight');
   $('mode-label').textContent = !started ? 'AWAITING SATURDAY' :
     state.finished ? (state.outcome === 'JUST A FRIEND SQUADRON COMPLETE' ?
       'MISSION ACCOMPLISHED — DEREK PARACHUTING' :
@@ -199,6 +204,7 @@ function refreshHUD() {
   const combat = state.airCombat;
   const combatWave = combat ? AIRCOMBAT_WAVES[Math.min(combat.stage,2)] : null;
   $('combat-status').hidden = !combat;
+  $('mission-mode').textContent = combat ? 'AIR ARCADE / THREE WAVES' : '01 / CURRENT OBJECTIVE';
   $('mission-title').textContent = combatWave?.name ??
     (mission?.title ?? 'WEEKEND OVER');
   $('mission-detail').textContent = combat?.radio ??
@@ -209,20 +215,34 @@ function refreshHUD() {
     combat.opponents.filter(e=>!e.disengaged).length + ' CONTACT(S)' :
     mission ? Math.round(distanceToPlace(state, mission.place)) + ' m' : '0 m';
   const navigation=waypoint(state,routeMode);
-  $('nav-target').textContent = navigation ?
-    (routeMode === 'escape' ? 'ESCAPE ROUTE · ' : 'ERRAND ROUTE · ') +
+  $('nav-target').textContent = combat ? 'DOGFIGHT / JUST A FRIEND SQUADRON' :
+    navigation ? (routeMode === 'escape' ? 'ESCAPE ROUTE · ' : 'ERRAND ROUTE · ') +
       navigation.label : 'ROUTE OFF · FLIGHT IN PROGRESS';
   $('nav-distance').textContent = navigation ? navigation.distance + ' u' : '—';
   $('nav-instruction').textContent = combat ?
     'W/S PITCH · A/D YAW · SPACE GUNS · M MISSILES' :
     navigation ? navigation.instruction : 'Use flight controls for takeoff and climb.';
-  $('route-mode').textContent = state.escape.flight ? 'N / ROUTE: IN FLIGHT' :
+  $('route-mode').textContent = state.airCombat ? 'N / ROUTE: AIR COMBAT' :
+    state.escape.flight ? 'N / ROUTE: IN FLIGHT' :
     'N / ROUTE: ' + routeMode.toUpperCase();
-  $('route-mode').disabled = Boolean(state.escape.flight || state.finished || !started);
+  $('route-mode').disabled = Boolean(state.airCombat || state.escape.flight ||
+    state.finished || !started);
   $('route-mode').setAttribute('aria-pressed', String(routeMode === 'escape'));
-  $('task-progress').style.width = (100 * state.index / state.tasks.length) + '%';
-  $('task-count').textContent = 'MISSION ' + Math.min(state.index + 1, state.tasks.length) +
-    ' / ' + state.tasks.length + (state.ambushed ? ' • BONUS ERRAND UNLOCKED' : '');
+  const totalContacts = AIRCOMBAT_WAVES.reduce((n,w)=>n+w.members.length,0);
+  // The winning state retains the last disengaged opponent even though
+  // stage has advanced past the final wave. Count victory exactly once.
+  const completedContacts = combat ?
+    (combat.status === 'won' ? totalContacts :
+      AIRCOMBAT_WAVES.slice(0,combat.stage).reduce((n,w)=>n+w.members.length,0) +
+        combat.opponents.filter(e=>e.disengaged).length) : 0;
+  $('task-progress').style.width = combat ?
+    (100*completedContacts/totalContacts)+'%' :
+    (100 * state.index / state.tasks.length) + '%';
+  $('task-count').textContent = combat ?
+    'DOGFIGHT · WAVE '+Math.min(combat.stage+1,AIRCOMBAT_WAVES.length)+
+      ' / '+AIRCOMBAT_WAVES.length :
+    'MISSION ' + Math.min(state.index + 1, state.tasks.length) +
+      ' / ' + state.tasks.length + (state.ambushed ? ' • BONUS ERRAND UNLOCKED' : '');
   $('money').textContent = moneyFmt.format(state.moneyCents / 100);
   $('patience').textContent = state.patience + '%';
   $('goodwill').textContent = state.goodwill + '%';
@@ -266,8 +286,9 @@ function refreshHUD() {
     'ALT '+flight.altitude+' u • SPEED '+flight.speed+' • '+flight.distance+' u traveled' :
     'RESTORED '+state.escape.upgrades.length+'/'+RESTORATION.length+
     ' • GOAL '+moneyFmt.format(ESCAPE_TARGET_CENTS/100);
-  $('escape-next').textContent = next && !flight ?
-    'NEXT: '+next.label+' ('+moneyFmt.format(next.costCents/100)+') · '+escapeObjective(state) :
+  $('escape-next').textContent = combat ? escapeObjective(state) :
+    next && !flight ? 'NEXT: '+next.label+
+      ' ('+moneyFmt.format(next.costCents/100)+') · '+escapeObjective(state) :
     escapeObjective(state);
   $('escape-gigs').textContent = state.escape.completedGigs+' SECRET COURIER JOBS';
   document.querySelector('[data-drive="missile"]').hidden = !combat;
@@ -285,7 +306,8 @@ function refreshHUD() {
   $('pause').textContent = state.paused ? 'RESUME' : 'PAUSE';
   refreshMini();
 }
-$('start').addEventListener('click', begin);
+$('start').addEventListener('click', () => begin());
+$('start-dogfight').addEventListener('click', () => begin('dogfight'));
 $('restart').addEventListener('click', restart);
 $('play-again').addEventListener('click', restart);
 $('pause').addEventListener('click', togglePause);
@@ -297,7 +319,7 @@ $('view-mode').addEventListener('click', () => {
   focusGame();
 });
 $('route-mode').addEventListener('click', () => {
-  if (!started || state.escape.flight || state.finished) return;
+  if (!started || state.airCombat || state.escape.flight || state.finished) return;
   routeMode = routeMode === 'errands' ? 'escape' : 'errands';
   refreshHUD();
   focusGame();
@@ -362,7 +384,8 @@ window.addEventListener('keydown', event => {
   if (!started) return;
   if (state.miniGame && /^Digit[1-4]$/.test(event.code))
     return answer(Number(event.code.slice(-1)) - 1);
-  if (event.code === 'KeyN' && !state.escape.flight && !state.finished) {
+  if (event.code === 'KeyN' && !state.airCombat && !state.escape.flight &&
+      !state.finished) {
     routeMode = routeMode === 'errands' ? 'escape' : 'errands';
     refreshHUD();
     return;

@@ -12,7 +12,7 @@ export function waypoint(state, mode = 'errands') {
   if (!state || typeof state !== 'object' || !state.body || !state.escape)
     throw new TypeError('GFTA6 gameplay state required');
   if (!ROUTE_MODES.includes(mode)) throw new RangeError('unsupported route mode');
-  if (state.finished || state.escape.flight) return null;
+  if (state.finished || state.escape.flight || state.airCombat) return null;
   let id, instruction, action, prompt;
   if (mode === 'errands') {
     const mission = currentMission(state);

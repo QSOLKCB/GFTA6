@@ -19,11 +19,21 @@ assert.ok(page.includes('src="./src/app.js"'), 'game entry must be wired');
 assert.ok(page.includes('./assets/gfta6-banner.svg'), 'banner must appear');
 assert.ok(app.includes("from './core.js'"), 'app must import deterministic rules');
 assert.ok(app.includes("from './render.js'"), 'app must import canvas renderer');
+assert.ok(page.includes('id="start-dogfight"'),
+  'independent air arcade start control must be bundled');
+assert.ok(app.includes("createDogfightGame(seed, $('vehicle').value)"),
+  'standalone launch must use a separate game factory');
+assert.ok(app.includes("state.gameMode === 'dogfight'"),
+  'Replay must preserve the independent arcade game mode');
+assert.ok(sw.includes('gfta6-static-v0.1.9'),
+  'new launch interface must rotate the offline asset cache');
 const core = await readFile(resolve(root, 'src/core.js'), 'utf8');
 const world = await readFile(resolve(root, 'src/world.js'), 'utf8');
 const art = await readFile(resolve(root, 'src/vehicle-art.js'), 'utf8');
 const vehicle = await readFile(resolve(root, 'src/vehicle.js'), 'utf8');
 assert.ok(core.includes("from './vehicle.js'"), 'game core must use arcade car controller');
+assert.ok(core.includes('export function createDogfightGame('),
+  'separate arcade mode must not bypass the main createGame contract');
 assert.ok(vehicle.includes("from '../vendor/vanillajs/motion2d.js'"), 'vehicle must use pinned VANILLAJS vectors and bodies');
 assert.ok(paths.includes('src/vehicle.js'), 'offline cache must include car dynamics');
 assert.ok(paths.includes('src/world.js'), 'offline cache must include city world');
