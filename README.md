@@ -99,6 +99,35 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
+## GFTA6-AUDIO-001 — Chip soundtrack and impact polish (PR #15)
+
+Three original, **offline-generated stereo soundtracks** now accompany
+Saturday errands, Freedom Flight, and **TOO CLOSE FOR GUNS™**. All use the
+unchanged VANILLAJS four-channel SID-inspired ADSR × Paula-style PCM engine,
+pinned to merged commit `a4bfb2c200964061a2a3f06f68883f28f65b63a3`
+and checked by exact Git blob hash.
+
+The game now includes original weapon, missile-launch, aircraft-hit,
+explosion, UI, and victory sound effects. During dogfights the 2.5D
+renderer shows deterministic expanding shock rings, sparks, smoke and
+missile trails at **physically projected impact locations**. These are
+presentation effects and cannot change weapon damage or combat outcomes.
+
+Sound starts on the player's **Start Saturday / Start Dogfight click**
+(never on page load). Separate **MUSIC** and **SFX** toggles are available
+in the toolbar. Browser audio is optional and generated locally; no
+commercial music files, downloads, cloud service or npm dependencies.
+
+To audition all three original compositions and ten SFX as WAV files:
+
+```sh
+node scripts/export-chip-audio.mjs ./audio-previews
+```
+
+See the [audio source pins, design and listening acceptance criteria](docs/GFTA6_AUDIO_001.md).
+This feature is not live until PR #15 has passed independent review,
+manual listening/play-through and merge.
+
 ## GFTA6-BROWSER-001 — Real Chromium CI/CD gate (review stage)
 
 A new dependency-free Node 24 acceptance harness starts **real headless
