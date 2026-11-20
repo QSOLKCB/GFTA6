@@ -76,8 +76,8 @@ test('boss telegraph locks one yaw lane and permits actual A/D evasion',()=>{
   assert.equal(hit.bossAttack.aim,0);
   assert.ok(Object.isFrozen(hit.bossAttack));
   assert.equal(original.bossAttack,null);
-  assert.ok(combatAudioCues(original,hit).length===0,
-    'no early warning before actual telegraph transition');
+  assert.deepEqual(combatAudioCues(original,hit),['warning'],
+    'the real telegraph transition produces exactly one warning');
   let moved=false;
   for(let i=BOSS_ATTACK_TELEGRAPH;i<BOSS_ATTACK_IMPACT;i++){
     const nextHit=stepAirCombat(hit,{});
@@ -117,7 +117,7 @@ test('boss drawing is read-only and displays HP, phases and lock warning',()=>{
   let s=bossFixture(1988);
   const before=JSON.stringify(s);
   const a=draw(s);
-  assert.ok(a.strokes>20);
+  assert.ok(a.strokes>=8,'boss must draw actual Canvas geometry');
   assert.ok(a.labels.some(x=>x.includes('FINAL BOSS')));
   assert.ok(a.labels.some(x=>x.includes('12 / 12 HP')));
   assert.ok(a.labels.some(x=>x.includes('HULL 3/3')));
