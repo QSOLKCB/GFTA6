@@ -17,20 +17,23 @@ function section(start, end) {
 
 function keyboardHarness() {
   const listeners = new Map();
-  const state = {paused: false, finished: false, miniGame: null};
+  const state = {paused: false, finished: false, miniGame: null, escape: {flight: null}};
   const keys = new Set();
   const touch = new Set();
+  const answers = [];
   const sandbox = createContext({
     state,
     keys,
     touch,
     started: true,
+    routeMode: 'errands',
+    refreshHUD() {},
     window: {addEventListener(name, callback) {listeners.set(name, callback);}},
     document: {querySelectorAll() {return [];}},
     HTMLInputElement: class HTMLInputElement {},
     begin() {},
     togglePause() {},
-    answer() {},
+    answer(index) {answers.push(index);},
     interactNow() {}
   });
   // Evaluate the production keydown/keyup handlers, not a hand-copied replica.
@@ -48,6 +51,8 @@ function keyboardHarness() {
   return {
     state,
     keys,
+    answers,
+    routeMode() {return runInContext('routeMode', sandbox);},
     dispatch,
     clearControls() {runInContext('clearControls()', sandbox);}
   };
@@ -108,4 +113,46 @@ test('vehicle dropdown keeps native arrow navigation while gameplay keys stay sa
   assert.equal(h.keys.has('reverse'), false);
   assert.equal(h.dispatch('keydown', 'KeyW'), true);
   assert.equal(h.keys.has('forward'), true);
+});
+
+test('N toggles presentation guidance once per physical press without changing driving keys', () => {
+  const h=keyboardHarness();
+  assert.equal(h.routeMode(),'errands');
+  assert.equal(h.dispatch('keydown','KeyN'),true);
+  assert.equal(h.routeMode(),'escape');
+  assert.equal(h.dispatch('keydown','KeyN',true),true);
+  assert.equal(h.routeMode(),'escape','OS repeat must not double-toggle navigation');
+  assert.equal(h.dispatch('keydown','KeyN'),true);
+  assert.equal(h.routeMode(),'errands');
+  assert.equal(h.keys.size,0,'route switch must not add driving control keys');
+});
+
+test('digit shortcuts work from focused mini-game choice; driving stays blocked on buttons', () => {
+  const h=keyboardHarness();
+  const choiceButton={closest(selector) {
+    assert.equal(selector,'select,textarea,button');
+    return {tagName:'BUTTON'};
+  }};
+  assert.equal(h.dispatch('keydown','KeyW',false,choiceButton),false);
+  assert.equal(h.keys.has('forward'),false,'focused controls must not trigger driving');
+  h.state.miniGame={type:'groceries',round:0};
+  assert.equal(h.dispatch('keydown','Digit1',false,choiceButton),true);
+  assert.deepEqual(h.answers,[0]);
+  assert.equal(h.dispatch('keydown','Digit1',true,choiceButton),true);
+  assert.deepEqual(h.answers,[0],'key repeat must not double-submit a mini-game answer');
+});
+
+test('real focusGame helper restores canvas only while driving is active', () => {
+  const state={finished:false,miniGame:null};
+  const focused=[];
+  const sandbox=createContext({started:true,state,
+    canvas:{focus(options) {focused.push(options.preventScroll);}}});
+  runInContext(section('function focusGame() {','function interactNow() {'),sandbox);
+  runInContext('focusGame()',sandbox);
+  assert.deepEqual(focused,[true]);
+  state.miniGame={type:'groceries'};
+  runInContext('focusGame()',sandbox);
+  state.miniGame=null;state.finished=true;
+  runInContext('focusGame()',sandbox);
+  assert.deepEqual(focused,[true],'must not steal focus from mini-games or ending');
 });
