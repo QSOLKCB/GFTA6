@@ -196,6 +196,7 @@ test('real start/replay handlers preserve Advanced Air War without faking comple
     $:id=>{assert.ok(fields.has(id),id);return fields.get(id);},
     createGame,createDogfightGame,createAirWarGame,clearControls(){},
     refreshHUD(){},activateAudio(){},ping(){},
+    audio:{stopStreet(){}},
     canvas:{focus(){}}
   });
   runInContext(source.slice(start,end),sandbox);
