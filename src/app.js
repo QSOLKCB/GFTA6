@@ -28,6 +28,8 @@ let renderMode = 'classic';
 let routeMode = 'errands';
 let soundEnabled = true;
 let musicEnabled = true;
+// Presentation preference only: captions remain visible while street speech is muted.
+let streetVoicesEnabled = true;
 // The browser AudioContext is created only after a real user start/toggle click.
 const audio = createAudioPlayer(window.AudioContext || window.webkitAudioContext);
 let shownMiniKey = '';
@@ -59,7 +61,7 @@ function syncAudio() {
   const driving=started&&!document.hidden&&!state.paused&&!state.finished&&
     !state.miniGame&&!state.airCombat&&!state.escape.flight;
   audio.setEngine(driving?engineFeedback(state,controls()):null);
-  audio.setStreetEnabled(driving);
+  audio.setStreetEnabled(driving&&streetVoicesEnabled);
 }
 function activateAudio() {
   try {
@@ -442,6 +444,16 @@ $('sound').addEventListener('click', () => {
   if(soundEnabled){activateAudio();ping(680);}
   focusGame();
 });
+$('street-voices').addEventListener('click', () => {
+  streetVoicesEnabled = !streetVoicesEnabled;
+  // Stop voices synchronously on click; the fixed-tick game continues unchanged.
+  const driving=started&&!document.hidden&&!state.paused&&!state.finished&&
+    !state.miniGame&&!state.airCombat&&!state.escape.flight;
+  audio.setStreetEnabled(streetVoicesEnabled&&driving);
+  $('street-voices').textContent=streetVoicesEnabled?'NPC VOICES ON':'NPC VOICES OFF';
+  $('street-voices').setAttribute('aria-pressed',String(streetVoicesEnabled));
+  focusGame();
+});
 $('music').addEventListener('click', () => {
   musicEnabled = !musicEnabled;
   audio.setMusicEnabled(musicEnabled);
@@ -553,7 +565,7 @@ function frame(time) {
         const line=streetMoment(state.seed,state.tick,screenPosition(state.body));
         if(line){
           streetBubble=line;
-          if(soundEnabled)audio.streetLine(line);
+          if(soundEnabled&&streetVoicesEnabled)audio.streetLine(line);
         }
       }
       for(const cue of combatAudioCues(previousCombat,state.airCombat))
