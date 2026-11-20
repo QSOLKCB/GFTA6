@@ -101,7 +101,8 @@ test('paused game cannot advance simulation or accept mini-game answers', () => 
   const pre = snapshot(s);
   stepGame(s, {throttle: 1});
   assert.deepEqual(snapshot(s), pre);
-  s.index = 5;
+  // Locate the laundry mini-game by mission identity, not a brittle index.
+  s.index = s.tasks.findIndex(t => t.id === 'laundry');
   s.body = bodyAt(170, 170);
   assert.equal(interact(s), false);
   setPaused(s, false);
