@@ -73,11 +73,10 @@ test('authoritative integer speed and throttle control engine feedback only',()=
   assert.equal(engineFeedback(state,{throttle:1}),null);
   state.paused=false;state.miniGame={type:'boss',round:0};
   assert.equal(engineFeedback(state),null);
-  state.miniGame=null;state.airCombat={};
-  assert.equal(engineFeedback(state),null);
-  state.airCombat=null;state.escape.flight={};
-  assert.equal(engineFeedback(state),null);
-  state.escape.flight=null;state.speed=0;
+  state.miniGame=null;
+  assert.equal(engineFeedback({...state,airCombat:{}}),null);
+  assert.equal(engineFeedback({...state,escape:{...state.escape,flight:{}}}),null);
+  state.speed=0;
   assert.deepEqual(snapshot(state),before,
     'presentation and mock mode toggles must not alter original game receipts');
   assert.throws(()=>engineFeedback(state,{throttle:5}),RangeError);
