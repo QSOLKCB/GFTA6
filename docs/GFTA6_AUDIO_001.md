@@ -104,7 +104,31 @@ effects, music/SFX controls, mock Web Audio activation, and accepted
 combat-event cues. Existing browser acceptance exercises both modes,
 keyboard weapon inputs, mobile controls and offline service-worker loading.
 
-The audio PR must be independently reviewed, reconciled with merged
-GFTA6 Chromium CI PR #14, pass exact-head CI and receive owner listening
-and gameplay approval before merge. No automatically generated WAV
-recordings, telemetry or remote assets belong in GitHub Pages.
+### Executed CI / browser evidence
+
+The audio work is reconciled with merged GFTA6 Chromium CI PR #14
+(`main@3b6888e0494a2840a1377edec7ebf669e3de7f3a`) through a
+two-parent branch reconciliation commit. The complete original headless
+Chromium harness from that reviewed merge is retained, including its
+real-gun-hit and visible-mobile-button tests.
+
+The extended Chrome DevTools **WebAudio** domain additionally verifies:
+
+- A user-gesture AudioContext is created and enters the running state.
+- Real `AudioBufferSource` voices are created for the original Saturday
+  soundtrack and after turning the MUSIC toggle off and on.
+- Standalone combat creates a separate user-gesture audio context.
+- Actual Space gunfire and M missile launches create further source-backed
+  SFX voices.
+- Existing real mouse, Canvas, full browser error, mobile and offline reload
+  checks pass unchanged.
+
+The verified browser run is GitHub Actions
+`44697826418` (Chrome 157), with **90/90 Node tests, zero failures**
+and successfully uploaded screenshot evidence. This is executed source
+evidence; it is *not* an auditory quality certification or a measured
+60-FPS result.
+
+The audio PR still requires independent Codex review and owner **manual
+listening and gameplay approval** before merge. No automatically generated
+WAV recordings, telemetry or remote assets belong in GitHub Pages.
