@@ -7,6 +7,7 @@ import {interactEscape, escapeObjective} from './core.js';
 import {RESTORATION, ESCAPE_TARGET_CENTS, nextUpgrade} from './escape.js';
 import {waypoint} from './navigation.js';
 import {AIRCOMBAT_WAVES, AIRCOMBAT_FINAL_TEXT, combatRackSummary,combatLockStatus} from './aircombat.js';
+import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
 import {createAudioPlayer} from './audio-player.js';
 import {combatAudioCues} from './audio-cues.js';
 
@@ -245,7 +246,7 @@ function refreshHUD() {
   const lock = combat ? combatLockStatus(combat) : null;
   $('nav-instruction').textContent = combat ?
     'W/S PITCH · A/D YAW · SPACE GUNS · M MISSILES · '+
-      lock.status+(lock.targetId?' '+Math.round(100*lock.progress/48)+'%':'') :
+      lock.status+(lock.targetId?' '+Math.round(100*lock.progress/MISSILE_ACQUIRE_TICKS)+'%':'') :
     navigation ? navigation.instruction : 'Use flight controls for takeoff and climb.';
   $('route-mode').textContent = state.airCombat ? 'N / ROUTE: AIR COMBAT' :
     state.escape.flight ? 'N / ROUTE: IN FLIGHT' :
