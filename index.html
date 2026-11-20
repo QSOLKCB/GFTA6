@@ -25,7 +25,8 @@
         <div class="instruments">
           <span class="live"><i></i> <span id="mode-label">AWAITING SATURDAY</span></span>
           <span>TIME <b id="clock">SAT 09:00</b></span>
-          <span>ODOMETER <b id="odo">0 m</b></span>
+          <span>DISTANCE <b id="odo">0 u</b></span>
+          <span>SPEED <b id="velocity">0 u/s</b></span>
           <span>SEED <b id="seed-readout">1988</b></span>
         </div>
         <div class="viewport">
@@ -38,7 +39,7 @@
                 <h2>YOU HAVE THE DAY OFF.<br><em>ALLEGEDLY.</em></h2>
                 <p>Drive to appointments. Collect the shopping. Survive household mini-games. Get home without receiving another message. Good luck with that.</p>
                 <div class="launch-row"><label for="seed">GAME SEED <input id="seed" type="number" inputmode="numeric" min="0" max="4294967295" step="1" value="1988"></label><button id="start" class="button-primary">START SATURDAY ↗</button></div>
-                <small>WASD / ARROWS DRIVE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW</small>
+                <small>WASD / ARROWS DRIVE · SPACE BRAKE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW</small>
               </div>
             </div>
           </div>
@@ -63,7 +64,7 @@
           </section>
         </div>
         <div class="game-toolbar">
-          <div class="shortcuts">W / ↑ THROTTLE <span>·</span> S / ↓ BRAKE + REVERSE <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
+          <div class="shortcuts">W / ↑ THROTTLE <span>·</span> S / ↓ BRAKE + REVERSE <span>·</span> SPACE STOP <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
           <div class="toolbar-buttons">
             <button id="interact" class="tool-button">E / INTERACT</button>
             <button id="pause" class="tool-button">PAUSE</button>
@@ -73,7 +74,7 @@
         </div>
         <div class="touch-controls" aria-label="Touch driving controls">
           <div class="touch-steer"><button data-drive="left" aria-label="Hold to steer left">◀</button><button data-drive="right" aria-label="Hold to steer right">▶</button></div>
-          <div class="touch-drive"><button data-drive="reverse" aria-label="Hold to brake or reverse">BRAKE / REVERSE</button><button class="forward" data-drive="forward" aria-label="Hold to accelerate">ACCELERATE ▲</button></div>
+          <div class="touch-drive"><button data-drive="brake" aria-label="Hold the service brake">STOP ■</button><button data-drive="reverse" aria-label="Hold to brake or reverse">BRAKE / REVERSE</button><button class="forward" data-drive="forward" aria-label="Hold to accelerate">ACCELERATE ▲</button></div>
         </div>
         <footer class="panel-footer"><span>NO CRIME. NO WANTED STARS. JUST 38 UNREAD MESSAGES.</span><span>BUILT ON <a href="https://github.com/QSOLKCB/VANILLAJS" target="_blank" rel="noopener noreferrer">VANILLAJS</a></span></footer>
       </section>
