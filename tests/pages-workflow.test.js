@@ -12,11 +12,10 @@ assert.ok(uploadStart>=0&&deployStart>uploadStart,'Pages workflow steps required
 const upload=yaml.slice(uploadStart,deployStart);
 const deploy=yaml.slice(deployStart);
 const readKey=(src,key)=>{
-  const hit=new RegExp('^\\s*'+key+':\\s*([^\\r\\n]+)
-  assert.ok(hit,'missing Pages '+key);
-  return hit[1].trim();
+  const line=src.split('\n').find(row => row.trimStart().startsWith(key+':'));
+  assert.ok(line,'missing Pages '+key);
+  return line.slice(line.indexOf(':')+1).trim();
 };
-
 test('Pages upload and deploy use the same unique per-attempt artifact',()=>{
   assert.match(upload,/uses: actions\/upload-pages-artifact@v4/);
   assert.match(deploy,/uses: actions\/deploy-pages@v4/);
