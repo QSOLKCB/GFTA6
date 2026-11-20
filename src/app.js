@@ -177,6 +177,7 @@ function refreshMini() {
 }
 function refreshHUD() {
   const mission = currentMission(state);
+  document.body.classList.toggle('standalone-dogfight',state.gameMode === 'dogfight');
   $('mode-label').textContent = !started ? 'AWAITING SATURDAY' :
     state.finished ? (state.outcome === 'JUST A FRIEND SQUADRON COMPLETE' ?
       'MISSION ACCOMPLISHED — DEREK PARACHUTING' :
@@ -226,9 +227,18 @@ function refreshHUD() {
   $('route-mode').disabled = Boolean(state.airCombat || state.escape.flight ||
     state.finished || !started);
   $('route-mode').setAttribute('aria-pressed', String(routeMode === 'escape'));
-  $('task-progress').style.width = (100 * state.index / state.tasks.length) + '%';
-  $('task-count').textContent = 'MISSION ' + Math.min(state.index + 1, state.tasks.length) +
-    ' / ' + state.tasks.length + (state.ambushed ? ' • BONUS ERRAND UNLOCKED' : '');
+  const completedContacts = combat ?
+    AIRCOMBAT_WAVES.slice(0,combat.stage).reduce((n,w)=>n+w.members.length,0) +
+      combat.opponents.filter(e=>e.disengaged).length : 0;
+  const totalContacts = AIRCOMBAT_WAVES.reduce((n,w)=>n+w.members.length,0);
+  $('task-progress').style.width = combat ?
+    (100*completedContacts/totalContacts)+'%' :
+    (100 * state.index / state.tasks.length) + '%';
+  $('task-count').textContent = combat ?
+    'DOGFIGHT · WAVE '+Math.min(combat.stage+1,AIRCOMBAT_WAVES.length)+
+      ' / '+AIRCOMBAT_WAVES.length :
+    'MISSION ' + Math.min(state.index + 1, state.tasks.length) +
+      ' / ' + state.tasks.length + (state.ambushed ? ' • BONUS ERRAND UNLOCKED' : '');
   $('money').textContent = moneyFmt.format(state.moneyCents / 100);
   $('patience').textContent = state.patience + '%';
   $('goodwill').textContent = state.goodwill + '%';
@@ -272,8 +282,9 @@ function refreshHUD() {
     'ALT '+flight.altitude+' u • SPEED '+flight.speed+' • '+flight.distance+' u traveled' :
     'RESTORED '+state.escape.upgrades.length+'/'+RESTORATION.length+
     ' • GOAL '+moneyFmt.format(ESCAPE_TARGET_CENTS/100);
-  $('escape-next').textContent = next && !flight ?
-    'NEXT: '+next.label+' ('+moneyFmt.format(next.costCents/100)+') · '+escapeObjective(state) :
+  $('escape-next').textContent = combat ? escapeObjective(state) :
+    next && !flight ? 'NEXT: '+next.label+
+      ' ('+moneyFmt.format(next.costCents/100)+') · '+escapeObjective(state) :
     escapeObjective(state);
   $('escape-gigs').textContent = state.escape.completedGigs+' SECRET COURIER JOBS';
   document.querySelector('[data-drive="missile"]').hidden = !combat;
