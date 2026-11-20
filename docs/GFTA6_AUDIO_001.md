@@ -29,11 +29,12 @@ recordings, ROMs, tracker modules or third-party samples are included.
 
 ## Original GFTA6 sound content
 
-`src/soundtrack.js` builds three authored 8-second 48 kHz stereo loops:
+`src/soundtrack.js` originally built three authored 8-second 48 kHz stereo loops; the AIRCOMBAT-002 expansion adds a fourth dedicated boss score:
 
 - **Saturday:** wry bright lead and rhythmic bass for domestic errands.
 - **Escape flight:** broader melodic line and steady pulse for takeoff.
 - **Dogfight:** punchier lead and bass for JUST A FRIEND SQUADRON™.
+- **Boss:** darker minor-mode original lead and bass for THE FINAL WORD™.
 
 All melodies and patterns are original to this game. There are also ten
 game-specific original effects: UI, warning, pickup, gunfire, missile launch,
@@ -74,7 +75,7 @@ The runtime generates music entirely locally. To create inspection copies:
 node scripts/export-chip-audio.mjs ./audio-previews
 ```
 
-This generates three stereo music WAVs and ten stereo effect WAVs at
+This generates four stereo music WAVs and ten stereo effect WAVs at
 48 kHz/16-bit. Files are **not** committed as large static assets and
 are not downloaded by the player. The exporter uses exclusive creation
 (`wx`) and refuses to overwrite existing preview recordings.
