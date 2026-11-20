@@ -154,3 +154,11 @@ body.standalone-dogfight .phone-panel,
 body.standalone-dogfight .feed-panel { display:none; }
 body.standalone-dogfight .mission-panel { border-color:#d4ad83; }
 body.standalone-dogfight .escape-panel { border-color:#d4ad83!important; }
+
+/* AUDIO-001: user-controlled 4-voice chip music and independent SFX. */
+#music[aria-pressed="true"],#sound[aria-pressed="true"]{
+  border-color:#9fd6c7;color:#b8eddd;background:#1c3b43
+}
+#music[aria-pressed="false"],#sound[aria-pressed="false"]{
+  color:#a6acb8;border-color:#4c5869
+}
