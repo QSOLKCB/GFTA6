@@ -99,7 +99,31 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-AIRWAR-001 — THE GROUP CHAT STRIKES BACK™ (review PR #18)
+## GFTA6-CAR25D-001 — THE ENGINE HAS HAD ENOUGH™ (review branch)
+
+Saturday driving now has an **original extruded 2.5D car** in the **VIEW: RAISED 2.5D**
+presentation. Hatchback, coupe and van have separate roof proportions, wheels,
+windows, front/rear lamps, height-shaded side panels and deterministic building
+occlusion. The **Classic 2D** view and all underlying physics remain unchanged.
+
+The car also gets a wildly frustrated **F-UH-K speech-motor synthesizer**:
+48 kHz original PCM is generated **offline, locally and deterministically**
+from an integer seed. A four-syllable robotic phoneme loop mixes filtered
+unvoiced F hiss, voiced UH, sharp K-like releases and a piston drone. Real
+authoritative speed and held throttle set the playback rate and volume, so
+the car goes from muttered "fuck..." to increasingly furious mechanical
+swearing. This is deliberately **approximate synthetic vocalisation**, not a
+sample of a speaker or guaranteed intelligible speech.
+
+The existing **SFX ON/OFF** toggle also mutes the engine; pause, lost focus,
+mini-games, ending, air combat and flight silence it. Audio starts only after
+the user starts the game; it is not included in deterministic state receipts.
+No TTS APIs, downloads, new runtime dependencies, upstream engine changes,
+telemetry or third-party assets.
+
+[Technical design and acceptance contract](docs/GFTA6_CAR25D_ENGINE_001.md).
+
+## GFTA6-AIRWAR-001 — THE GROUP CHAT STRIKES BACK™ (merged PR #18)
 
 The optional **ADVANCED AIR WAR** button combines five merged VANILLAJS
 engine systems into a distinct, more sophisticated version of the
@@ -129,8 +153,8 @@ Exact Git blob identities and licence attribution are checked offline.
 No npm dependencies, CDN, telemetry or proprietary art are added.
 
 See [GFTA6-AIRWAR-001: full source and acceptance contract](docs/GFTA6_AIRWAR_001.md).
-**PR #18 is pending independent Codex review and owner playthrough; it
-has not been merged or deployed.**
+**PR #18 is merged.** Independent manual frame-time acceptance remains a
+separate hardware exercise; no native 60 FPS claim is made here.
 
 ## GFTA6-AIRCOMBAT-003 — MISSILE LOCK + GUN HIT PRECISION (merged PR #17)
 

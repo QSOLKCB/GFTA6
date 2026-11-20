@@ -9,6 +9,7 @@ import {waypoint} from './navigation.js';
 import {AIRCOMBAT_WAVES, AIRCOMBAT_FINAL_TEXT, combatRackSummary,combatLockStatus} from './aircombat.js';
 import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
 import {createAudioPlayer} from './audio-player.js';
+import {engineFeedback} from './frustration-engine.js';
 import {combatAudioCues} from './audio-cues.js';
 import {exportAirWarWorld,verifyAirWarWorld,loadAirWarWorld} from './airwar-world.js';
 
@@ -50,6 +51,11 @@ function sceneForState() {
 function syncAudio() {
   audio.setScene(started?sceneForState():null);
   audio.setPaused(!started || state.paused || document.hidden);
+  // Ignore driving inputs once paused/hidden; the engine must stop on blur
+  // even before another animation frame or an input sampling pass.
+  const driving=started&&!document.hidden&&!state.paused&&!state.finished&&
+    !state.miniGame&&!state.airCombat&&!state.escape.flight;
+  audio.setEngine(driving?engineFeedback(state,controls()):null);
 }
 function activateAudio() {
   try {
@@ -228,6 +234,8 @@ function refreshHUD() {
     Math.round(Math.abs(state.speed) * TICK_HZ / 64) + ' u/s';
   $('seed-readout').textContent = String(state.seed);
   $('vehicle-readout').textContent = state.profile.toUpperCase();
+  const engine=started?engineFeedback(state,controls()):null;
+  $('engine-feedback').textContent=engine?engine.caption:'OFF';
   const combat = state.airCombat;
   const combatWave = combat ?
     AIRCOMBAT_WAVES[Math.min(combat.stage,AIRCOMBAT_WAVES.length-1)] : null;

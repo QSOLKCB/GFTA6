@@ -124,6 +124,15 @@ async function main(){
     x.nodeType==='AudioBufferSource'),'real stereo music buffer source');
   assert.match(await cdp.eval(el('music')+'.textContent'),/MUSIC ON/);
   assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX ON/);
+  await until(()=>cdp.eval(el('engine-feedback')+'.textContent.includes("fuck")'),
+    'Saturday motor frustration HUD');
+  await until(()=>cdp.audioEvents.filter(x=>x.method==='WebAudio.audioNodeCreated'&&
+    x.nodeType==='AudioBufferSource').length>=2,
+    'original speech-motor buffer loops alongside chip soundtrack');
+  await click('sound');
+  assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX OFF/);
+  await click('sound');
+  assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX ON/);
   const saturdaySources=cdp.audioEvents.filter(x=>
     x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSource').length;
   await click('music');

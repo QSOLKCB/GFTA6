@@ -4,11 +4,13 @@
 // Audio is a side effect from user-initiated gameplay and cannot change state.
 import {createGameMusic,createGameSfx,MUSIC_MODES,SFX_KINDS}
   from './soundtrack.js';
+import {synthFrustratedEngine} from './frustration-engine.js';
 
 export function createAudioPlayer(AudioCtor){
   let context=null,musicBus=null,fxBus=null,current=null,scene=null;
   let activeScene=null,musicEnabled=true,sfxEnabled=true,paused=false;
   const buffers=new Map(),effects=new Set();
+  let engineSource=null,engineGain=null,engineDesired=null;
   function syncBusGains(){
     if(!context)return;
     musicBus.gain.value=paused?0:.23;
@@ -37,6 +39,46 @@ export function createAudioPlayer(AudioCtor){
     buffers.set(key,buffer);
     return buffer;
   }
+  function engineBuffer(){
+    if(buffers.has('engine'))return buffers.get('engine');
+    const pcm=synthFrustratedEngine();
+    const buffer=context.createBuffer(2,pcm.frames,pcm.sampleRate);
+    for(let channel=0;channel<2;channel++){
+      const data=buffer.getChannelData(channel);
+      for(let i=0;i<pcm.frames;i++)data[i]=pcm.pcm[2*i+channel]/32768;
+    }
+    buffers.set('engine',buffer);
+    return buffer;
+  }
+  function stopEngine(){
+    if(engineSource){
+      try{engineSource.stop();}catch{}
+      engineSource.disconnect();engineSource=null;
+    }
+    if(engineGain){engineGain.disconnect();engineGain=null;}
+  }
+  function syncEngine(){
+    if(!context||context.state!=='running'||!engineDesired||paused||!sfxEnabled){
+      stopEngine();return;
+    }
+    if(!engineSource){
+      const source=context.createBufferSource();
+      source.buffer=engineBuffer();source.loop=true;
+      const gain=context.createGain();
+      source.connect(gain);gain.connect(fxBus);
+      source.start();
+      engineSource=source;engineGain=gain;
+    }
+    engineSource.playbackRate.value=engineDesired.rate;
+    engineGain.gain.value=engineDesired.volume;
+  }
+  function setEngine(next){
+    if(next!==null&&(!next||!Number.isFinite(next.rate)||
+        next.rate<.1||next.rate>4||!Number.isFinite(next.volume)||
+        next.volume<0||next.volume>1))
+      throw RangeError('invalid engine feedback');
+    engineDesired=next;syncEngine();
+  }
   function stopMusic(){
     if(current){
       try{current.stop();}catch{}
@@ -58,7 +100,7 @@ export function createAudioPlayer(AudioCtor){
   }
   async function activate(){
     const ctx=makeContext();if(ctx.state==='suspended')await ctx.resume();
-    renderScene();
+    renderScene();syncEngine();
     return ctx.state==='running';
   }
   function setScene(next){
@@ -72,12 +114,12 @@ export function createAudioPlayer(AudioCtor){
   }
   function setSfxEnabled(value){
     sfxEnabled=Boolean(value);
-    syncBusGains();
+    syncBusGains();syncEngine();
     return sfxEnabled;
   }
   function setPaused(value){
     paused=Boolean(value);
-    syncBusGains();
+    syncBusGains();syncEngine();
   }
   function effect(kind){
     if(!SFX_KINDS.includes(kind))throw RangeError('unknown effect');
@@ -92,7 +134,7 @@ export function createAudioPlayer(AudioCtor){
     return true;
   }
   function stop(){
-    stopMusic();
+    stopMusic();stopEngine();engineDesired=null;
     for(const e of effects){try{e.stop();}catch{}e.disconnect();}
     effects.clear();
     if(context){void context.close();context=null;}
@@ -101,8 +143,9 @@ export function createAudioPlayer(AudioCtor){
   function status(){
     return Object.freeze({available:typeof AudioCtor==='function',
       active:Boolean(context&&context.state==='running'),musicEnabled,sfxEnabled,
-      scene,activeScene,paused,voices:effects.size,bufferCount:buffers.size});
+      scene,activeScene,paused,voices:effects.size,bufferCount:buffers.size,
+      engineActive:Boolean(engineSource),engineRate:engineSource?.playbackRate.value??null});
   }
   return Object.freeze({activate,setScene,setMusicEnabled,setSfxEnabled,
-    setPaused,effect,stop,status});
+    setPaused,setEngine,effect,stop,status});
 }

@@ -27,6 +27,7 @@
           <span>TIME <b id="clock">SAT 09:00</b></span>
           <span>DISTANCE <b id="odo">0 u</b></span>
           <span>SPEED <b id="velocity">0 u/s</b></span>
+            <span>ENGINE <b id="engine-feedback" aria-live="off">OFF</b></span>
           <span>SEED <b id="seed-readout">1988</b></span>
           <span>CAR <b id="vehicle-readout">HATCHBACK</b></span>
           <span id="combat-status" hidden>COMBAT <b>JUST A FRIEND SQUADRON™</b></span>
@@ -55,7 +56,7 @@
                   </div>
                   <button id="start-airwar" type="button" class="button-arcade">ADVANCED AIR WAR — THE GROUP CHAT STRIKES BACK™ ↗</button>
                 </div>
-                <small>WASD / ARROWS DRIVE · SPACE BRAKE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW. ORIGINAL CHIP MUSIC STARTS WITH YOUR GAME CLICK; USE MUSIC / SFX TO MUTE.</small>
+                <small>WASD / ARROWS DRIVE · SPACE BRAKE · E INTERACT · P PAUSE · TOUCH CONTROLS BELOW. ORIGINAL CHIP MUSIC AND THE F-UH-K ENGINE START WITH YOUR GAME CLICK; SFX MUTES THE ENGINE.</small>
               </div>
             </div>
           </div>
@@ -88,10 +89,10 @@
             <button id="takeoff" class="tool-button" type="button">F / FLY</button>
             <button id="pause" class="tool-button">PAUSE</button>
             <button id="view-mode" class="tool-button" type="button" aria-pressed="false"
-              title="Toggle between classic top-down and raised 2.5D scenery">VIEW: CLASSIC 2D</button>
+              title="Toggle between classic top-down and raised 2.5D scenery and car">VIEW: CLASSIC 2D</button>
             <button id="route-mode" class="tool-button" type="button" aria-pressed="false"
               title="Switch compass and mini-map guidance between errands and escape objectives">N / ROUTE: ERRANDS</button>
-            <button id="sound" class="tool-button" aria-pressed="true" title="Toggle original four-channel weapon and interaction sound effects">SFX ON</button>
+            <button id="sound" class="tool-button" aria-pressed="true" title="Toggle original effects and synthesized profanity engine (only in Saturday driving)">SFX ON</button>
             <button id="import-airwar" type="button" class="tool-button" hidden title="Open a sealed original World Foundry JSON file with SHA-256 verification">IMPORT AIRWAR WORLD</button>
             <input id="airwar-file" type="file" accept=".json,application/json" hidden aria-label="Air War sealed content file">
             <button id="export-airwar" type="button" class="tool-button" hidden title="Export original Air War Foundry content in a SHA-256 sealed offline JSON package">EXPORT AIRWAR WORLD</button>

@@ -25,7 +25,7 @@ assert.ok(app.includes("createDogfightGame(seed, $('vehicle').value)"),
   'standalone launch must use a separate game factory');
 assert.ok(app.includes("state.gameMode === 'dogfight'"),
   'Replay must preserve the independent arcade game mode');
-assert.ok(sw.includes('gfta6-static-v0.3.0'),
+assert.ok(sw.includes('gfta6-static-v0.4.0'),
   'new chip audio modules must rotate the offline asset cache');
 const core = await readFile(resolve(root, 'src/core.js'), 'utf8');
 const world = await readFile(resolve(root, 'src/world.js'), 'utf8');
@@ -40,6 +40,10 @@ assert.ok(paths.includes('src/world.js'), 'offline cache must include city world
 assert.ok(paths.includes('src/cargo.js'), 'offline cache must include cargo rules');
 assert.ok(core.includes("from './cargo.js'"), 'core must use pure cargo rules');
 assert.ok(paths.includes('src/vehicle-art.js'), 'offline cache must include GFTA6 art bindings');
+assert.ok(paths.includes('src/car-25d.js')&&paths.includes('src/frustration-engine.js'),
+  'offline cache must bundle original car geometry and synthesized engine');
+assert.ok(page.includes('id="engine-feedback"'), 'engine HUD status missing');
+assert.ok(app.includes("audio.setEngine("), 'engine feedback must reach Web Audio adapter');
 assert.ok(core.includes("from './world.js'"), 'city must be authored outside engine');
 assert.ok(world.includes('CITY_VERSION'), 'city needs a stable schema marker');
 assert.ok(art.includes('modelPath: null'), 'unlicensed third-party models must not be bundled');
