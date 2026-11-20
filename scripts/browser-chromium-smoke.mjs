@@ -120,20 +120,18 @@ async function main(){
   await until(()=>cdp.eval(el('mode-label')+'.textContent.includes("DOMESTIC SURVIVAL")'),'active Saturday state');
   await until(()=>cdp.audioEvents.some(x=>x.method==='WebAudio.contextCreated'),
     'real user-gesture Web Audio context');
-  await sleep(700);
-  console.log('WebAudio event receipt (Saturday): '+JSON.stringify(cdp.audioEvents.slice(0,24)));
   await until(()=>cdp.audioEvents.some(x=>x.method==='WebAudio.audioNodeCreated'&&
-    x.nodeType==='AudioBufferSourceNode'),'real stereo music buffer source');
+    x.nodeType==='AudioBufferSource'),'real stereo music buffer source');
   assert.match(await cdp.eval(el('music')+'.textContent'),/MUSIC ON/);
   assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX ON/);
   const saturdaySources=cdp.audioEvents.filter(x=>
-    x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSourceNode').length;
+    x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSource').length;
   await click('music');
   await until(()=>cdp.eval(el('music')+'.textContent.includes("MUSIC OFF")'),'music mute toggle');
   await click('music');
   await until(()=>cdp.eval(el('music')+'.textContent.includes("MUSIC ON")'),'music resume toggle');
   await until(()=>cdp.audioEvents.filter(x=>x.method==='WebAudio.audioNodeCreated'&&
-    x.nodeType==='AudioBufferSourceNode').length>saturdaySources,
+    x.nodeType==='AudioBufferSource').length>saturdaySources,
     'fresh music source after unmute');
   console.log('PASS: original Saturday chip soundtrack creates Web Audio voices and toggles');
   await canvasCheck();
@@ -156,7 +154,7 @@ async function main(){
   await until(()=>cdp.audioEvents.filter(x=>x.method==='WebAudio.contextCreated').length>=2,
     'new user-gesture context on standalone arcade');
   const countSources=()=>cdp.audioEvents.filter(x=>
-    x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSourceNode').length;
+    x.method==='WebAudio.audioNodeCreated'&&x.nodeType==='AudioBufferSource').length;
   const beforeWeaponSounds=countSources();
   const gunHUD=()=>cdp.eval(el('escape-goal')+'.textContent');
   assert.match(await gunHUD(),/\bWAVE 1\/3\b.*\bGUN HITS 0\b/);
