@@ -99,7 +99,43 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-CAR25D-001 — THE ENGINE HAS HAD ENOUGH™ (review branch)
+## GFTA6-DRIVING-002 — SUBURBANIA HAS LOST ITS PATIENCE™ (review PR)
+
+**Saturday's streets are now populated.** Six originally authored, moving
+traffic cars and six walking pedestrians follow deterministic, bounded
+fixed-tick paths derived from the chosen seed. They appear in both
+Classic and Raised 2.5D views; the raised cast participates in the
+existing building/player painter order. Speech bubbles follow speakers,
+and the **STREET RADIO / NO INSIDE VOICES** strip displays every
+triggered line.
+
+The traffic has its own **synthetic voices**, distinct from the
+player's beloved idling F-UH-K engine (which remains **unchanged**).
+The furious cab says "ARSEHOLE... ARSEHOLE?!" and "ASSHOLE...
+ASSHOLE..."; a car declares "MY INDICATOR IS A PERSONAL BOUNDARY!";
+pedestrians shout "OUTTA MY WAY, DICKHEAD!", "I'M WALKIN' 'ERE!"
+and "FUGGEDABOUTIT!" Other drivers yell about their dashcam podcasts,
+the horn, roundabouts and personally owning lanes. Pedestrians offer
+views on footpaths, scooters, and the car's divorce-court vocabulary.
+There are **14 authored dialogue lines** in all.
+
+Both drivers and pedestrians get **distinct offline PCM voices** generated
+by an original deterministic, bounded pseudo-speech oscillator. Audio
+is deliberately robotic and subtitle-guided, **not human-quality
+text-to-speech**; no voice assets, Web Speech API, external TTS service,
+npm libraries or CDN are required. It plays only near the player and
+only on fixed simulation-tick cue slots. Existing **SFX ON/OFF** also
+mutes street speech; pause, blur, other game modes and endings silence it.
+
+This first street-life release makes NPCs **visual/audio actors only**.
+They do **not** collide with the player, harm pedestrians, issue fines,
+steal control, block routes or modify the Saturday campaign's
+authoritative physics/replay. Those mechanics require a separate,
+explicitly reviewed simulation upgrade.
+
+[Technical and testing contract](docs/GFTA6_DRIVING_002.md).
+
+## GFTA6-CAR25D-001 — THE ENGINE HAS HAD ENOUGH™ (merged PR #19)
 
 Saturday driving now has an **original extruded 2.5D car** in the **VIEW: RAISED 2.5D**
 presentation. Hatchback, coupe and van have separate roof proportions, wheels,
@@ -122,6 +158,10 @@ No TTS APIs, downloads, new runtime dependencies, upstream engine changes,
 telemetry or third-party assets.
 
 [Technical design and acceptance contract](docs/GFTA6_CAR25D_ENGINE_001.md).
+
+PR #19 is merged. The verified exact-head browser run passed 120 tests;
+owner listening impressions confirm that the existing idle muttering is
+particularly funny. The audio generator itself is intentionally preserved.
 
 ## GFTA6-AIRWAR-001 — THE GROUP CHAT STRIKES BACK™ (merged PR #18)
 

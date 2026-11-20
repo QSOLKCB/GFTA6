@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {createGame, createDogfightGame, createAirWarGame, stepGame, currentMission, distanceToPlace, placeById,
-  interact, chooseMiniGame, setPaused, MINI_GAMES, TICK_HZ} from './core.js';
+  interact, chooseMiniGame, setPaused, screenPosition, MINI_GAMES, TICK_HZ} from './core.js';
 import {drawScene} from './render.js';
 import {cargoCapacity, cargoUsed, cargoItemById, cargoJobById} from './cargo.js';
 import {interactEscape, escapeObjective} from './core.js';
@@ -11,6 +11,8 @@ import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
 import {createAudioPlayer} from './audio-player.js';
 import {engineFeedback} from './frustration-engine.js';
 import {combatAudioCues} from './audio-cues.js';
+import {streetMoment} from './street-life.js';
+import {streetCaption} from './street-voice.js';
 import {exportAirWarWorld,verifyAirWarWorld,loadAirWarWorld} from './airwar-world.js';
 
 const $ = id => {
@@ -32,6 +34,7 @@ let shownMiniKey = '';
 let endingWasShown = false;
 let lastHUDTick = -1;
 let lastFlightStatus = null;
+let streetBubble=null; // Short-lived presentation receipt; NOT authoritative game state.
 const keys = new Set();
 const touch = new Set();
 const moneyFmt = new Intl.NumberFormat('en-AU', {style: 'currency', currency: 'AUD'});
@@ -56,6 +59,7 @@ function syncAudio() {
   const driving=started&&!document.hidden&&!state.paused&&!state.finished&&
     !state.miniGame&&!state.airCombat&&!state.escape.flight;
   audio.setEngine(driving?engineFeedback(state,controls()):null);
+  audio.setStreetEnabled(driving);
 }
 function activateAudio() {
   try {
@@ -87,7 +91,8 @@ function begin(mode = 'saturday') {
     return;
   }
   started = true;
-  shownMiniKey = ''; lastHUDTick = -1;
+  shownMiniKey = ''; lastHUDTick = -1;streetBubble=null;
+  audio.stopStreet();
   clearControls();
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   canvas.focus({preventScroll: true});
@@ -104,7 +109,8 @@ function restart() {
       createGame(state.seed, state.profile,
         {airCombat: state.airCombatEnabled});
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
-  clearControls(); shownMiniKey = ''; lastHUDTick = -1;
+  clearControls(); shownMiniKey = ''; lastHUDTick = -1;streetBubble=null;
+  audio.stopStreet();
   refreshHUD(); canvas.focus({preventScroll: true});
   activateAudio();
 }
@@ -234,6 +240,9 @@ function refreshHUD() {
     Math.round(Math.abs(state.speed) * TICK_HZ / 64) + ' u/s';
   $('seed-readout').textContent = String(state.seed);
   $('vehicle-readout').textContent = state.profile.toUpperCase();
+  $('street-caption').textContent=started&&streetBubble&&
+    state.tick-streetBubble.tick<=108&&!state.airCombat&&!state.escape.flight?
+      streetCaption(streetBubble.lineId):'THE FOOTPATH HAS OPINIONS';
   const engine=started?engineFeedback(state,controls()):null;
   $('engine-feedback').textContent=engine?engine.caption:'OFF';
   const combat = state.airCombat;
@@ -540,6 +549,13 @@ function frame(time) {
     while (accumulator >= duration && steps < 8) {
       const previousCombat=state.airCombat;
       stepGame(state, controls());
+      if(!state.airCombat&&!state.escape.flight){
+        const line=streetMoment(state.seed,state.tick,screenPosition(state.body));
+        if(line){
+          streetBubble=line;
+          if(soundEnabled)audio.streetLine(line);
+        }
+      }
       for(const cue of combatAudioCues(previousCombat,state.airCombat))
         if(soundEnabled)audio.effect(cue);
       accumulator -= duration; steps += 1;
@@ -547,7 +563,7 @@ function frame(time) {
     if (steps === 8) accumulator = 0;
   } else accumulator = 0;
   syncAudio();
-  drawScene(canvas, state, {mode: renderMode, route: routeMode});
+  drawScene(canvas, state, {mode: renderMode, route: routeMode, streetBubble});
   const flightStatus = state.escape.flight?.status ?? null;
   if (state.tick !== lastHUDTick || state.paused || state.finished ||
       flightStatus !== lastFlightStatus) {

@@ -25,7 +25,7 @@ assert.ok(app.includes("createDogfightGame(seed, $('vehicle').value)"),
   'standalone launch must use a separate game factory');
 assert.ok(app.includes("state.gameMode === 'dogfight'"),
   'Replay must preserve the independent arcade game mode');
-assert.ok(sw.includes('gfta6-static-v0.4.0'),
+assert.ok(sw.includes('gfta6-static-v0.5.0'),
   'new chip audio modules must rotate the offline asset cache');
 const core = await readFile(resolve(root, 'src/core.js'), 'utf8');
 const world = await readFile(resolve(root, 'src/world.js'), 'utf8');
@@ -43,12 +43,15 @@ assert.ok(paths.includes('src/vehicle-art.js'), 'offline cache must include GFTA
 assert.ok(paths.includes('src/car-25d.js')&&paths.includes('src/frustration-engine.js'),
   'offline cache must bundle original car geometry and synthesized engine');
 assert.ok(page.includes('id="engine-feedback"'), 'engine HUD status missing');
+assert.ok(page.includes('id="street-caption"'), 'street dialogue subtitle missing');
+assert.ok(paths.includes('src/street-life.js')&&paths.includes('src/street-voice.js'),
+  'offline cache missing deterministic traffic, pedestrians or NPC voicebank');
 assert.ok(app.includes("audio.setEngine("), 'engine feedback must reach Web Audio adapter');
 assert.ok(core.includes("from './world.js'"), 'city must be authored outside engine');
 assert.ok(world.includes('CITY_VERSION'), 'city needs a stable schema marker');
 assert.ok(art.includes('modelPath: null'), 'unlicensed third-party models must not be bundled');
 assert.ok(page.includes('id="view-mode"'), '2.5D opt-in control missing');
-assert.ok(app.includes("drawScene(canvas, state, {mode: renderMode, route: routeMode})"),
+assert.ok(app.includes("drawScene(canvas, state, {mode: renderMode, route: routeMode, streetBubble})"),
   'render and route selection must stay in the presentation layer');
 assert.ok(paths.includes('src/scene25d.js'), 'offline cache missing projection adapter');
 assert.ok(paths.includes('src/escape.js'), 'offline cache missing escape economy');
