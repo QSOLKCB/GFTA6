@@ -155,6 +155,15 @@ async function main(){
     JSON.stringify(npcFrames)+'.includes(s.frames))'),
     'actual unlooped NPC PCM voice source started (not startup UI, music or motor)');
   console.log('PASS: deterministic traffic and pedestrian radio dialogue plays actual synthesized voices');
+  await click('street-voices');
+  assert.match(await cdp.eval(el('street-voices')+'.textContent'),/VOICES OFF/);
+  assert.equal(await cdp.eval(el('street-voices')+'.getAttribute("aria-pressed")'),'false');
+  assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX ON/);
+  assert.match(await cdp.eval(el('engine-feedback')+'.textContent'),/fuck/i,
+    'muting NPC voices must never mute the original engine HUD');
+  await click('street-voices');
+  assert.match(await cdp.eval(el('street-voices')+'.textContent'),/VOICES ON/);
+  console.log('PASS: NPC voice toggle leaves the player motor and general SFX intact');
   await click('sound');
   assert.match(await cdp.eval(el('sound')+'.textContent'),/SFX OFF/);
   await click('sound');
@@ -181,6 +190,19 @@ async function main(){
   await key('KeyW',true);await sleep(350);await key('KeyW',false);
   await canvasCheck();await screenshot('saturday.png');
   console.log('PASS: real Saturday click, Canvas, view, navigation, pause, W key');
+  // Negative gate: mute NPC voices before the user starts a fresh Saturday.
+  // A subtitle alone cannot masquerade as an emitted Web Audio voice.
+  await navigate(url);
+  await cdp.eval(el('street-voices')+'.click()');
+  assert.match(await cdp.eval(el('street-voices')+'.textContent'),/VOICES OFF/);
+  await click('start');
+  await until(()=>cdp.eval(el('street-caption')+'.textContent!=="THE FOOTPATH HAS OPINIONS"'),
+    'silent-NPC subtitle after fixed-tick proximity event');
+  const mutedNodes=await cdp.eval('window.__gfta6StartedAudio');
+  assert.ok(mutedNodes.some(n=>n.loop),'original motor/music should remain active');
+  assert.equal(mutedNodes.filter(n=>!n.loop&&npcFrames.includes(n.frames)).length,0,
+    'disabled NPC voices must not start authored speech buffers');
+  console.log('PASS: NPC speech OFF preserves subtitles but emits no NPC PCM source');
   await navigate(url);
   await click('start-dogfight');
   await until(()=>cdp.eval(el('intro')+'.hidden&&'+el('task-count')+'.textContent.includes("DOGFIGHT")'),'standalone arcade launch');
