@@ -472,16 +472,16 @@ The static browser build is published from `main` through a gated
 bundler, telemetry, or remotely loaded game code. After a successful first
 online visit and service-worker installation, the same assets can load offline.
 
-## Independent vehicle handling prototype (review stage)
+## Independent vehicle handling — established baseline
 
-The next proposed driving revision replaces periodic 64-way turning with
-**continuous 1024-step integer steering**, preserving deterministic, fixed-tick
-gameplay. The start menu adds three **original handling profiles**: the
-standard Errand Hatchback, quicker Weekend Coupe, and heavier Shopping Van.
+The merged vehicle model uses **continuous 1024-step integer steering**
+and deterministic fixed-tick movement. The start menu offers three
+**original handling profiles**: the standard Errand Hatchback, quicker
+Weekend Coupe, and heavier Shopping Van.
 
-This is being developed in a review branch; it will appear on the live Pages
-build **only after merge**. The objective is better corners and parking feel
-without loss of the classic top-down presentation.
+These controls are already merged on main. The release-polish PR improves
+only presentation and accessibility; it does not retune acceleration,
+cornering, parking, cargo, wall contact, or the classic driving camera.
 
 Multi-Race-Driving is a GPLv3-licensed external **design reference** only.
 **No GPL code, assets, constants or engine dependencies are copied.**
@@ -499,7 +499,7 @@ See **[the phased 2D-to-3D roadmap](docs/ROADMAP_2D_TO_3D.md)**,
 including explicit acceptance gates, reproducibility requirements, and
 performance safeguards.
 
-### Current driving improvements (v0.1.x)
+### Driving improvements carried forward from v0.1.x
 
 - Smooth, deterministic 64-step steering rather than rough 16-way jumps.
 - Signed forward/reverse speed and braking *before* changing direction.
@@ -511,9 +511,9 @@ performance safeguards.
 - Lightweight 2.5D roof/façade shading and car bevel, with **unchanged 2D collisions**.
 - Additional deterministic vehicle regression tests; offline cache version bumped.
 
-**These changes are review-stage until their PR passes CI and the driving
-feel has been play-tested and approved.** The live Pages site publishes from
-`main`, not feature branches.
+**These handling features are already merged.** The live Pages site publishes
+from `main`, not feature branches. The new v0.2.0 candidate still requires
+owner release acceptance and measured hardware frame-time evidence.
 
 ## First playable Saturday — v0.1.0 preview
 
