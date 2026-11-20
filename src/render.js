@@ -258,16 +258,10 @@ export function drawScene(canvas, state, {mode = 'classic', route = 'errands'} =
   routeOverlay(ctx, w, nav);
   if (nav && !state.paused && !state.finished && !state.miniGame &&
       nav.distance <= INTERACT_RADIUS) {
-    let prompt='E / COMPLETE ERRAND';
-    if (nav.mode === 'escape') {
-      prompt=state.escape.activeGig ? 'G / DELIVER PAID JOB' :
-        state.cargo ? (state.cargo.loaded.length ?
-          'E / DELIVER ORDINARY CARGO' : 'E / COLLECT REMAINING CARGO') :
-        nav.id === 'parcel' ? 'G / ACCEPT PAID JOB' :
-        state.escape.upgrades.length === 4 ? 'F / START ESCAPE FLIGHT' :
-          'U / RESTORE AIRCRAFT';
-    }
-    if (Math.abs(state.speed)>22) prompt='STOP THE CAR FIRST';
+    // The waypoint owns the action associated with this exact destination.
+    // Never infer E/G/U/F from unrelated cargo or upgrade state here.
+    const prompt = Math.abs(state.speed)>22 ?
+      'STOP THE CAR FIRST' : nav.prompt;
     rect(ctx, 232, h - 62, w - 464, 45, 'rgba(9,20,37,.88)');
     text(ctx,prompt,w/2,h-34,'900 17px system-ui','#fff1c5');
   }
