@@ -97,11 +97,11 @@ test('TACTICS-001 actually plans finite SENSE orders and changes aerial formatio
   assert.deepEqual(inspectAirWarTactics(1988,1,5),b,'fixed seed replays tactical policy');
   assert.throws(()=>inspectAirWarTactics(1988,9),RangeError);
   assert.throws(()=>inspectAirWarTactics(1988,1,17),RangeError);
-  const combat=createAirWarCombat(1988);
+  let combat=createAirWarCombat(1988);
   assert.equal(AIRWAR_TACTICS_PERIOD,60);
   for(let i=0;i<62;i++) {
-    const next=stepAirWarCombat(combat,{});
-    if(i===61)assert.ok(next.airwar.turn>=1);
+    combat=stepAirWarCombat(combat,{});
+    if(i===61)assert.ok(combat.airwar.turn>=1);
   }
 });
 test('TRAJECTORY-001 interceptor uses physical 120Hz swept actor contact without fake damage',()=>{
