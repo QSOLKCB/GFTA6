@@ -124,6 +124,48 @@ test('direct arcade mode can beat all three waves and preserve canonical ending'
   stepGame(game,{brake:true,missile:true});
   assert.deepEqual(snapshot(game),finished,'win receipts cannot be duplicated');
 });
+test('production HUD displays five contacts and exactly 100% on final victory',async()=>{
+  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+  const start=source.indexOf('  const totalContacts = AIRCOMBAT_WAVES.reduce(');
+  const end=source.indexOf("  $('task-count').textContent = combat ?",start);
+  assert.ok(start>=0&&end>start,'read the actual HUD progress calculation');
+  const hud=source.slice(start,end);
+  const progress=(state)=>{
+    const element={style:{width:''}};
+    const sandbox=createContext({
+      combat:state.airCombat,state,AIRCOMBAT_WAVES,
+      $:id=>{assert.equal(id,'task-progress');return element;}
+    });
+    runInContext(hud,sandbox);
+    return Number.parseFloat(element.style.width);
+  };
+  const game=createDogfightGame(1988,'van');
+  assert.equal(progress(game),0);
+  const stageProgress=new Map();
+  let count=0;
+  while(!game.finished&&count++<3500) {
+    const target=combatTargets(game.airCombat).find(t=>!t.disengaged);
+    assert.ok(target,'active wave must provide a rival');
+    const desired=Math.atan2(-target.center[0],40-target.center[2]);
+    const steer=Math.abs(desired-game.airCombat.yaw)<.008?0:
+      Math.sign(desired-game.airCombat.yaw);
+    stepGame(game,{steer,throttle:0,brake:true,missile:false});
+    const pct=progress(game);
+    assert.ok(pct>=0&&pct<=100,'HUD progress exceeded 100% during combat');
+    stageProgress.set(game.airCombat.stage,pct);
+  }
+  assert.equal(game.airCombat.status,'won');
+  assert.equal(game.airCombat.stage,3);
+  assert.deepEqual([...stageProgress.entries()].filter(([stage])=>stage>0),
+    [[1,20],[2,80],[3,100]]);
+  assert.equal(progress(game),100,'five contacts must not be counted as six');
+  assert.equal(game.airCombat.opponents.length,1,'the final defeated rival is retained');
+  assert.equal(game.airCombat.opponents[0].disengaged,true);
+  const after=snapshot(game);
+  assert.equal(progress(game),100,'HUD must remain stable after victory');
+  assert.deepEqual(snapshot(game),after,'HUD computation must be read-only');
+});
+
 test('production launch and replay handlers preserve explicit standalone mode',async()=>{
   const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
   const head=source.indexOf("function begin(mode = 'saturday') {");
