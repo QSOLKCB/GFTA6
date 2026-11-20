@@ -2,6 +2,7 @@
 import {createGame, stepGame, currentMission, distanceToPlace, placeById,
   interact, chooseMiniGame, setPaused, MINI_GAMES, TICK_HZ} from './core.js';
 import {drawScene} from './render.js';
+import {cargoCapacity, cargoUsed, cargoItemById, cargoJobById} from './cargo.js';
 
 const $ = id => {
   const element = document.getElementById(id);
@@ -160,6 +161,25 @@ function refreshHUD() {
   $('patience-bar').style.width = state.patience + '%';
   $('goodwill-bar').style.width = state.goodwill + '%';
   $('fuel-bar').style.width = state.fuel + '%';
+  const boot = state.cargo;
+  const capacity = cargoCapacity(state.profile);
+  const filled = cargoUsed(boot);
+  $('cargo-load').textContent = filled + ' / ' + capacity + ' SLOTS';
+  $('cargo-bar').style.width = (filled / capacity * 100) + '%';
+  $('cargo-job').textContent = boot ?
+    cargoJobById(boot.id).id.toUpperCase() + ' DELIVERY' : 'BOOT EMPTY';
+  $('cargo-route').textContent = boot ?
+    boot.remaining.length + ' still at pickup • ' + boot.delivered.length +
+      ' delivered • ' + boot.trips + ' trip(s)' :
+    'No parcels, no shopping, no excuses.';
+  $('cargo-items').replaceChildren(...(boot?.loaded ?? []).map(id => {
+    const item = cargoItemById(id);
+    const li = document.createElement('li');
+    li.textContent = item.label + ' (' + item.slots + ' slots)';
+    return li;
+  }));
+  $('cargo-trips').textContent = state.completedCargo.reduce((sum, job) => sum + job.trips, 0) +
+    ' TRIP(S) COMPLETED';
   $('message').textContent = state.message;
   const i = Math.floor(state.tick / 480) % feed.length;
   $('feed-channel').textContent = feed[i][0];
