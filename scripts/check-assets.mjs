@@ -103,7 +103,7 @@ assert.ok(paths.includes('vendor/vanillajs/chip-audio/index.js'),
 assert.ok(app.includes("from './audio-player.js'"),
   'game must instantiate the Web Audio adapter on game start');
 const chipBytes=await readFile(resolve(root,'vendor/vanillajs/chip-audio/index.js'));
-const chipBlob=createHash('sha1').update('blob '+chipBytes.length+'\\0')
+const chipBlob=createHash('sha1').update('blob '+chipBytes.length+'\0')
   .update(chipBytes).digest('hex');
 assert.equal(chipBlob,'4b7f219deaf273fa7178558a3bb214bb003d8b6d',
   'chip-audio module differs from exact upstream Git blob');
