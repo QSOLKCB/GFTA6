@@ -25,7 +25,7 @@ assert.ok(app.includes("createDogfightGame(seed, $('vehicle').value)"),
   'standalone launch must use a separate game factory');
 assert.ok(app.includes("state.gameMode === 'dogfight'"),
   'Replay must preserve the independent arcade game mode');
-assert.ok(sw.includes('gfta6-static-v0.5.0'),
+assert.ok(sw.includes('gfta6-static-v0.6.0'),
   'new chip audio modules must rotate the offline asset cache');
 const core = await readFile(resolve(root, 'src/core.js'), 'utf8');
 const world = await readFile(resolve(root, 'src/world.js'), 'utf8');
@@ -46,6 +46,10 @@ assert.ok(page.includes('id="engine-feedback"'), 'engine HUD status missing');
 assert.ok(page.includes('id="street-caption"'), 'street dialogue subtitle missing');
 assert.ok(paths.includes('src/street-life.js')&&paths.includes('src/street-voice.js'),
   'offline cache missing deterministic traffic, pedestrians or NPC voicebank');
+assert.ok(paths.includes('src/street-presentation.js'), 'offline cache missing street bubble layout');
+assert.ok(page.includes('id="street-voices"'), 'independent NPC voice toggle missing');
+assert.ok(app.includes("audio.setStreetEnabled(driving&&streetVoicesEnabled)"),
+  'NPC voice preference must be independent of authoritative state');
 assert.ok(app.includes("audio.setEngine("), 'engine feedback must reach Web Audio adapter');
 assert.ok(core.includes("from './world.js'"), 'city must be authored outside engine');
 assert.ok(world.includes('CITY_VERSION'), 'city needs a stable schema marker');
