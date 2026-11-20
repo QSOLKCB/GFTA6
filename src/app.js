@@ -306,10 +306,13 @@ function syncKeys() {
 }
 window.addEventListener('keydown', event => {
   // Preserve native keyboard navigation on the vehicle selector and buttons.
-  // Mini-game number shortcuts still work when a choice button has focus.
-  const choiceDigit = Boolean(state.miniGame) && /^Digit[1-4]$/.test(event.code);
+  // Mini-game choices receive focus. Permit digit answers AND P/Escape
+  // pause/resume through their button focus, but never let driving keys through.
+  const choiceShortcut = Boolean(state.miniGame) &&
+    (/^Digit[1-4]$/.test(event.code) ||
+      event.code === 'KeyP' || event.code === 'Escape');
   if (event.target instanceof HTMLInputElement ||
-      (event.target?.closest?.('select,textarea,button') && !choiceDigit)) {
+      (event.target?.closest?.('select,textarea,button') && !choiceShortcut)) {
     if (event.target instanceof HTMLInputElement &&
         event.code === 'Enter' && !started) { event.preventDefault(); begin(); }
     return;
