@@ -34,7 +34,7 @@ function enableFlight(profile='coupe',combat=true) {
   return game;
 }
 test('campaign source is exact pinned and scripted final text matches canonical brief',async()=>{
-  assert.equal(AIRCOMBAT_FORMAT,'gfta6.aircombat.v1');
+  assert.equal(AIRCOMBAT_FORMAT,'gfta6.aircombat.v2');
   assert.match(AIRCOMBAT_UPSTREAM,/ae0b594f006ec3c1add71574c830ddde9ff5fa66/);
   assert.deepEqual(AIRCOMBAT_WAVES.map(w=>w.members.length),[1,3,1,4,4,1]);
   assert.equal(new Set(AIRCOMBAT_WAVES.flatMap(w=>w.members.map(m=>m.id))).size,14);
