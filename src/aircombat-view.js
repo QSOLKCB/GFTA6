@@ -85,9 +85,13 @@ export function drawAirCombat(canvas,combat) {
   text(ctx,'MISSILES '+rack.ammo+'  ·  LOCK '+(combat.status==='active'?'BORESIGHT':'COMPLETE'),
     26,119,12,'#f1d5ad');
   text(ctx,'RADIO: '+combat.radio.slice(0,106),25,h-75,14,'#fff0d7');
-  text(ctx,'CONTACTS DISENGAGED: '+combat.opponents.filter(o=>o.disengaged).length+
-    ' / '+combat.opponents.length+'  ·  GUN HITS '+combat.gunHits+
-    '  ·  MISSILE HITS '+combat.missileHits,25,h-40,13,'#c2e5dc');
+  const closest=targets.filter(t=>!t.disengaged).reduce((min,t)=>
+    Math.min(min,Math.abs(40-t.center[2])),Infinity);
+  text(ctx,'CONTACTS: '+combat.opponents.filter(o=>o.disengaged).length+
+    '/'+combat.opponents.length+'  ·  GUN '+combat.gunHits+
+    '  ·  MISSILE '+combat.missileHits+
+    '  ·  PURSUER '+(Number.isFinite(closest)?Math.round(closest)+' u':'CLEAR'),
+    25,h-40,13,'#c2e5dc');
   if(combat.status==='won')text(ctx,'MISSION ACCOMPLISHED.',w/2,h/2,32,'#ffe5b7','center');
 }
 // The shared rig is owned by the combat authority; expose a pure accessor
