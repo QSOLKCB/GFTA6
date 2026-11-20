@@ -136,7 +136,7 @@ function refreshMini() {
     $('ending-title').textContent = squadron ? 'MISSION ACCOMPLISHED.' :
       escaped ? 'FREEDOM FLIGHT COMPLETE!' : 'MISSION FAILED SUCCESSFULLY.';
     $('ending-blurb').textContent = squadron ?
-      AIRCOMBAT_FINAL_TEXT.split('\\n').slice(2).join('\\n') :
+      AIRCOMBAT_FINAL_TEXT.split('\n').slice(2).join('\n') :
       escaped ? 'You made it into the sky. Your phone still has one more assignment.' :
       'No quest marker. No briefing. You were meant to know what the task was.';
     $('ending-stats').textContent = squadron ?
