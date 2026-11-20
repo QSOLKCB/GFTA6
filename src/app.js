@@ -195,8 +195,11 @@ function syncKeys() {
   for (const code of keyHeld) keys.add(bindings[code]);
 }
 window.addEventListener('keydown', event => {
-  if (event.target instanceof HTMLInputElement) {
-    if (event.code === 'Enter' && !started) { event.preventDefault(); begin(); }
+  // Preserve native keyboard navigation on the vehicle selector and buttons.
+  if (event.target instanceof HTMLInputElement ||
+      event.target?.closest?.('select,textarea,button')) {
+    if (event.target instanceof HTMLInputElement &&
+        event.code === 'Enter' && !started) { event.preventDefault(); begin(); }
     return;
   }
   if (event.code in bindings) {
