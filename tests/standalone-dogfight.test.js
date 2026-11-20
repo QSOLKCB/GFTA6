@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {createContext,runInContext} from 'node:vm';
 import {createDogfightGame,createGame,stepGame,currentMission,setPaused,snapshot}
   from '../src/core.js';
-import {combatTargets, AIRCOMBAT_WAVES, AIRCOMBAT_FINAL_TEXT} from '../src/aircombat.js';
+import {createAirCombat, stepAirCombat, combatTargets, AIRCOMBAT_WAVES, AIRCOMBAT_FINAL_TEXT} from '../src/aircombat.js';
 import {waypoint} from '../src/navigation.js';
 import {drawScene} from '../src/render.js';
 
@@ -76,6 +76,29 @@ test('standalone uses the original fixed-tick pause/replay contract',()=>{
   assert.deepEqual(snapshot(createDogfightGame(29,'hatchback')),
     snapshot(createDogfightGame(29,'hatchback')));
 });
+test('missile stays bound to original rival after guns force a disengagement',()=>{
+  let combat=createAirCombat(1988);
+  combat=stepAirCombat(combat,{brake:true,missile:true});
+  assert.equal(combat.missileTargetId,'derek-1');
+  assert.equal(combat.rack.active.length,1);
+  let count=0;
+  while(!combat.opponents[0].disengaged&&count++<15)
+    combat=stepAirCombat(combat,{brake:true,missile:false});
+  assert.equal(combat.opponents[0].disengaged,true);
+  assert.equal(combat.rack.active.length,1,
+    'projectile is still travelling after Derek disengages by gunfire');
+  assert.equal(combat.missileTargetId,'derek-1');
+  const priorHp=combat.opponents[0].hp;
+  for(let tick=0;tick<700&&combat.stage===0;tick++)
+    combat=stepAirCombat(combat,{missile:false});
+  assert.equal(combat.stage,1,'wave eventually advances after missile resolves');
+  assert.equal(combat.missileTargetId,null,'target receipt cleared on resolution');
+  assert.equal(combat.opponents.length,3);
+  assert.equal(combat.opponents.every(e=>e.hp===2),true,
+    'late missile cannot jump from Derek to the next squadron');
+  assert.equal(priorHp,0);
+});
+
 test('direct arcade mode can beat all three waves and preserve canonical ending',()=>{
   const game=createDogfightGame(1988,'van');
   let ticks=0;
