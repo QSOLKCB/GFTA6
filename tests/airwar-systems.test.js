@@ -9,7 +9,7 @@ import {createAirWarProject,exportAirWarWorld,verifyAirWarWorld,loadAirWarWorld,
   drawAirWarAircraft,
   selectAirWarWorld,drawAirWarWorld,inspectAirWarSight,AIRWAR_SOURCE,
   AIRWAR_MAX_TRIANGLES_PER_FRAME} from '../src/airwar-world.js';
-import {AIRCOMBAT_WAVES,combatTargets} from '../src/aircombat.js';
+import {AIRCOMBAT_WAVES,combatTargets,combatCamera} from '../src/aircombat.js';
 import {CREATOR_FORMAT,sealCreatorPackage,creatorPackageJSON}
   from '../vendor/vanillajs/creator-interop/index.js';
 import {createSightWorld,querySight} from '../vendor/vanillajs/sensing/index.js';
@@ -87,6 +87,19 @@ test('sealed World Foundry import is atomic and cannot alter combat authority',a
   assert.deepEqual(snapshot(game),before,'imported art cannot change active enemy health or physics');
   await loadAirWarWorld(original);
   assert.equal(await exportAirWarWorld(),original,'restored canonical sealed world');
+});
+test('live CAD-003 fighter and boss models render from physical centres',()=>{
+  const combat=createAirWarCombat(1988);
+  const camera=combatCamera(combat);
+  let fills=0,strokes=0;
+  const ctx={beginPath(){},moveTo(){},lineTo(){},closePath(){},
+    fill(){fills++;},stroke(){strokes++;}};
+  const original=JSON.stringify(combat);
+  assert.equal(drawAirWarAircraft(ctx,camera,combatTargets(combat)[0],960,600),true);
+  assert.ok(fills>0&&strokes>0,'actual indexed Forge triangles must draw');
+  assert.equal(JSON.stringify(combat),original,'CAD rendering cannot mutate physical combat');
+  const dis=Object.freeze({...combatTargets(combat)[0],disengaged:true});
+  assert.equal(drawAirWarAircraft(ctx,camera,dis,960,600),false);
 });
 test('WORLD-VIS-001 culls retained CAD terrain and never changes combat state',()=>{
   const c=createAirWarCombat(1988),before=JSON.stringify(c);
