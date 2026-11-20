@@ -73,6 +73,12 @@ modify source-pinned physics or alter the existing pay/restore mechanic.
 
 ## Compatibility and upstream
 
+The expanded in-memory combat state is explicitly versioned as
+`gfta6.aircombat.v2` because it now includes boss attack/hull fields and
+individual contact HP/role metadata. Old `gfta6.aircombat.v1` states are
+not silently interpreted as v2; there is no cross-version save loader in
+this prototype.
+
 The main GFTA6 `createGame`, deterministic car physics, full Saturday
 mission queue, seed, cargo, secret escape economy and takeoff continue
 unchanged. The opt-out flight still finishes with **YOU FORGOT THE MILK**.
