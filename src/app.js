@@ -59,7 +59,7 @@ function begin() {
   }
   started = true;
   shownMiniKey = ''; lastHUDTick = -1;
-  keys.clear(); touch.clear();
+  clearControls();
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   canvas.focus({preventScroll: true});
   refreshHUD();
@@ -69,14 +69,15 @@ function restart() {
   if (!started) return begin();
   state = createGame(state.seed);
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
-  keys.clear(); touch.clear(); shownMiniKey = ''; lastHUDTick = -1;
+  clearControls(); shownMiniKey = ''; lastHUDTick = -1;
   refreshHUD(); canvas.focus({preventScroll: true});
 }
 function controlHeld(action) { return keys.has(action) || touch.has(action); }
 function controls() {
   return {
     throttle: Number(controlHeld('forward')) - Number(controlHeld('reverse')),
-    steer: Number(controlHeld('left')) - Number(controlHeld('right'))
+    steer: Number(controlHeld('left')) - Number(controlHeld('right')),
+    brake: controlHeld('brake')
   };
 }
 function interactNow() {
@@ -96,7 +97,7 @@ function answer(index) {
 function togglePause() {
   if (!started || state.finished) return;
   setPaused(state, !state.paused);
-  keys.clear(); touch.clear();
+  clearControls();
   refreshHUD();
 }
 function refreshMini() {
@@ -113,6 +114,7 @@ function refreshMini() {
   const miniKey = mini.type + ':' + mini.round;
   if (miniKey === shownMiniKey) return;
   shownMiniKey = miniKey;
+  clearControls(); // An errand must never carry a held accelerator into the next scene.
   const mission = currentMission(state);
   const prompt = MINI_GAMES[mini.type][mini.round];
   $('mini-type').textContent = mini.type === 'boss' ? 'NEW MISSION UNLOCKED / IMPOSSIBLE' : 'DOMESTIC MINI-GAME';
@@ -139,7 +141,8 @@ function refreshHUD() {
   const minutes = timeMinutes % 60;
   $('clock').textContent = (timeMinutes >= 24 * 60 ? 'SUN ' : 'SAT ') +
     String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-  $('odo').textContent = Math.floor(state.distance) + ' m';
+  $('odo').textContent = Math.floor(state.distance) + ' u';
+  $('velocity').textContent = Math.round(Math.abs(state.speed) * TICK_HZ / 64) + ' u/s';
   $('seed-readout').textContent = String(state.seed);
   $('mission-title').textContent = mission?.title ?? 'WEEKEND OVER';
   $('mission-detail').textContent = mission?.description ?? 'Go and have a lie-down. You earned it.';
@@ -181,10 +184,15 @@ $('sound').addEventListener('click', () => {
 });
 const bindings = Object.freeze({
   KeyW: 'forward', ArrowUp: 'forward', KeyS: 'reverse', ArrowDown: 'reverse',
-  KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right'
+  KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right',
+  Space: 'brake'
 });
+// Track physical key codes, not actions: releasing W cannot cancel a held ↑.
 const keyHeld = new Set();
-function syncKeys() { keys.clear(); for (const action of keyHeld) keys.add(action); }
+function syncKeys() {
+  keys.clear();
+  for (const code of keyHeld) keys.add(bindings[code]);
+}
 window.addEventListener('keydown', event => {
   if (event.target instanceof HTMLInputElement) {
     if (event.code === 'Enter' && !started) { event.preventDefault(); begin(); }
@@ -192,12 +200,12 @@ window.addEventListener('keydown', event => {
   }
   if (event.code in bindings) {
     event.preventDefault();
-    if (!event.repeat && started && !state.paused && !state.finished && !state.miniGame) {
-      keyHeld.add(bindings[event.code]); syncKeys();
+    if (started && !state.paused && !state.finished && !state.miniGame) {
+      keyHeld.add(event.code); syncKeys();
     }
     return;
   }
-  if (['Space', 'KeyE', 'KeyP', 'Escape', 'Enter', 'Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(event.code))
+  if (['KeyE', 'KeyP', 'Escape', 'Enter', 'Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(event.code))
     event.preventDefault();
   if (event.repeat) return;
   if (!started && event.code === 'Enter') return begin();
@@ -209,7 +217,7 @@ window.addEventListener('keydown', event => {
 });
 window.addEventListener('keyup', event => {
   if (!(event.code in bindings)) return;
-  keyHeld.delete(bindings[event.code]);
+  keyHeld.delete(event.code);
   syncKeys();
 });
 for (const button of document.querySelectorAll('[data-drive]')) {
