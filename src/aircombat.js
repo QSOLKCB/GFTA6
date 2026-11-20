@@ -192,7 +192,8 @@ export function stepAirCombat(combat,control={}) {
     if(rack.ammo===0) radio='MISSILE: OUT OF AMMUNITION';
     else if(rack.cooldown>0)radio='MISSILE: COOLING DOWN';
     else if(!candidate)radio='MISSILE: ALIGN THE TARGET WITH THE SIGHTS';
-    else if(lockTicks<MISSILE_ACQUIRE_TICKS)
+    else if(combat.lockTargetId!==candidate.id ||
+      combat.lockTicks<MISSILE_ACQUIRE_TICKS)
       radio='MISSILE: HOLD SIGHT ON '+candidate.name+' TO ACQUIRE LOCK';
     else {
       const locked=targets.find(t=>t.id===lockTargetId);
