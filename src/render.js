@@ -5,6 +5,7 @@ import {vehicleArt} from './vehicle-art.js';
 import {PARKING_BAYS} from './world.js';
 import {getCityProjection, projectCityGroundPoint} from './scene25d.js';
 import {drawFlightScene} from './flight-view.js';
+import {drawAirCombat} from './aircombat-view.js';
 import {waypoint, ROUTE_MODES} from './navigation.js';
 
 const TAU = Math.PI * 2;
@@ -229,6 +230,10 @@ export function drawScene(canvas, state, {mode = 'classic', route = 'errands'} =
   if (!ROUTE_MODES.includes(route)) throw new RangeError('invalid route mode');
   // Reject an unsupported visual mode before touching canvas or game state.
   getCityProjection(mode);
+  if (state.airCombat) {
+    drawAirCombat(canvas, state.airCombat);
+    return;
+  }
   if (state.escape?.flight) {
     drawFlightScene(canvas, state.escape.flight);
     return;
