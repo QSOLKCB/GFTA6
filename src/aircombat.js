@@ -8,7 +8,7 @@ import {createCockpitRig, cockpitGunRays, testCockpitTarget, sampleCockpitCamera
 import {createMissileRack, missileLock, launchMissile, stepMissiles,
   missileSummary, MISSILE_STEP} from '../vendor/vanillajs/missiles.js';
 
-export const AIRCOMBAT_FORMAT='gfta6.aircombat.v1';
+export const AIRCOMBAT_FORMAT='gfta6.aircombat.v2';
 export const AIRCOMBAT_UPSTREAM='QSOLKCB/VANILLAJS@ae0b594f006ec3c1add71574c830ddde9ff5fa66';
 export const AIRCOMBAT_MAX_TICKS=36000;
 const freeze=Object.freeze;
