@@ -99,7 +99,27 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-AIRCOMBAT-002 — THE FINAL WORD™ (review-stage PR #16)
+## GFTA6-AIRCOMBAT-003 — MISSILE LOCK + GUN HIT PRECISION (review stage)
+
+**TOO CLOSE FOR GUNS™** now requires an actual sustained physical lock
+before M can launch. Hold one target within the narrower **9°** boresight
+cone for **0.8 seconds** to fill the lock meter; a lock is confirmed
+visibly and with an original chime. Swing away, switch targets or
+attempt to fire prematurely and the missile will **not** launch or
+spend ammunition. The unchanged upstream VANILLAJS physical lock and
+projectile checks still apply.
+
+Space gunfire now checks the real muzzle rays against **every** live
+aircraft instead of silently testing only the first surviving rival.
+Gun impacts show **HIT CONFIRMED / TARGET DISENGAGED**, while misses
+show **MISSED — ADJUST AIM** at the reticle. The new in-game lock
+status and visible target outlines come from the same authoritative
+simulation record. No source-pinned game engine APIs were modified.
+
+Read [AIRCOMBAT-003 precision, difficulty, and review contract](docs/GFTA6_AIRCOMBAT_003.md).
+This patch is **not deployed** until CI, Codex, owner review and merge.
+
+## GFTA6-AIRCOMBAT-002 — THE FINAL WORD™ (merged PR #16)
 
 **TOO CLOSE FOR GUNS — SWITCHING TO MISSILES!™** now has a six-wave
 campaign: the original Derek and Group Chat encounters, followed by
@@ -120,8 +140,7 @@ defeated; it has not been rewritten.
 
 Read [the expanded squadron contract, boss mechanics and review
 gates](docs/GFTA6_AIRCOMBAT_002.md).
-This expansion is **not live until PR #16 passes Codex/owner review and
-is merged**. No change to VANILLAJS or its source pins is required.
+PR #16 is merged; the expanded six-wave squadron and final boss are on main. No change to VANILLAJS or its source pins is required.
 
 ## GFTA6-AUDIO-001 — Chip soundtrack and impact polish (merged PR #15)
 

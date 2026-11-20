@@ -3,12 +3,14 @@
 // Unchanged upstream cockpit geometry and COCKPIT-002 missiles are vendored.
 // Explicit 3D encounter coordinates are NOT a replacement for airframe physics.
 import {quatMultiply} from '../vendor/vanillajs/math/index.js';
-import {createCockpitRig, cockpitGunRays, testCockpitTarget, sampleCockpitCamera}
+import {createCockpitRig, cockpitGunRays, sampleCockpitCamera}
   from '../vendor/vanillajs/cockpit-rig/index.js';
-import {createMissileRack, missileLock, launchMissile, stepMissiles,
+import {createMissileRack, launchMissile, stepMissiles,
   missileSummary, MISSILE_STEP} from '../vendor/vanillajs/missiles.js';
+import {selectLockCandidate,selectGunTarget,missileLockDisplay,MISSILE_ACQUIRE_TICKS}
+  from './combat-targeting.js';
 
-export const AIRCOMBAT_FORMAT='gfta6.aircombat.v2';
+export const AIRCOMBAT_FORMAT='gfta6.aircombat.v3';
 export const AIRCOMBAT_UPSTREAM='QSOLKCB/VANILLAJS@ae0b594f006ec3c1add71574c830ddde9ff5fa66';
 export const AIRCOMBAT_MAX_TICKS=36000;
 const freeze=Object.freeze;
@@ -93,6 +95,7 @@ export function createAirCombat(seed) {
   return freeze({format:AIRCOMBAT_FORMAT,seed,stage:0,tick:0,waveTick:0,
     opponents:freshOpponents(0),yaw:0,pitch:0,gunCooldown:0,
     shots:0,gunHits:0,missileHits:0,lastMissile:false,effects:freeze([]),
+    lockTargetId:null,lockTicks:0,gunFeedback:null,
     hull:3,bossAttack:null,
     rack:createMissileRack({ammo:8}),missileTargetId:null,status:'active',
     radio:AIRCOMBAT_WAVES[0].radio});
@@ -133,6 +136,8 @@ export function combatSight(combat,width,height) {
   return {camera,raySet:cockpitGunRays(pose,RIG)};
 }
 export const combatRackSummary=combat=>missileSummary(combat.rack);
+export const combatLockStatus=combat=>missileLockDisplay(combat,
+  combatTargets(combat),combatPose(combat),combatRackSummary(combat));
 function damage(opponents,id,amount) {
   return freeze(opponents.map(e=>e.id===id&&e.hp>0?
     freeze({...e,hp:Math.max(0,e.hp-amount),
@@ -160,6 +165,17 @@ export function stepAirCombat(combat,control={}) {
   let shots=combat.shots,gunHits=combat.gunHits,missileHits=combat.missileHits;
   let radio=combat.radio,missileTargetId=combat.missileTargetId;
   let hull=combat.hull,bossAttack=combat.bossAttack;
+  let gunFeedback=combat.gunFeedback;
+  // Acquisition is an *uninterrupted* physical sight test. The upstream
+  // 30-degree lock remains a necessary gate, but GFTA6 adds a stricter
+  // 9-degree cone and a 48-tick stable-target requirement.
+  const candidate=selectLockCandidate(pose,targets);
+  let lockTargetId=null,lockTicks=0;
+  if(rack.active.length===0 && rack.ammo>0 && rack.cooldown===0 && candidate){
+    lockTargetId=candidate.id;
+    lockTicks=candidate.id===combat.lockTargetId?
+      Math.min(MISSILE_ACQUIRE_TICKS,combat.lockTicks+1):1;
+  }
   const phaseBefore=bossPhase(combat);
   // Retain only bounded presentation receipts; never change damage, score,
   // physical sight checks, missile-target ownership or campaign progression.
@@ -172,13 +188,24 @@ export function stepAirCombat(combat,control={}) {
   // Gunfire can disengage that rival before the missile resolves; the rack
   // must still advance towards the original target, never retarget to the
   // next live rival or crash because no live rival remains.
-  if(focused && missile && !combat.lastMissile && rack.active.length===0) {
-    const launched=launchMissile(rack,pose,{center:[...focused.center],radius:focused.radius});
-    rack=launched.rack;
-    if(launched.status==='launched') missileTargetId=focused.id;
-    radio=launched.status==='launched'?
-      'MISSILE AWAY — '+focused.name+' IS JUST A FRIEND.' :
-      'MISSILE: '+launched.status.toUpperCase().replaceAll('-',' ');
+  if(missile && !combat.lastMissile && rack.active.length===0) {
+    if(rack.ammo===0) radio='MISSILE: OUT OF AMMUNITION';
+    else if(rack.cooldown>0)radio='MISSILE: COOLING DOWN';
+    else if(!candidate)radio='MISSILE: ALIGN THE TARGET WITH THE SIGHTS';
+    else if(combat.lockTargetId!==candidate.id ||
+      combat.lockTicks<MISSILE_ACQUIRE_TICKS)
+      radio='MISSILE: HOLD SIGHT ON '+candidate.name+' TO ACQUIRE LOCK';
+    else {
+      const locked=targets.find(t=>t.id===lockTargetId);
+      const launched=launchMissile(rack,pose,{center:[...locked.center],radius:locked.radius});
+      rack=launched.rack;
+      if(launched.status==='launched'){
+        missileTargetId=locked.id;lockTargetId=null;lockTicks=0;
+      }
+      radio=launched.status==='launched'?
+        'MISSILE AWAY — LOCKED ON '+locked.name+'.' :
+        'MISSILE: '+launched.status.toUpperCase().replaceAll('-',' ');
+    }
   }
   if(rack.active.length>0) {
     const tracked=targets.find(t=>t.id===missileTargetId);
@@ -204,17 +231,27 @@ export function stepAirCombat(combat,control={}) {
       rack=stepMissiles(rack,{center:[...old.center],radius:old.radius},MISSILE_STEP).rack;
     missileTargetId=null;
   }
-  if(focused && gun && gunCooldown===0 && !opponents.find(e=>e.id===focused.id).disengaged) {
+  if(gun && gunCooldown===0 && opponents.some(e=>!e.disengaged)) {
     shots++;
     gunCooldown=10;
-    const results=testCockpitTarget(pose,RIG,[...focused.center],focused.radius);
-    if(results.some(hit=>hit.hit)) {
+    // The previously hard-coded first-surviving rival was NOT necessarily
+    // under the real gun sights. Intersect every live target with the real
+    // muzzle rays, then damage the nearest accepted intersection.
+    const struck=selectGunTarget(pose,RIG,targets.filter(t=>
+      opponents.some(e=>e.id===t.id&&!e.disengaged)));
+    const victim=struck&&opponents.find(e=>e.id===struck.id);
+    if(struck && victim && victim.hp>0) {
       gunHits++;
-      const old=opponents.find(e=>e.id===focused.id);
-      if(old.hp>0)impact(focused,'gun',old.hp<=1);
-      opponents=damage(opponents,focused.id,1);
-      radio=focused.name+': THAT WAS AN UNFRIENDLY FRIENDLY WARNING.';
-    } else radio='GUNS: SIGHT ALIGNMENT REQUIRED.';
+      const target=targets.find(t=>t.id===struck.id);
+      impact(target,'gun',victim.hp<=1);
+      opponents=damage(opponents,struck.id,1);
+      gunFeedback=freeze({tick,kind:victim.hp<=1?'destroyed':'hit',
+        id:struck.id,name:struck.name,remainingHp:Math.max(0,victim.hp-1)});
+      radio='GUNS: HIT CONFIRMED — '+struck.name+' −1 HP';
+    } else {
+      gunFeedback=freeze({tick,kind:'miss',id:null,name:null,remainingHp:null});
+      radio='GUNS: MISS — ALIGN WITH A VISIBLE ENEMY';
+    }
   }
   // The boss alone has a telegraphed interception. The target lane
   // is latched 45 ticks before impact, so A/D can evade it. This never
@@ -251,5 +288,6 @@ export function stepAirCombat(combat,control={}) {
   }
   return freeze({...combat,tick,waveTick,yaw,pitch,gunCooldown,shots,gunHits,
     missileHits,lastMissile:missile,missileTargetId,opponents,rack,stage,status,radio,
+    lockTargetId,lockTicks,gunFeedback,
     effects:freeze(effects.slice(-16)),hull,bossAttack});
 }

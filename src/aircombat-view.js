@@ -2,8 +2,8 @@
 // GFTA6 2.5D arcade presentation of immutable cockpit/missile geometry.
 // Gun and missile hit authority remains in src/aircombat.js and VANILLAJS.
 import {projectCockpitPoint,inspectCockpitSight} from '../vendor/vanillajs/cockpit-rig/index.js';
-import {missileLock} from '../vendor/vanillajs/missiles.js';
-import {combatPose,combatTargets,combatCamera,combatRackSummary,bossPhase,
+import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
+import {combatPose,combatTargets,combatCamera,combatRackSummary,combatLockStatus,bossPhase,
   BOSS_PHASE_LINES,AIRCOMBAT_WAVES} from './aircombat.js';
 const rect=(ctx,x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
 function poly(ctx,pts,color) {
@@ -106,6 +106,8 @@ export function drawAirCombat(canvas,combat) {
   const pose=combatPose(combat);
   const camera=combatCamera(combat);
   const targets=combatTargets(combat);
+  const rack=combatRackSummary(combat);
+  const lock=combatLockStatus(combat);
   for(const t of targets) {
     const p=projectCockpitPoint(camera,[...t.center],{width:w,height:h});
     if(!p.visible||p.x< -80||p.x>w+80||p.y< -80||p.y>h+80)continue;
@@ -113,7 +115,9 @@ export function drawAirCombat(canvas,combat) {
     if(t.role==='boss')bossAircraft(ctx,p.x,p.y,t.disengaged);
     else fighter(ctx,p.x,p.y,Math.max(14,size*13),t.paint,t.disengaged);
     if(t.disengaged)continue;
-    ctx.strokeStyle='#efce91';ctx.lineWidth=2;
+    const acquiring=t.id===lock.targetId;
+    ctx.strokeStyle=acquiring?(lock.ready?'#a9f7b9':'#ffcb79'):'#efce91';
+    ctx.lineWidth=acquiring?3:2;
     ctx.beginPath();ctx.arc(p.x,p.y,Math.max(18,size*17),0,2*Math.PI);ctx.stroke();
     text(ctx,t.name+' ['+t.hp+'/'+t.maxHp+']',p.x,
       p.y-(t.role==='boss'?89:28),12,'#fff0c9','center');
@@ -138,6 +142,24 @@ export function drawAirCombat(canvas,combat) {
     {range:205,width:w,height:h});
   if(sight.reticle.visible) {
     const {x,y}=sight.reticle;
+    const feedback=combat.gunFeedback;
+    if(feedback && combat.tick-feedback.tick<30){
+      const good=feedback.kind!=='miss';
+      const age=combat.tick-feedback.tick;
+      const radius=22+age*.38;
+      ctx.strokeStyle=good?'#a9ffca':'#ffbf81';
+      ctx.lineWidth=good?3:2;
+      ctx.beginPath();
+      ctx.moveTo(x-radius,y-radius);ctx.lineTo(x-11,y-11);
+      ctx.moveTo(x+radius,y-radius);ctx.lineTo(x+11,y-11);
+      ctx.moveTo(x-radius,y+radius);ctx.lineTo(x-11,y+11);
+      ctx.moveTo(x+radius,y+radius);ctx.lineTo(x+11,y+11);
+      ctx.stroke();
+      text(ctx,good?
+        (feedback.kind==='destroyed'?'TARGET DISENGAGED':'HIT CONFIRMED −1 HP'):
+        'MISSED — ADJUST AIM',
+        x,y+64,16,good?'#baffd5':'#ffd09b','center');
+    }
     if(combat.gunCooldown>=9&&combat.shots>0){
       ctx.strokeStyle='#ffe6a8';ctx.lineWidth=3;
       ctx.beginPath();ctx.arc(x,y,25,0,Math.PI*2);ctx.stroke();
@@ -150,25 +172,24 @@ export function drawAirCombat(canvas,combat) {
     ctx.moveTo(x,y+20);ctx.lineTo(x,y+35);ctx.stroke();
   }
   rect(ctx,0,h-125,w,125,'rgba(6,17,33,.93)');
-  rect(ctx,12,14,440,120,'rgba(8,21,37,.87)');
+  rect(ctx,12,14,440,151,'rgba(8,21,37,.87)');
   const stage=Math.min(combat.stage,AIRCOMBAT_WAVES.length-1),wave=AIRCOMBAT_WAVES[stage];
-  const rack=combatRackSummary(combat);
-  const focused=targets.find(t=>!t.disengaged);
-  // Read-only status from the same physical body boresight test used to
-  // authorise actual missile launches. Sprite overlap cannot fake a lock.
-  const lock=focused ? missileLock(pose,{center:[...focused.center],
-    radius:focused.radius}) : null;
-  const lockStatus=combat.status!=='active' ? 'COMPLETE' :
-    rack.active>0 ? 'MISSILE IN FLIGHT' :
-    rack.ammo===0 ? 'EMPTY' :
-    rack.cooldownTicks>0 ? 'COOLDOWN' :
-    lock?.locked ? 'LOCKED' : (lock?.reason??'NO CONTACT').toUpperCase().replaceAll('-',' ');
+  // The HUD consumes the same lock ID and continuous-acquisition counter
+  // that authorise launches. Neither sprites nor mouse position create locks.
+  const lockStatus=lock.status;
   text(ctx,'JUST A FRIEND SQUADRON™  ·  WAVE '+(stage+1)+'/'+
     AIRCOMBAT_WAVES.length,26,42,17,'#ffe5b7');
   text(ctx,wave.name,26,71,15,'#b7e4d8');
   text(ctx,'GUNS: SPACE  ·  MISSILES: M  ·  AIM: WASD / ARROWS',26,98,12);
   text(ctx,'MISSILES '+rack.ammo+'  ·  '+lockStatus,
-    26,119,12,lockStatus==='LOCKED'?'#a9efd2':'#f1d5ad');
+    26,119,12,lock.ready?'#a9efd2':'#f1d5ad');
+  rect(ctx,26,132,320,9,'#30445c');
+  rect(ctx,26,132,320*lock.progress/MISSILE_ACQUIRE_TICKS,9,
+    lock.ready?'#93eac1':'#f0ba67');
+  text(ctx,lock.targetId ?
+      (lock.name+' · '+Math.round(100*lock.progress/MISSILE_ACQUIRE_TICKS)+'%') :
+      'POINT YOUR NOSE AT A TARGET · HOLD STEADY',
+    26,155,11,lock.ready?'#afeacb':'#ffd5a0');
   text(ctx,'RADIO: '+combat.radio.slice(0,106),25,h-75,14,'#fff0d7');
   const closest=targets.filter(t=>!t.disengaged).reduce((min,t)=>
     Math.min(min,Math.abs(40-t.center[2])),Infinity);
@@ -181,13 +202,13 @@ export function drawAirCombat(canvas,combat) {
   const boss=combat.opponents.find(e=>e.role==='boss');
   if(boss){
     const phase=bossPhase(combat),barWidth=360;
-    rect(ctx,w/2-205,142,410,77,'rgba(17,20,40,.89)');
+    rect(ctx,w/2-205,177,410,77,'rgba(17,20,40,.89)');
     text(ctx,'FINAL BOSS — '+BOSS_PHASE_LINES[(phase??1)-1],
-      w/2,165,12,'#ffd1e5','center');
-    rect(ctx,w/2-barWidth/2,178,barWidth,12,'#38263e');
-    rect(ctx,w/2-barWidth/2,178,
+      w/2,200,12,'#ffd1e5','center');
+    rect(ctx,w/2-barWidth/2,213,barWidth,12,'#38263e');
+    rect(ctx,w/2-barWidth/2,213,
       Math.round(barWidth*boss.hp/boss.maxHp),12,'#ec85a8');
-    text(ctx,boss.hp+' / '+boss.maxHp+' HP',w/2,209,12,
+    text(ctx,boss.hp+' / '+boss.maxHp+' HP',w/2,244,12,
       '#ffdfef','center');
     if(combat.bossAttack)
       text(ctx,'LOCKED PERSONAL SPACE — EVADE WITH A / D',

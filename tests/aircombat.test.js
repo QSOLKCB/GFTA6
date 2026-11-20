@@ -34,7 +34,7 @@ function enableFlight(profile='coupe',combat=true) {
   return game;
 }
 test('campaign source is exact pinned and scripted final text matches canonical brief',async()=>{
-  assert.equal(AIRCOMBAT_FORMAT,'gfta6.aircombat.v2');
+  assert.equal(AIRCOMBAT_FORMAT,'gfta6.aircombat.v3');
   assert.match(AIRCOMBAT_UPSTREAM,/ae0b594f006ec3c1add71574c830ddde9ff5fa66/);
   assert.deepEqual(AIRCOMBAT_WAVES.map(w=>w.members.length),[1,3,1,4,4,1]);
   assert.equal(new Set(AIRCOMBAT_WAVES.flatMap(w=>w.members.map(m=>m.id))).size,14);
@@ -66,6 +66,10 @@ test('cockpit geometry and actual gun rays determine targets, independent of vis
 test('missile lock and ammo come from unchanged COCKPIT-002 rack, not sprite overlap',()=>{
   let s=createAirCombat(17);
   const previous=s;
+  s=stepAirCombat(s,{missile:true});
+  assert.equal(combatRackSummary(s).ammo,8,'no instant missile without acquisition');
+  for(let i=0;i<47;i++)s=stepAirCombat(s,{missile:false});
+  assert.equal(s.lockTicks,48);
   s=stepAirCombat(s,{missile:true});
   assert.equal(combatRackSummary(s).ammo,7);
   assert.equal(combatRackSummary(previous).ammo,8,'immutable previous rack unchanged');
@@ -224,14 +228,18 @@ test('combat HUD displays real physical missile-lock and in-flight status',()=>{
   });
   const ready=canvas();
   drawAirCombat(ready.canvas,initial);
-  assert.ok(ready.labels.some(x=>x.includes('LOCKED')),
-    'initial aligned boresight must show a real valid lock');
+  assert.ok(ready.labels.some(x=>x.includes('ACQUIRING LOCK')),
+    'initial aligned boresight must start sustained acquisition');
   const misaligned=Object.freeze({...initial,yaw:.58});
   const blocked=canvas();
   drawAirCombat(blocked.canvas,misaligned);
-  assert.ok(blocked.labels.some(x=>x.includes('OFF BORESIGHT')),
+  assert.ok(blocked.labels.some(x=>x.includes('ALIGN RETICLE')),
     'misaligned physical sight must not claim a lock');
-  const launched=stepAirCombat(initial,{missile:true});
+  let acquired=initial;
+  for(let i=0;i<48;i++)acquired=stepAirCombat(acquired,{});
+  const locked=canvas();drawAirCombat(locked.canvas,acquired);
+  assert.ok(locked.labels.some(x=>x.includes('LOCK ACQUIRED')));
+  const launched=stepAirCombat(acquired,{missile:true});
   const flying=canvas();
   drawAirCombat(flying.canvas,launched);
   assert.ok(flying.labels.some(x=>x.includes('MISSILE IN FLIGHT')),
