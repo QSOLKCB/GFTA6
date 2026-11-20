@@ -15,9 +15,9 @@ function mockCanvas() {
   for (const name of ['save','restore','clearRect','fillRect','strokeRect',
     'beginPath','closePath','moveTo','lineTo','ellipse','arc','fill','stroke',
     'translate','rotate','setLineDash']) ctx[name] = () => {};
-  ctx.roundRect = (x, y, w, h) => {
-    if (w === 59 && h === 36) events.push('car');
-  };
+  // The raised car is now polygons rather than the original 2D roundRect.
+  ctx.fill = () => { if (ctx.fillStyle === '#f36b9b') events.push('car'); };
+  ctx.roundRect = () => {};
   ctx.fillText = value => {
     if (value === 'FLATS') events.push('flats');
   };
