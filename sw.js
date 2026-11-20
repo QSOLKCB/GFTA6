@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 // Cache only our own static assets. No trackers, CDN resources or background sync.
-const CACHE_NAME = 'gfta6-static-v0.2.2';
+const CACHE_NAME = 'gfta6-static-v0.3.0';
 const ASSETS = [
   './', './index.html', './src/style.css', './src/app.js', './src/render.js',
   './src/core.js', './src/cargo.js', './src/world.js', './src/vehicle.js', './src/vehicle-art.js',
   './src/scene25d.js', './src/escape.js', './src/flight-view.js',
   './src/navigation.js', './src/aircombat.js', './src/aircombat-view.js',
   './src/combat-targeting.js',
+  './src/airwar.js','./src/airwar-world.js',
+  './vendor/vanillajs/cad-geometry/index.js','./vendor/vanillajs/world-vis/index.js','./vendor/vanillajs/tactics/index.js','./vendor/vanillajs/trajectory/index.js','./vendor/vanillajs/creator-interop/index.js','./vendor/vanillajs/geometry/index.js',
+  './vendor/vanillajs/render-lit/index.js','./vendor/vanillajs/sensing/index.js','./vendor/vanillajs/navigation/index.js','./vendor/vanillajs/scene-graph/index.js','./vendor/vanillajs/lead-solver/index.js','./vendor/vanillajs/collision/index.js',
   './src/soundtrack.js', './src/audio-player.js', './src/audio-cues.js',
   './vendor/vanillajs/chip-audio/index.js',
   './vendor/vanillajs/missiles.js', './vendor/vanillajs/math/index.js',

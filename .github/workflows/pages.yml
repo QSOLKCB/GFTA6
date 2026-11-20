@@ -83,6 +83,13 @@ jobs:
           test -f _site/vendor/vanillajs/missiles.js
           test -f _site/vendor/vanillajs/math/index.js
           test -f _site/vendor/vanillajs/cockpit-rig/index.js
+          test -f _site/src/airwar.js
+          test -f _site/src/airwar-world.js
+          test -f _site/vendor/vanillajs/cad-geometry/index.js
+          test -f _site/vendor/vanillajs/world-vis/index.js
+          test -f _site/vendor/vanillajs/tactics/index.js
+          test -f _site/vendor/vanillajs/trajectory/index.js
+          test -f _site/vendor/vanillajs/creator-interop/index.js
           test -f _site/src/soundtrack.js
           test -f _site/src/audio-player.js
           test -f _site/src/audio-cues.js

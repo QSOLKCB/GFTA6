@@ -25,7 +25,7 @@ assert.ok(app.includes("createDogfightGame(seed, $('vehicle').value)"),
   'standalone launch must use a separate game factory');
 assert.ok(app.includes("state.gameMode === 'dogfight'"),
   'Replay must preserve the independent arcade game mode');
-assert.ok(sw.includes('gfta6-static-v0.2.2'),
+assert.ok(sw.includes('gfta6-static-v0.3.0'),
   'new chip audio modules must rotate the offline asset cache');
 const core = await readFile(resolve(root, 'src/core.js'), 'utf8');
 const world = await readFile(resolve(root, 'src/world.js'), 'utf8');
@@ -84,6 +84,30 @@ for(const path of ['src/aircombat.js','src/aircombat-view.js',
   'vendor/vanillajs/math/index.js','vendor/vanillajs/cockpit-rig/index.js',
   'vendor/vanillajs/missiles.js'])
   assert.ok(paths.includes(path),'offline cache missing '+path);
+assert.ok(page.includes('id="start-airwar"')&&page.includes('id="export-airwar"'),
+  'advanced airwar launch and sealed-world export controls missing');
+for(const p of ['src/airwar.js','src/airwar-world.js'])
+  assert.ok(paths.includes(p),'offline cache missing GFTA6 airwar adapter '+p);
+const upstreamAirwarPins=[
+  ['vendor/vanillajs/cad-geometry/index.js','10b69a5ea58878f5109e5d84a08f1ed9d370e1e9'],
+  ['vendor/vanillajs/world-vis/index.js','0b8a887b9732be99b473bac7f11ce0084f37d8bf'],
+  ['vendor/vanillajs/tactics/index.js','aadf803bf9b0f38b492af2ee09cd3953e277475d'],
+  ['vendor/vanillajs/trajectory/index.js','c4d77688b1f0d76e070c981f7e21588683043e8a'],
+  ['vendor/vanillajs/creator-interop/index.js','3ab939e8ea21efa3e51102e407d4cb6c59f51663'],
+  ['vendor/vanillajs/geometry/index.js','921ec893482a37e2503886ef42af3cd0bb2baca4'],
+  ['vendor/vanillajs/render-lit/index.js','def5f61785305de7335490a12fe15fef92f05929'],
+  ['vendor/vanillajs/sensing/index.js','da7f221447277a32e9f1eac55f61d9e855ccf76a'],
+  ['vendor/vanillajs/navigation/index.js','a1eb1814db836b6a8c841d2d41552232e23fdf78'],
+  ['vendor/vanillajs/scene-graph/index.js','e35474f13f1920ff8cc55728683ee87e177427e1'],
+  ['vendor/vanillajs/lead-solver/index.js','a39427287fb93fbca08919e3b7df16f74a3c261c'],
+  ['vendor/vanillajs/collision/index.js','60975e1e1d5914f0610de2e3ed3cbb241ce7f571']
+];
+for(const [p,expected] of upstreamAirwarPins){
+  assert.ok(paths.includes(p),'offline cache missing upstream system '+p);
+  const bytes=await readFile(resolve(root,p));
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  assert.equal(hash,expected,'upstream airwar Git blob differs from reviewed SHA: '+p);
+}
 const pins = [
   ['vendor/vanillajs/math/index.js','45e5fc4d6c6daa472a89fa59c80e6fd70b2c1455'],
   ['vendor/vanillajs/cockpit-rig/index.js','74010bb24625900e6eeb812c3064bda09d9898cb'],
