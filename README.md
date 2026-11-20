@@ -99,7 +99,7 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
-## GFTA6-POLISH-001 — ONE MORE ERRAND™ (v0.2.0 candidate)
+## GFTA6-RELEASE-POLISH-001 — ONE MORE ERRAND™ (v0.2.0 candidate)
 
 This review-stage release pass keeps the original Saturday, air combat,
 street atmosphere, and the excellent F-UH-K idle engine intact.
