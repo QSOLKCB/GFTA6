@@ -158,11 +158,21 @@ async function main(){
   const beforeWeaponSounds=countSources();
   const gunHUD=()=>cdp.eval(el('escape-goal')+'.textContent');
   assert.match(await gunHUD(),/\bWAVE 1\/6\b.*\bGUN HITS 0\b/);
+  // Real early launch attempt: no ammunition may be consumed.
+  await key('KeyM',true);await sleep(80);await key('KeyM',false);
+  await sleep(100);
+  assert.match(await cdp.eval(el('velocity')+'.textContent'),/8 MISSILES/);
+  console.log('PASS: premature M without sustained target lock does not fire');
   await key('Space',true);
   try{
     await until(async()=>/\bGUN HITS [1-9]\d*\b/.test(await gunHUD()),'gun hit from physical Space');
   }finally{await key('Space',false);}
   await until(()=>countSources()>beforeWeaponSounds,'actual Web Audio gun SFX source');
+  await screenshot('gun-hit-feedback.png');
+  // Acquiring a missile lock is a separate, visible action now. Only a
+  // complete 48-tick physical lock permits a missile to leave the pylon.
+  await until(()=>cdp.eval(el('nav-instruction')+'.textContent.includes("LOCK ACQUIRED")'),
+    '0.8-second stable physical missile lock',7000);
   const afterGunSounds=countSources();
   await key('KeyM',true);await sleep(110);await key('KeyM',false);
   await until(()=>cdp.eval(el('velocity')+'.textContent.includes("7 MISSILES")'),'missile launch from physical M');
