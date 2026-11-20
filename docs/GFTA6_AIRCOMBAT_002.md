@@ -63,8 +63,8 @@ modify source-pinned physics or alter the existing pay/restore mechanic.
 
 - Original 2.5D boss silhouette, unmistakably larger than rival aircraft.
 - Boss HP and phase title, hull readout and prominent telegraph warning.
-- Existing explosions, gunfire, missile trails and Paula/SID-inspired SFX
-  continue as presentation-only effects.
+- Existing explosions, gunfire and missile trails continue as presentation-only effects.
+- A fourth original eight-second stereo ADSR/Paula chip score starts on the final boss wave, replacing the ordinary dogfight loop; victory stops the music and plays the existing victory SFX.
 - A warning tone is emitted only on an accepted warning transition.
 - A hull-impact sound is emitted only on an accepted hull deduction.
 - Failed boss runs end cleanly, with a game-specific replay message.
@@ -104,6 +104,7 @@ fixed 120 Hz missile substeps and physical sight contracts remain pinned.
   streams and a completed victory/defeat is immutable.
 - Original mobile controls, zero-browser-error, audio-source and
   full offline reload Chromium acceptance are still enforced by CI/CD.
+- A production source-bound test verifies the boss-specific music scene and non-silent original PCM.
 - New work never mutates the hard Saturday campaign, cargo, vehicle
   mechanics, funds, original ending or upstream source files.
 - Actual human browser test and Codex exact-head approval remain
