@@ -44,6 +44,7 @@ const RIG=createCockpitRig({
   seat:[0,.55,.4],nose:[0,.1,-2],chase:[0,2,10],external:[9,3,12],
   guns:[[-2,0,-1.2],[2,0,-1.2]],convergence:205,fov:1.05
 });
+export const combatRig=()=>RIG;
 const freshOpponents=wave=>freeze(AIRCOMBAT_WAVES[wave].members.map(
   m=>freeze({...m,hp:2,disengaged:false})
 ));
