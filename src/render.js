@@ -4,7 +4,7 @@ import {WORLD, PLACES, BLOCKS, screenPosition, INTERACT_RADIUS} from './core.js'
 import {vehicleArt} from './vehicle-art.js';
 import {drawCar25D} from './car-25d.js';
 import {streetActors} from './street-life.js';
-import {streetCaption} from './street-voice.js';
+import {streetBubbleLayout} from './street-presentation.js';
 import {PARKING_BAYS} from './world.js';
 import {getCityProjection, projectCityGroundPoint} from './scene25d.js';
 import {drawFlightScene} from './flight-view.js';
@@ -182,27 +182,19 @@ function streetActor(ctx,a,raised){
   }
   ctx.restore();
 }
-function streetBubbleAt(ctx,actor,event,tick){
-  if(!event||actor.id!==event.id||tick-event.tick<0||tick-event.tick>108)return;
-  const words=streetCaption(event.lineId).split(' '),lines=[''];
-  for(const word of words){
-    const last=lines.length-1;
-    if(lines[last]&&lines[last].length+word.length+1>29)lines.push(word);
-    else lines[last]+=(lines[last]?' ':'')+word;
-  }
-  const visible=lines.slice(0,3);
-  const h=12+visible.length*17;
-  const y=actor.y-(actor.kind==='car'?65:46)-h;
-  rect(ctx,actor.x-123,y,246,h,'rgba(12,22,41,.93)');
-  ctx.strokeStyle=actor.kind==='car'?'#ffcb8e':'#a9e9d7';
-  ctx.lineWidth=1.5;ctx.strokeRect(actor.x-123,y,246,h);
-  visible.forEach((line,i)=>text(ctx,line,actor.x,y+18+i*17,
+function streetBubbleAt(ctx,actor,event,tick,viewport){
+  const box=streetBubbleLayout(actor,event,tick,viewport);
+  if(!box)return;
+  rect(ctx,box.x,box.y,box.w,box.h,'rgba(12,22,41,.94)');
+  ctx.strokeStyle=box.kind==='car'?'#ffcb8e':'#a9e9d7';
+  ctx.lineWidth=1.5;ctx.strokeRect(box.x,box.y,box.w,box.h);
+  box.lines.forEach((line,i)=>text(ctx,line,box.x+box.w/2,box.y+18+i*17,
     'bold 12px system-ui','#fff4d9'));
 }
 // Draw only the geometry supplied by the pinned VANILLAJS projection system.
 // Sorted with the moving car by the base ground-plane depth key: a building
 // in front of the car now correctly obscures it. This is not new game physics.
-function raisedCity(ctx, state, carPoint, actors, streetBubble) {
+function raisedCity(ctx, state, carPoint, actors) {
   const {scene} = getCityProjection('raised');
   for (const shadow of scene.shadows)
     polygon(ctx, shadow.points, 'rgba(6,14,24,.30)');
@@ -216,7 +208,6 @@ function raisedCity(ctx, state, carPoint, actors, streetBubble) {
   for (const entry of entries) {
     if(entry.actor){
       streetActor(ctx,entry.actor,true);
-      streetBubbleAt(ctx,entry.actor,streetBubble,state.tick);
       continue;
     }
     if (!entry.solid) {
@@ -261,7 +252,7 @@ function routeOverlay(ctx, width, nav) {
   text(ctx,'N: SWITCH ROUTE',left+120,y+82,
     'bold 10px system-ui','#a9e9d7');
 }
-function miniMap(ctx, state, nav) {
+function miniMap(ctx, state, nav, actors) {
   const x = 12, y = 12, w = 170, h = 120;
   rect(ctx, x - 4, y - 4, w + 8, h + 8, 'rgba(9,22,38,.90)');
   ctx.strokeStyle = '#718692'; ctx.strokeRect(x - 4, y - 4, w + 8, h + 8);
@@ -271,6 +262,12 @@ function miniMap(ctx, state, nav) {
   const target = nav?.id;
   for (const p of PLACES) ellipse(ctx, x + p.x * sx, y + p.y * sy,
     p.id === target ? 5 : 2, p.id === target ? 5 : 2, p.tint);
+  // Small ambient dots communicate a living city; they are not collision radar.
+  for(const actor of actors){
+    ellipse(ctx,x+actor.x*sx,y+actor.y*sy,
+      actor.kind==='car'?2:1.5,actor.kind==='car'?2:1.5,
+      actor.kind==='car'?'#f3bc7b':'#b4e9d9');
+  }
   const c = screenPosition(state.body);
   ellipse(ctx, x + c.x * sx, y + c.y * sy, 5, 5, '#ffebaf');
   text(ctx, 'CITY MAP', x + w - 6, y + h - 7, 'bold 9px system-ui', '#e5d8bd', 'right');
@@ -301,19 +298,23 @@ export function drawScene(canvas, state, {mode = 'classic', route = 'errands', s
   const nav=waypoint(state,route);
   const actors=streetActors(state.seed,state.tick);
   if (raised) {
-    raisedCity(ctx, state, carPoint, actors, streetBubble);
+    raisedCity(ctx, state, carPoint, actors);
     // Destination hints stay readable even where tall scenery overlaps.
     for (const p of PLACES) marker(ctx, p, nav?.id === p.id, state.tick);
   } else {
     for (const p of PLACES) marker(ctx, p, nav?.id === p.id, state.tick);
     for(const a of actors){
       streetActor(ctx,a,false);
-      streetBubbleAt(ctx,a,streetBubble,state.tick);
     }
     car(ctx, carPoint.x, carPoint.y, state.headingFine, vehicleArt(state.profile));
   }
+  // Speech is an overlay, so a nearby speaker never has an unreadable
+  // bubble hidden by raised buildings or clipped outside the viewport.
+  const speaker=streetBubble&&actors.find(a=>a.id===streetBubble.id);
+  if(speaker)streetBubbleAt(ctx,speaker,streetBubble,state.tick,
+    {x:cx,y:cy,width:w,height:h});
   ctx.restore();
-  miniMap(ctx, state, nav);
+  miniMap(ctx, state, nav, actors);
   routeOverlay(ctx, w, nav);
   if (nav && !state.paused && !state.finished && !state.miniGame &&
       nav.distance <= INTERACT_RADIUS) {
