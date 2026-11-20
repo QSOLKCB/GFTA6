@@ -1,7 +1,8 @@
 # GFTA6-AIRCOMBAT-001 — JUST A FRIEND SQUADRON™
 
-**Status:** Canonical design brief. Implementation deferred to a separate
-gameplay PR after the GFTA6-POLISH-001 fixes are reviewed and merged.
+**Status:** Canonical, owner-locked campaign design. A playable 2.5D
+implementation has been proposed separately as GFTA6-AIRCOMBAT-001A.
+This canonical transcript must remain unchanged.
 
 ## Premise
 
@@ -108,5 +109,6 @@ encounter as comic arcade fiction.
 - Unit, negative and full-campaign regressions plus owner browser play-test.
 - Codex exact-head review and green CI before any merge.
 
-**DESIGN ONLY:** This brief does not claim the air-combat gameplay, missiles,
-cockpit integration or enemy aircraft are implemented.
+**CANONICAL SPECIFICATION:** For the 2.5D implementation status, exact upstream
+pins, physical sight/missile boundaries and test evidence, see
+`docs/GFTA6_AIRCOMBAT_001A.md`. Do not modify the locked ending text.
