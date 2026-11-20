@@ -32,7 +32,7 @@ function keyboardHarness() {
     document: {querySelectorAll() {return [];}},
     HTMLInputElement: class HTMLInputElement {},
     begin() {},
-    togglePause() {},
+    togglePause() {state.paused = !state.paused;},
     answer(index) {answers.push(index);},
     interactNow() {}
   });
@@ -181,4 +181,39 @@ test('both ending screens focus Replay exactly once and restore it on new comple
   runInContext('refreshMini()',sandbox);
   assert.equal(focused.length,2,'each new ending must focus Replay once');
   assert.match(ids.get('ending-title').textContent,/MISSION FAILED/);
+});
+
+test('P and Escape pause/resume from focused mini-game choice after window blur',()=>{
+  const h=keyboardHarness();
+  const button={closest(selector) {
+    assert.equal(selector,'select,textarea,button');
+    return {tagName:'BUTTON'};
+  }};
+  h.state.miniGame={type:'groceries',round:0};
+  // Losing window focus while the quiz is open has paused the game.
+  h.state.paused=true;
+  assert.equal(h.dispatch('keydown','KeyP',false,button),true);
+  assert.equal(h.state.paused,false,'P must resume from focused choice');
+  assert.equal(h.dispatch('keydown','Escape',false,button),true);
+  assert.equal(h.state.paused,true,'Escape must pause again');
+  assert.equal(h.dispatch('keydown','Escape',true,button),true);
+  assert.equal(h.state.paused,true,'OS repeat must not toggle pause');
+  assert.equal(h.dispatch('keydown','Escape',false,button),true);
+  assert.equal(h.state.paused,false,'Escape must resume from focused choice');
+  assert.equal(h.dispatch('keydown','KeyW',false,button),false);
+  assert.equal(h.dispatch('keydown','ArrowUp',false,button),false);
+  assert.equal(h.keys.size,0,'never arm driving keys while a choice is focused');
+  assert.equal(h.dispatch('keydown','Digit2',false,button),true);
+  assert.deepEqual(h.answers,[1],'answer shortcut still works after resume');
+});
+
+test('toolbar buttons do not forward pause shortcuts when no mini-game is active',()=>{
+  const h=keyboardHarness();
+  const button={closest(selector) {
+    assert.equal(selector,'select,textarea,button');
+    return {tagName:'BUTTON'};
+  }};
+  assert.equal(h.dispatch('keydown','KeyP',false,button),false);
+  assert.equal(h.dispatch('keydown','Escape',false,button),false);
+  assert.equal(h.state.paused,false);
 });
