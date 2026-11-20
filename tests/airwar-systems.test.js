@@ -5,11 +5,13 @@ import {createGame,createDogfightGame,createAirWarGame,stepGame,snapshot} from '
 import {createAirWarCombat,stepAirWarCombat,inspectAirWarTactics,
   createAirWarInterceptor,AIRWAR_FORMAT,AIRWAR_TACTICS_PERIOD,
   AIRWAR_TRAJECTORY_PERIOD, AIRWAR_TRAJECTORY_STEP} from '../src/airwar.js';
-import {createAirWarProject,exportAirWarWorld,verifyAirWarWorld,
+import {createAirWarProject,exportAirWarWorld,verifyAirWarWorld,loadAirWarWorld,
+  drawAirWarAircraft,
   selectAirWarWorld,drawAirWarWorld,inspectAirWarSight,AIRWAR_SOURCE,
   AIRWAR_MAX_TRIANGLES_PER_FRAME} from '../src/airwar-world.js';
 import {AIRCOMBAT_WAVES,combatTargets} from '../src/aircombat.js';
-import {CREATOR_FORMAT} from '../vendor/vanillajs/creator-interop/index.js';
+import {CREATOR_FORMAT,sealCreatorPackage,creatorPackageJSON}
+  from '../vendor/vanillajs/creator-interop/index.js';
 import {createSightWorld,querySight} from '../vendor/vanillajs/sensing/index.js';
 import {createTacticsWorld,createTacticsState,stepTactics}
   from '../vendor/vanillajs/tactics/index.js';
@@ -67,6 +69,25 @@ test('Creator-Interop-001 SHA-256 export/import is sealed, offline and tamper-re
   await assert.rejects(verifyAirWarWorld(JSON.stringify(bad)),/integrity mismatch/);
   await assert.rejects(verifyAirWarWorld('{}'));
 });
+test('sealed World Foundry import is atomic and cannot alter combat authority',async()=>{
+  const original=await exportAirWarWorld();
+  const game=createAirWarGame(1988);
+  const before=snapshot(game);
+  const changed={...createAirWarProject(),name:'Independent world workshop'};
+  const sealed=creatorPackageJSON(await sealCreatorPackage(changed));
+  const result=await loadAirWarWorld(sealed);
+  assert.equal(result.assets,3);
+  assert.equal((await verifyAirWarWorld(await exportAirWarWorld())).name,
+    'Independent world workshop');
+  const altered=JSON.parse(sealed);
+  altered.project.placements[0].position=[0,0,-100];
+  await assert.rejects(loadAirWarWorld(JSON.stringify(altered)),/integrity mismatch/);
+  assert.equal((await verifyAirWarWorld(await exportAirWarWorld())).name,
+    'Independent world workshop','rejected data must not replace active content');
+  assert.deepEqual(snapshot(game),before,'imported art cannot change active enemy health or physics');
+  await loadAirWarWorld(original);
+  assert.equal(await exportAirWarWorld(),original,'restored canonical sealed world');
+});
 test('WORLD-VIS-001 culls retained CAD terrain and never changes combat state',()=>{
   const c=createAirWarCombat(1988),before=JSON.stringify(c);
   const a=selectAirWarWorld(c,960,600);
@@ -92,6 +113,8 @@ test('TACTICS-001 actually plans finite SENSE orders and changes aerial formatio
   assert.equal(Object.keys(a.offsets).length,3);
   assert.ok(b.orders.length<=3);
   assert.ok(b.orders.every(o=>['hold','move','suppress','retreat'].includes(o.action)));
+  assert.ok(Object.values(b.offsets).some(v=>v.x!==0||v.z!==0),
+    'source-derived squad orders must actually reposition at least one rival');
   assert.ok(b.visible>=0);
   assert.ok(Object.isFrozen(b.offsets));
   assert.deepEqual(inspectAirWarTactics(1988,1,5),b,'fixed seed replays tactical policy');
@@ -132,7 +155,8 @@ test('advanced fixed-tick policy is deterministic across identical inputs and ke
   assert.equal(a.airCombat.airwar.stage,0);
   assert.equal(a.index,0);
   assert.equal(a.escape.fundCents,0);
-  assert.ok(a.airCombat.airwar.contacts>=0);
+  assert.ok(a.airCombat.airwar.contacts>=1,
+    'an accepted TRAJECTORY swept actor contact must occur in live advanced combat');
   assert.equal(AIRWAR_TRAJECTORY_PERIOD,300);
 });
 test('rejects corrupt advanced combat source without changing replay state',()=>{
