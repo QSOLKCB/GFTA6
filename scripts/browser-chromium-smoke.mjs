@@ -62,7 +62,10 @@ async function until(fn,message,timeout=14000){
 const el=id=>'document.getElementById('+JSON.stringify(id)+')';
 let browser,cdp,profile;
 async function click(id){
-  const b=await cdp.eval('(()=>{const e='+el(id)+';e.scrollIntoView({block:"center"});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height,disabled:e.disabled};})()');
+  await cdp.eval('(()=>{const e='+el(id)+';e.scrollIntoView({block:"center",behavior:"instant"});return true;})()');
+  // Ensure Chromium has committed the scroll before pointer dispatch.
+  await sleep(90);
+  const b=await cdp.eval('(()=>{const e='+el(id)+';const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height,disabled:e.disabled};})()');
   assert.ok(b.w>5&&b.h>5&&!b.disabled,'element is not clickable: '+id);
   await cdp.call('Input.dispatchMouseEvent',{type:'mousePressed',x:b.x,y:b.y,button:'left',buttons:1,clickCount:1});
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseReleased',x:b.x,y:b.y,button:'left',buttons:0,clickCount:1});
@@ -105,16 +108,16 @@ async function main(){
   assert.equal(await cdp.eval('Boolean('+el('start-dogfight')+')'),true);
   await click('start');
   await until(()=>cdp.eval(el('intro')+'.hidden'),'start Saturday click');
-  assert.match(await cdp.eval(el('mode-label')+'.textContent'),/DOMESTIC SURVIVAL/);
+  await until(()=>cdp.eval(el('mode-label')+'.textContent.includes("DOMESTIC SURVIVAL")'),'active Saturday state');
   await canvasCheck();
   await click('view-mode');
-  assert.match(await cdp.eval(el('view-mode')+'.textContent'),/RAISED 2.5D/);
+  await until(()=>cdp.eval(el('view-mode')+'.textContent.includes("RAISED 2.5D")'),'2.5D view toggle');
   await click('route-mode');
-  assert.match(await cdp.eval(el('route-mode')+'.textContent'),/ESCAPE/);
+  await until(()=>cdp.eval(el('route-mode')+'.textContent.includes("ESCAPE")'),'route switch');
   await click('pause');
-  assert.match(await cdp.eval(el('mode-label')+'.textContent'),/PAUSED/);
+  await until(()=>cdp.eval(el('mode-label')+'.textContent.includes("PAUSED")'),'pause');
   await click('pause');
-  assert.match(await cdp.eval(el('mode-label')+'.textContent'),/DOMESTIC SURVIVAL/);
+  await until(()=>cdp.eval(el('mode-label')+'.textContent.includes("DOMESTIC SURVIVAL")'),'active Saturday state');
   await key('KeyW',true);await sleep(350);await key('KeyW',false);
   await canvasCheck();await screenshot('saturday.png');
   console.log('PASS: real Saturday click, Canvas, view, navigation, pause, W key');
@@ -146,7 +149,10 @@ async function main(){
   console.log('PASS: no uncaught browser exceptions');
 }
 let failed=false;
-try{await main();}catch(e){failed=true;console.error('BROWSER FAILURE:',e.stack??e);}
+try{await main();}catch(e){
+  failed=true;console.error('BROWSER FAILURE:',e.stack??e);
+  if(cdp)await screenshot('failure.png').catch(()=>{});
+}
 finally{
   try{cdp?.ws.close();}catch{}
   if(browser&&browser.exitCode===null){
