@@ -27,9 +27,9 @@ test('original Saturday, flight and dogfight themes render genuine stereo chip P
     assert.ok(left.some(v=>v!==0),mode+' left channel is silent');
     assert.ok(right.some(v=>v!==0),mode+' right channel is silent');
     assert.notDeepEqual(left,right,mode+' Paula stereo voices must be distinct');
-    const adjacent=new Int16Array(3200);
+    const adjacent=new Int16Array(3200*2); // interleaved stereo frames
     adjacent.set(a.renderRange(900,1400));
-    adjacent.set(a.renderRange(2300,1800),1400);
+    adjacent.set(a.renderRange(2300,1800),1400*2);
     assert.deepEqual(adjacent,a.renderRange(900,3200),
       'arbitrary filtered ranges reproduce the exact whole score');
   }
