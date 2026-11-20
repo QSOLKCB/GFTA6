@@ -1,5 +1,11 @@
 # GFTA6-AIRCOMBAT-001A — JUST A FRIEND SQUADRON™ (playable 2.5D)
 
+**Historical note:** This document records the original three-wave
+`gfta6.aircombat.v1` launch. The six-wave `gfta6.aircombat.v2`
+extension and THE FINAL WORD™ boss are specified separately in
+[**GFTA6-AIRCOMBAT-002**](GFTA6_AIRCOMBAT_002.md). The owner-locked
+final radio transcript remains unchanged.
+
 **Scope:** Original, opt-in GFTA6 encounter after Operation Freedom Flight.
 Built on merged GFTA6 PRs #9/#10 and VANILLAJS COCKPIT-002 PR #137.
 
