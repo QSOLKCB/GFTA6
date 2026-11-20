@@ -54,7 +54,12 @@ are the exact same as the existing optional ACT IV.
 - `src/navigation.js` suppresses city directions once an encounter is
   active. No new navigation authority, collision, camera or physics path.
 - 60 Hz game tick, 120 Hz upstream missile substeps, physical muzzle-ray
-  hits, target locking and all five authored opponents are unchanged.
+  hits, lock conditions, ammo and all five authored opponents retain their
+  existing difficulty. A correctness-only GFTA6 missile target receipt now
+  binds each launched projectile to its original rival until hit/expiry:
+  when gunfire disengages a rival mid-flight, the missile no longer throws
+  or silently transfers to another rival. This does not change VANILLAJS
+  missile physics, weapon damage or flight tuning.
 - The exact canon in `docs/GFTA6_AIRCOMBAT_001.md` remains untouched.
 - Offline-first HTML/CSS/browser JavaScript only. No npm install, new
   third-party assets, telemetry or cloud runtime dependency.
