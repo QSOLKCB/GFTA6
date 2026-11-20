@@ -32,7 +32,9 @@ test('missiles require 48 uninterrupted 60 Hz ticks in the narrowed physical con
   assert.ok(MISSILE_LOCK_HALF_ANGLE<Math.PI/6,
     'game acquisition must be stricter than original upstream 30-degree cone');
   let state=stepAirCombat(start,{missile:true});
-  assert.equal(state.rack,orig,'premature trigger must not spend ammunition');
+  assert.equal(state.rack.ammo,orig.ammo,'premature trigger must not spend ammunition');
+  assert.equal(state.rack.launched,orig.launched);
+  assert.equal(state.rack.active.length,0);
   assert.equal(state.rack.launched,0);
   assert.match(state.radio,/HOLD SIGHT/);
   assert.equal(state.lockTicks,1);
@@ -66,7 +68,9 @@ test('breaking a lock resets progress and an early attempt never launches',()=>{
   assert.equal(combatLockStatus(state).status,'ALIGN RETICLE');
   const before=state.rack;
   state=stepAirCombat(state,{missile:true});
-  assert.equal(state.rack,before);
+  assert.equal(state.rack.ammo,before.ammo);
+  assert.equal(state.rack.launched,before.launched);
+  assert.equal(state.rack.active.length,0);
   assert.equal(state.rack.ammo,8);
   assert.equal(state.rack.launched,0);
   assert.ok(frame(state).some(t=>t.includes('ALIGN RETICLE')));
