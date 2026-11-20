@@ -7,6 +7,8 @@ import {interactEscape, escapeObjective} from './core.js';
 import {RESTORATION, ESCAPE_TARGET_CENTS, nextUpgrade} from './escape.js';
 import {waypoint} from './navigation.js';
 import {AIRCOMBAT_WAVES, AIRCOMBAT_FINAL_TEXT, combatRackSummary} from './aircombat.js';
+import {createAudioPlayer} from './audio-player.js';
+import {combatAudioCues} from './audio-cues.js';
 
 const $ = id => {
   const element = document.getElementById(id);
@@ -19,8 +21,10 @@ let started = false;
 // Presentation only. This value must never become part of deterministic game state.
 let renderMode = 'classic';
 let routeMode = 'errands';
-let soundEnabled = false;
-let soundContext = null;
+let soundEnabled = true;
+let musicEnabled = true;
+// The browser AudioContext is created only after a real user start/toggle click.
+const audio = createAudioPlayer(window.AudioContext || window.webkitAudioContext);
 let shownMiniKey = '';
 let endingWasShown = false;
 let lastHUDTick = -1;
@@ -36,27 +40,29 @@ const feed = Object.freeze([
   ['OUTRAGE CHANNEL B', '"Not understanding the meter is the real issue!"'],
   ['THE PLAYER', '"The milk is getting warm. Please stop talking."']
 ]);
-function ping(frequency = 660) {
-  if (!soundEnabled) return;
+function sceneForState() {
+  return state.finished ? null : state.airCombat ? 'dogfight' :
+    state.escape.flight ? 'flight' : 'saturday';
+}
+function syncAudio() {
+  audio.setScene(started?sceneForState():null);
+  audio.setPaused(!started || state.paused || document.hidden);
+}
+function activateAudio() {
   try {
-    const Audio = window.AudioContext || window.webkitAudioContext;
-    if (!Audio) return;
-    soundContext ??= new Audio();
-    if (soundContext.state === 'suspended') void soundContext.resume();
-    const source = soundContext.createOscillator();
-    const gain = soundContext.createGain();
-    source.type = 'triangle'; source.frequency.setValueAtTime(frequency, soundContext.currentTime);
-    gain.gain.setValueAtTime(0.055, soundContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, soundContext.currentTime + .16);
-    source.connect(gain).connect(soundContext.destination);
-    source.start(); source.stop(soundContext.currentTime + .16);
+    syncAudio();
+    // Context construction occurs synchronously inside the user gesture;
+    // continuation and score rendering never affect the game simulation.
+    void audio.activate().catch(e=>console.warn('Optional chip audio unavailable:',e));
   } catch (error) {
-    soundEnabled = false;
-    $('sound').textContent = 'SOUND OFF';
-    $('sound').setAttribute('aria-pressed', 'false');
-    console.warn('Optional sound effect unavailable:', error);
+    console.warn('Optional chip audio unavailable:',error);
   }
 }
+function ping(frequency = 660) {
+  void frequency; // Existing UI notification semantic, now an original PCM cue.
+  if(soundEnabled)audio.effect('ui');
+}
+
 function begin(mode = 'saturday') {
   try {
     const seed = Number($('seed').value);
@@ -76,6 +82,7 @@ function begin(mode = 'saturday') {
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   canvas.focus({preventScroll: true});
   refreshHUD();
+  activateAudio();
   ping(760);
 }
 function restart() {
@@ -87,6 +94,7 @@ function restart() {
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   clearControls(); shownMiniKey = ''; lastHUDTick = -1;
   refreshHUD(); canvas.focus({preventScroll: true});
+  activateAudio();
 }
 function controlHeld(action) { return keys.has(action) || touch.has(action); }
 function controls() {
