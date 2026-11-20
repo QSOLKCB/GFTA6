@@ -146,17 +146,23 @@ function refreshMini() {
     const mins = Math.floor(state.tick / 22);
     const squadron = state.outcome === 'JUST A FRIEND SQUADRON COMPLETE';
     const escaped = state.outcome === 'YOU FORGOT THE MILK';
+    const bossLost = state.outcome === 'THE FINAL WORD WON';
     $('ending-title').textContent = squadron ? 'MISSION ACCOMPLISHED.' :
-      escaped ? 'FREEDOM FLIGHT COMPLETE!' : 'MISSION FAILED SUCCESSFULLY.';
+      escaped ? 'FREEDOM FLIGHT COMPLETE!' :
+      bossLost ? 'THE FINAL WORD HAD THE LAST WORD.' :
+      'MISSION FAILED SUCCESSFULLY.';
     $('ending-blurb').textContent = squadron ?
       AIRCOMBAT_FINAL_TEXT.split('\n').slice(2).join('\n') :
       escaped ? 'You made it into the sky. Your phone still has one more assignment.' :
+      bossLost ? 'The personal-space interceptor connected. A/D could have dodged it. Replay to face the same squadron.' :
       'No quest marker. No briefing. You were meant to know what the task was.';
     $('ending-stats').textContent = squadron ?
       'DEREK AND HIS GROUP CHAT HAVE DISENGAGED. AIRBORNE ESCAPE: VERIFIED.' :
       escaped ? 'NEW MESSAGE: "YOU FORGOT THE MILK." • PAID GIGS: ' +
         state.escape.completedGigs+' • FLIGHT DISTANCE: '+
         state.escape.flight.distance+' m' :
+      bossLost ? 'FINAL BOSS • WAVE '+AIRCOMBAT_WAVES.length+
+        ' • HULL 0/3 • RETRY: SAME SEED' :
       'ERRANDS: ' + state.index + ' • IN-GAME MINUTES LOST: ' +
         mins + ' • BANK BALANCE: ' + moneyFmt.format(state.moneyCents / 100) +
         ' • FREE WEEKEND: NOT UNLOCKED';
@@ -191,7 +197,9 @@ function refreshHUD() {
     state.finished ? (state.outcome === 'JUST A FRIEND SQUADRON COMPLETE' ?
       'MISSION ACCOMPLISHED — DEREK PARACHUTING' :
       state.outcome === 'YOU FORGOT THE MILK' ?
-      'ESCAPE ACHIEVED — MILK FORGOTTEN' : 'SATURDAY LOST') :
+      'ESCAPE ACHIEVED — MILK FORGOTTEN' :
+      state.outcome === 'THE FINAL WORD WON' ?
+      'SHOT DOWN BY THE FINAL WORD' : 'SATURDAY LOST') :
     state.paused ? 'SATURDAY PAUSED' :
     state.airCombat ? 'JUST A FRIEND SQUADRON™' :
     state.escape.flight ? 'OPERATION FREEDOM FLIGHT' : 'DOMESTIC SURVIVAL ACTIVE';
@@ -201,7 +209,8 @@ function refreshHUD() {
   $('clock').textContent = (timeMinutes >= 24 * 60 ? 'SUN ' : 'SAT ') +
     String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
   $('odo').textContent = state.airCombat ?
-    'WAVE ' + Math.min(state.airCombat.stage+1,3) + '/3' :
+    'WAVE ' + Math.min(state.airCombat.stage+1,AIRCOMBAT_WAVES.length) +
+      '/'+AIRCOMBAT_WAVES.length :
     state.escape.flight ? state.escape.flight.distance + ' FLIGHT u' :
     Math.floor(state.distance) + ' u';
   $('velocity').textContent = state.airCombat ?
@@ -211,9 +220,11 @@ function refreshHUD() {
   $('seed-readout').textContent = String(state.seed);
   $('vehicle-readout').textContent = state.profile.toUpperCase();
   const combat = state.airCombat;
-  const combatWave = combat ? AIRCOMBAT_WAVES[Math.min(combat.stage,2)] : null;
+  const combatWave = combat ?
+    AIRCOMBAT_WAVES[Math.min(combat.stage,AIRCOMBAT_WAVES.length-1)] : null;
   $('combat-status').hidden = !combat;
-  $('mission-mode').textContent = combat ? 'AIR ARCADE / THREE WAVES' : '01 / CURRENT OBJECTIVE';
+  $('mission-mode').textContent = combat ?
+    'AIR ARCADE / '+AIRCOMBAT_WAVES.length+' WAVES' : '01 / CURRENT OBJECTIVE';
   $('mission-title').textContent = combatWave?.name ??
     (mission?.title ?? 'WEEKEND OVER');
   $('mission-detail').textContent = combat?.radio ??
@@ -221,7 +232,9 @@ function refreshHUD() {
   $('destination').textContent = combat ? 'JUST A FRIEND SQUADRON™' :
     (placeById(mission?.place)?.name ?? 'NONE');
   $('distance').textContent = combat ?
-    combat.opponents.filter(e=>!e.disengaged).length + ' CONTACT(S)' :
+    (combatWave?.boss ? 'FINAL BOSS '+combat.opponents[0].hp+
+      '/'+combat.opponents[0].maxHp+' HP' :
+      combat.opponents.filter(e=>!e.disengaged).length + ' CONTACT(S)') :
     mission ? Math.round(distanceToPlace(state, mission.place)) + ' m' : '0 m';
   const navigation=waypoint(state,routeMode);
   $('nav-target').textContent = combat ? 'DOGFIGHT / JUST A FRIEND SQUADRON' :
@@ -290,8 +303,9 @@ function refreshHUD() {
     state.escape.upgrades.length===RESTORATION.length ?
     'THE WAR BIRD IS READY' : 'SECRET ESCAPE FUND';
   $('escape-goal').textContent = combat ?
-    'WAVE '+Math.min(combat.stage+1,3)+'/3 • GUN HITS '+combat.gunHits+
-      ' • MISSILE HITS '+combat.missileHits : flight ?
+    'WAVE '+Math.min(combat.stage+1,AIRCOMBAT_WAVES.length)+'/'+AIRCOMBAT_WAVES.length+
+      ' • GUN HITS '+combat.gunHits+' • MISSILE HITS '+combat.missileHits+
+      ' • HULL '+combat.hull+'/3' : flight ?
     'ALT '+flight.altitude+' u • SPEED '+flight.speed+' • '+flight.distance+' u traveled' :
     'RESTORED '+state.escape.upgrades.length+'/'+RESTORATION.length+
     ' • GOAL '+moneyFmt.format(ESCAPE_TARGET_CENTS/100);
