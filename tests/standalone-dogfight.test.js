@@ -78,6 +78,7 @@ test('standalone uses the original fixed-tick pause/replay contract',()=>{
 });
 test('missile stays bound to original rival after guns force a disengagement',()=>{
   let combat=createAirCombat(1988);
+  for(let i=0;i<48;i++)combat=stepAirCombat(combat,{});
   combat=stepAirCombat(combat,{brake:true,missile:true});
   assert.equal(combat.missileTargetId,'derek-1');
   assert.equal(combat.rack.active.length,1);
