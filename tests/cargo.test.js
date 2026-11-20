@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {CARGO_CAPACITY,CARGO_ITEMS,CARGO_JOBS,createCargoJob,loadCargo,deliverCargo,
   cargoCapacity,cargoUsed,cargoFinished,cargoJobById} from '../src/cargo.js';
-import {createGame,interact,chooseMiniGame,bodyAt,currentMission,snapshot,
+import {createGame,interact,chooseMiniGame,bodyAt,currentMission,snapshot,stepGame,
   MINI_GAMES,PLACES,setPaused} from '../src/core.js';
 
 const parkAt = (state, placeId) => {
@@ -154,5 +154,39 @@ test('deterministic complete cargo route for all three profiles', () => {
       assert.equal(s.cargo,null);
     }
     assert.deepEqual(snapshot(a),snapshot(b));
+  }
+});
+
+test('the entire expanded Saturday remains completable by all three vehicle profiles', () => {
+  for (const profile of Object.keys(CARGO_CAPACITY)) {
+    const s=createGame(1988,profile);
+    let steps=0;
+    while (!s.finished && steps++ < 70) {
+      const m=currentMission(s);
+      assert.ok(m,'missing active mission for '+profile);
+      if (m.id==='return' && !s.ambushed) {
+        s.body=bodyAt(170,330);
+        s.speed=0;
+        // Trigger the existing near-home message at the correct game tick.
+        stepGame(s);
+        continue;
+      }
+      parkAt(s,m.place);
+      assert.equal(interact(s),true,profile+'/'+m.id);
+      if (s.miniGame) {
+        for (const q of MINI_GAMES[s.miniGame.type]) {
+          assert.equal(chooseMiniGame(s,q.answer<0?0:q.answer),true,
+            profile+'/'+m.id+'/'+q.prompt);
+        }
+      }
+    }
+    assert.ok(s.finished,profile+' did not reach the final boss');
+    assert.equal(s.cargo,null,profile+' arrived home with undelivered cargo');
+    const receipts=Object.fromEntries(s.completedCargo.map(r=>[r.id,r.trips]));
+    assert.deepEqual(Object.keys(receipts).sort(),['neighbour','shopping','wardrobe']);
+    assert.equal(receipts.neighbour,1);
+    assert.equal(receipts.shopping,profile==='coupe'?2:1);
+    assert.equal(receipts.wardrobe,profile==='coupe'?2:1);
+    assert.equal(s.tasks.filter(t=>t.id==='ambush').length,1);
   }
 });
