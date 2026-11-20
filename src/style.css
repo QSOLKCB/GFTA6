@@ -132,3 +132,17 @@ main{max-width:1580px;margin:auto;padding:30px 24px 54px}
 #combat-status{color:var(--gold)}
 .touch-controls [data-drive="missile"]{background:#79545b;border-color:#e6ae86}
 .touch-controls [data-drive="missile"][hidden]{display:none}
+
+/* GFTA6-MODES-001: a separate launch surface, not a difficulty toggle. */
+.arcade-launch{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:13px;background:#111f37;border:1px solid #ad8975;
+  border-radius:10px;padding:13px 15px;margin:14px 0 10px}
+.arcade-launch>div{flex:1 1 210px;min-width:0}
+.arcade-launch strong{font-size:11px;letter-spacing:.08em;color:#ffd49c}
+.arcade-launch p{font-size:12px;color:#d5dde0;margin:5px 0 0}
+.button-arcade{border:1px solid #ffca99;background:#714559;
+  color:#fff2d9;font-size:12px;font-weight:900;letter-spacing:.03em;
+  border-radius:8px;padding:12px 16px;max-width:100%;white-space:normal}
+.button-arcade:hover{background:#95546b}
+@media(max-width:690px){.arcade-launch{padding:10px;gap:10px}
+  .button-arcade{width:100%;padding:10px 12px;font-size:11px}}
