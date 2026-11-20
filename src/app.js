@@ -438,12 +438,14 @@ function clearControls() {
 window.addEventListener('blur', () => {
   clearControls();
   if (started && !state.finished) setPaused(state, true);
+  syncAudio();
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     clearControls();
     if (started && !state.finished) setPaused(state, true);
   }
+  syncAudio();
 });
 let priorTime = null;
 let accumulator = 0;

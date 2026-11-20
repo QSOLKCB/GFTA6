@@ -4,6 +4,7 @@
 export function combatAudioCues(before,after) {
   if (!after) return Object.freeze([]);
   if (!before) return Object.freeze(['wave']);
+  if (after.tick <= before.tick) return Object.freeze([]);
   const cues=[];
   if (after.shots>before.shots) cues.push('gun');
   if (after.rack.launched>before.rack.launched) cues.push('missile');

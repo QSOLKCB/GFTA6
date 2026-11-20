@@ -9,12 +9,17 @@ export function createAudioPlayer(AudioCtor){
   let context=null,musicBus=null,fxBus=null,current=null,scene=null;
   let activeScene=null,musicEnabled=true,sfxEnabled=true,paused=false;
   const buffers=new Map(),effects=new Set();
+  function syncBusGains(){
+    if(!context)return;
+    musicBus.gain.value=paused?0:.23;
+    fxBus.gain.value=paused||!sfxEnabled?0:.48;
+  }
   function makeContext(){
     if(context)return context;
     if(typeof AudioCtor!=='function')throw Error('Web Audio API unavailable');
     context=new AudioCtor();
     musicBus=context.createGain();fxBus=context.createGain();
-    musicBus.gain.value=.23;fxBus.gain.value=.48;
+    syncBusGains();
     musicBus.connect(context.destination);fxBus.connect(context.destination);
     return context;
   }
@@ -65,11 +70,14 @@ export function createAudioPlayer(AudioCtor){
     renderScene();
     return musicEnabled;
   }
-  function setSfxEnabled(value){sfxEnabled=Boolean(value);return sfxEnabled;}
+  function setSfxEnabled(value){
+    sfxEnabled=Boolean(value);
+    syncBusGains();
+    return sfxEnabled;
+  }
   function setPaused(value){
     paused=Boolean(value);
-    if(musicBus)musicBus.gain.value=paused?0:.23;
-    if(fxBus)fxBus.gain.value=paused?0:.48;
+    syncBusGains();
   }
   function effect(kind){
     if(!SFX_KINDS.includes(kind))throw RangeError('unknown effect');

@@ -78,7 +78,10 @@ test('combat audio cues follow accepted weapon events, not raw key presses',()=>
   let now=fired,foundExplosion=false;
   for(let i=0;i<45&&now.status==='active';i++){
     const next=stepAirCombat(now,{brake:true,missile:false});
-    if(combatAudioCues(now,next).includes('explosion'))foundExplosion=true;
+    if(combatAudioCues(now,next).includes('explosion')){
+      foundExplosion=true;
+      assert.deepEqual(combatAudioCues(next,next),[],'an unchanged tick must stay silent');
+    }
     now=next;
   }
   assert.equal(foundExplosion,true,'aircraft disengagement must emit an explosion');
@@ -96,7 +99,7 @@ class FakeAudio {
   }
   createBufferSource(){
     const src={buffer:null,loop:false,started:false,stopped:false,
-      connect(){},disconnect(){},start(){this.started=true;},
+      connect(bus){this.bus=bus;},disconnect(){},start(){this.started=true;},
       stop(){this.stopped=true;this.onended?.();}};
     this.sources.push(src);return src;
   }
@@ -117,12 +120,21 @@ test('user-gesture audio adapter loops by mode and mutes SFX independently',asyn
   assert.equal(old.stopped,true,'previous music must stop on scene change');
   assert.equal(audio.effect('gun'),true);
   assert.equal(audio.status().voices,1);
+  const fxGain=FakeAudio.last.sources.at(-1).bus.gain;
+  const enabledGain=fxGain.value;
+  assert.ok(enabledGain>0);
   audio.setSfxEnabled(false);
+  assert.equal(fxGain.value,0,'mute the already-playing gun');
   assert.equal(audio.effect('missile'),false,'SFX control must mute');
-  audio.setSfxEnabled(true);
   audio.setPaused(true);
+  audio.setPaused(false);
+  assert.equal(fxGain.value,0,'resuming must respect SFX OFF');
+  audio.setPaused(true);
+  audio.setSfxEnabled(true);
+  assert.equal(fxGain.value,0,'enabling SFX while paused must stay silent');
   assert.equal(audio.effect('explosion'),false,'pause mutes SFX');
   audio.setPaused(false);
+  assert.equal(fxGain.value,enabledGain);
   assert.equal(audio.effect('explosion'),true);
   audio.setMusicEnabled(false);
   assert.equal(audio.status().activeScene,null);
