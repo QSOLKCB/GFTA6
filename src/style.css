@@ -93,3 +93,12 @@ main{max-width:1580px;margin:auto;padding:30px 24px 54px}
 @media(max-width:1120px){.shell{grid-template-columns:minmax(0,1fr)}.dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}.intro-copy>p{max-width:230px}.log-panel{grid-column:span 2}}
 @media(max-width:690px){main{padding:19px 10px 36px}.masthead{padding:15px 12px}.subtitle{display:none}.repo{font-size:10px}.intro-copy{display:block;margin-bottom:17px}.intro-copy>p{max-width:none;font-size:14px}.intro-copy h1{font-size:29px}.dashboard{grid-template-columns:1fr}.log-panel{grid-column:auto}.viewport{min-height:250px}.splash,.modal{padding:8px}.splash-card,.modal-card{border-radius:10px}.splash-art{height:95px}.splash-content,.modal-card{padding:12px 15px}.splash-content h2,.modal-card h2{font-size:21px}.splash-content p{font-size:12px}.splash-content small,.modal-card small{font-size:9px}.launch-row{gap:8px;margin:6px 0}.button-primary{padding:9px 11px;font-size:12px}.launch-row input,.launch-row select{padding:8px;width:111px}.instruments{font-size:9px}.touch-controls button{padding:11px 8px;font-size:10px}.shortcuts{font-size:9px}.modal .question{font-size:13px;margin:7px 0}.choices{gap:5px;margin:9px 0}.choices button{font-size:11px;padding:8px}.mini-progress{font-size:9px}.dashboard>section{padding:14px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Cargo is game content, not a new engine or external UI dependency. */
+.cargo-top{display:flex;gap:10px;justify-content:space-between;align-items:center;font-size:12px;font-weight:850}
+.cargo-top strong:last-child{color:var(--mint);font-variant-numeric:tabular-nums}
+.cargo-panel .track{margin:10px 0}
+.cargo-note{font-size:12px;color:var(--muted);margin:8px 0}
+.cargo-list{padding-left:18px;margin:5px 0 10px;font-size:12px;color:var(--ink)}
+.cargo-list li{padding:2px 0}
+.cargo-panel small{font-size:10px;color:var(--muted);letter-spacing:.05em}

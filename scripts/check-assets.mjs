@@ -26,6 +26,8 @@ assert.ok(core.includes("from './vehicle.js'"), 'game core must use arcade car c
 assert.ok(vehicle.includes("from '../vendor/vanillajs/motion2d.js'"), 'vehicle must use pinned VANILLAJS vectors and bodies');
 assert.ok(paths.includes('src/vehicle.js'), 'offline cache must include car dynamics');
 assert.ok(paths.includes('src/world.js'), 'offline cache must include city world');
+assert.ok(paths.includes('src/cargo.js'), 'offline cache must include cargo rules');
+assert.ok(core.includes("from './cargo.js'"), 'core must use pure cargo rules');
 assert.ok(paths.includes('src/vehicle-art.js'), 'offline cache must include GFTA6 art bindings');
 assert.ok(core.includes("from './world.js'"), 'city must be authored outside engine');
 assert.ok(world.includes('CITY_VERSION'), 'city needs a stable schema marker');

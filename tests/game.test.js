@@ -61,19 +61,21 @@ test('grocery mini-game rejects wrong choices, preserves question and penalises 
   assert.equal(s.index, 3);
   assert.equal(s.miniGame, null);
   assert.equal(s.moneyCents, 7140);
+  assert.equal(currentMission(s).id,'groceries-delivery');
+  assert.equal(s.cargo.id,'shopping');
 });
 
 test('unassigned ambush is exactly once, seeded, and returns to original mission', () => {
   for (const [seed, expected] of [[1988, 'spa'], [1989, 'parcel'],
     [1990, 'chemist'], [1991, 'neighbour']]) {
     const s = createGame(seed);
-    s.index = 8;
+    s.index = s.tasks.findIndex(m => m.id === 'return');
     s.body = bodyAt(170, 330);
     stepGame(s);
     assert.equal(s.ambushed, true);
-    assert.equal(s.tasks[8].id, 'ambush');
-    assert.equal(s.tasks[8].place, expected);
-    assert.equal(s.tasks[9].id, 'return');
+    assert.equal(currentMission(s).id, 'ambush');
+    assert.equal(currentMission(s).place, expected);
+    assert.equal(s.tasks[s.index + 1].id, 'return');
     s.body = bodyAt(PLACES.find(p => p.id === expected).x, PLACES.find(p => p.id === expected).y);
     assert.equal(interact(s), true);
     assert.equal(currentMission(s).id, 'return');
@@ -115,7 +117,7 @@ test('paused game cannot advance simulation or accept mini-game answers', () => 
 test('full Saturday campaign can be completed with all mini-games and final boss', () => {
   const s = createGame(1988);
   let safety = 0;
-  while (!s.finished && safety++ < 30) {
+  while (!s.finished && safety++ < 45) {
     const mission = currentMission(s);
     assert.ok(mission);
     if (mission.id === 'return' && !s.ambushed) {
@@ -143,6 +145,8 @@ test('full Saturday campaign can be completed with all mini-games and final boss
   for (const id of ['dogspa-run', 'furniture-run', 'bread-run', 'takeaway-run'])
     assert.ok(s.tasks.some(t => t.id === id), 'expanded Saturday includes '+id);
   assert.ok(s.moneyCents > 0);
+  assert.deepEqual(s.completedCargo.map(j=>j.id),['shopping','neighbour','wardrobe']);
+  assert.equal(s.cargo,null,'cargo must be empty at the end of Saturday');
   const frozen = snapshot(s);
   stepGame(s, {throttle: 1});
   assert.deepEqual(snapshot(s), frozen);
