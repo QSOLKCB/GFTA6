@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {createGame, createDogfightGame, stepGame, currentMission, distanceToPlace, placeById,
+import {createGame, createDogfightGame, createAirWarGame, stepGame, currentMission, distanceToPlace, placeById,
   interact, chooseMiniGame, setPaused, MINI_GAMES, TICK_HZ} from './core.js';
 import {drawScene} from './render.js';
 import {cargoCapacity, cargoUsed, cargoItemById, cargoJobById} from './cargo.js';
@@ -10,6 +10,7 @@ import {AIRCOMBAT_WAVES, AIRCOMBAT_FINAL_TEXT, combatRackSummary,combatLockStatu
 import {MISSILE_ACQUIRE_TICKS} from './combat-targeting.js';
 import {createAudioPlayer} from './audio-player.js';
 import {combatAudioCues} from './audio-cues.js';
+import {exportAirWarWorld,verifyAirWarWorld} from './airwar-world.js';
 
 const $ = id => {
   const element = document.getElementById(id);
@@ -68,8 +69,9 @@ function ping(frequency = 660) {
 function begin(mode = 'saturday') {
   try {
     const seed = Number($('seed').value);
-    state = mode === 'dogfight' ?
-      createDogfightGame(seed, $('vehicle').value) :
+    state = mode === 'airwar' ?
+      createAirWarGame(seed, $('vehicle').value) :
+      mode === 'dogfight' ? createDogfightGame(seed, $('vehicle').value) :
       createGame(seed, $('vehicle').value,
         {airCombat: $('aircombat-opt').checked});
     $('seed').setCustomValidity('');
@@ -89,10 +91,12 @@ function begin(mode = 'saturday') {
 }
 function restart() {
   if (!started) return begin();
-  state = state.gameMode === 'dogfight' ?
-    createDogfightGame(state.seed, state.profile) :
-    createGame(state.seed, state.profile,
-      {airCombat: state.airCombatEnabled});
+  state = state.gameMode === 'airwar' ?
+    createAirWarGame(state.seed,state.profile) :
+    state.gameMode === 'dogfight' ?
+      createDogfightGame(state.seed, state.profile) :
+      createGame(state.seed, state.profile,
+        {airCombat: state.airCombatEnabled});
   $('intro').hidden = true; $('ending').hidden = true; $('mini').hidden = true;
   clearControls(); shownMiniKey = ''; lastHUDTick = -1;
   refreshHUD(); canvas.focus({preventScroll: true});
@@ -194,7 +198,9 @@ function refreshMini() {
 }
 function refreshHUD() {
   const mission = currentMission(state);
-  document.body.classList.toggle('standalone-dogfight',state.gameMode === 'dogfight');
+  document.body.classList.toggle('standalone-dogfight',
+    state.gameMode==='dogfight'||state.gameMode==='airwar');
+  $('export-airwar').hidden = !started || state.gameMode!=='airwar';
   $('mode-label').textContent = !started ? 'AWAITING SATURDAY' :
     state.finished ? (state.outcome === 'JUST A FRIEND SQUADRON COMPLETE' ?
       'MISSION ACCOMPLISHED — DEREK PARACHUTING' :
@@ -226,7 +232,8 @@ function refreshHUD() {
     AIRCOMBAT_WAVES[Math.min(combat.stage,AIRCOMBAT_WAVES.length-1)] : null;
   $('combat-status').hidden = !combat;
   $('mission-mode').textContent = combat ?
-    'AIR ARCADE / '+AIRCOMBAT_WAVES.length+' WAVES' : '01 / CURRENT OBJECTIVE';
+    (state.gameMode==='airwar'?'ADVANCED AIR WAR':'AIR ARCADE')+
+    ' / '+AIRCOMBAT_WAVES.length+' WAVES' : '01 / CURRENT OBJECTIVE';
   $('mission-title').textContent = combatWave?.name ??
     (mission?.title ?? 'WEEKEND OVER');
   $('mission-detail').textContent = combat?.radio ??
@@ -265,7 +272,8 @@ function refreshHUD() {
     (100*completedContacts/totalContacts)+'%' :
     (100 * state.index / state.tasks.length) + '%';
   $('task-count').textContent = combat ?
-    'DOGFIGHT · WAVE '+Math.min(combat.stage+1,AIRCOMBAT_WAVES.length)+
+    (state.gameMode==='airwar'?'AIRWAR':'DOGFIGHT')+' · WAVE '+
+      Math.min(combat.stage+1,AIRCOMBAT_WAVES.length)+
       ' / '+AIRCOMBAT_WAVES.length :
     'MISSION ' + Math.min(state.index + 1, state.tasks.length) +
       ' / ' + state.tasks.length + (state.ambushed ? ' • BONUS ERRAND UNLOCKED' : '');
@@ -335,6 +343,29 @@ function refreshHUD() {
 }
 $('start').addEventListener('click', () => begin());
 $('start-dogfight').addEventListener('click', () => begin('dogfight'));
+$('start-airwar').addEventListener('click', () => begin('airwar'));
+$('export-airwar').addEventListener('click', async () => {
+  if(!started || state.gameMode!=='airwar')return;
+  const button=$('export-airwar');button.disabled=true;
+  try {
+    const json=await exportAirWarWorld();
+    // The package validator independently checks the full SHA-256 seal.
+    await verifyAirWarWorld(json);
+    const blob=new Blob([json],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;link.download='gfta6-airwar-world-v1.json';
+    document.body.append(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),0);
+    button.textContent='WORLD EXPORTED ✓';
+  } catch(error) {
+    console.warn('Air War World export unavailable:',error);
+    button.textContent='WORLD EXPORT FAILED';
+  } finally {
+    button.disabled=false;
+    focusGame();
+  }
+});
 $('restart').addEventListener('click', restart);
 $('play-again').addEventListener('click', restart);
 $('pause').addEventListener('click', togglePause);
