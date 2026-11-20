@@ -65,7 +65,7 @@
           </section>
         </div>
         <div class="game-toolbar">
-          <div class="shortcuts">W / ↑ THROTTLE <span>·</span> G SIDE GIG <span>·</span> U RESTORE <span>·</span> F FLY <span>·</span> SPACE STOP <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
+          <div class="shortcuts">W / ↑ THROTTLE <span>·</span> N NAVIGATION <span>·</span> G SIDE GIG <span>·</span> U RESTORE <span>·</span> F FLY <span>·</span> SPACE STOP <span>·</span> A D / ← → STEER <span>·</span> E INTERACT <span>·</span> P PAUSE</div>
           <div class="toolbar-buttons">
             <button id="interact" class="tool-button">E / INTERACT</button>
             <button id="gig" class="tool-button" type="button">G / PAID JOB</button>
@@ -74,6 +74,8 @@
             <button id="pause" class="tool-button">PAUSE</button>
             <button id="view-mode" class="tool-button" type="button" aria-pressed="false"
               title="Toggle between classic top-down and raised 2.5D scenery">VIEW: CLASSIC 2D</button>
+            <button id="route-mode" class="tool-button" type="button" aria-pressed="false"
+              title="Switch compass and mini-map guidance between errands and escape objectives">N / ROUTE: ERRANDS</button>
             <button id="sound" class="tool-button" aria-pressed="false">SOUND OFF</button>
             <button id="restart" class="tool-button">RESTART</button>
           </div>
@@ -91,6 +93,11 @@
           <p id="mission-detail">Take your girlfriend to the nail salon. Five minutes is not a unit of time.</p>
           <div class="destination"><span>DESTINATION</span><strong id="destination">NAIL SALON</strong></div>
           <div class="destination"><span>DISTANCE</span><strong id="distance">390 m</strong></div>
+          <div class="nav-guidance" role="status" aria-live="off">
+            <strong id="nav-target">ERRAND ROUTE · NAIL SALON</strong>
+            <span id="nav-distance">390 u</span>
+            <p id="nav-instruction">Park at the destination and interact (E)</p>
+          </div>
           <div class="progress"><div id="task-progress"></div></div><small id="task-count">MISSION 1 / 9</small>
         </section>
         <section class="stats-panel">
