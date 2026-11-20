@@ -99,6 +99,29 @@ No quest marker. No briefing. No acknowledgement that the objective did not exis
 
 **Design rule:** the unfairness is funny because the mission system is knowingly absurd. The game caricatures impossible expectations, not an entire gender; both characters can misunderstand each other, and everybody gets to be ridiculous.
 
+## GFTA6-WORLD-002 — Suburbania (review-stage PR #5)
+
+The next GFTA6-specific feature slice expands the original city from eight
+to **fourteen destinations** and introduces four new errands: dog grooming,
+furniture pickup, the exact bread request and a dinner-order mini-game.
+
+Six new destinations are accessible across an expanded 4 × 4 street grid;
+the old location IDs and coordinates are preserved. Parking indicators
+remain cosmetic and do not change the authoritative vehicle physics,
+interaction radius or deterministic 60 Hz simulation.
+
+Three vehicle presentation mappings declare original Canvas fallback designs
+for the Hatchback, Coupe and Van, with **empty future model slots**. No third-
+party mesh has been downloaded or incorporated, and no reusable 2.5D engine
+component is being developed here.
+
+**Boundary:** `VANILLAJS-25D-001` is owned by a separate upstream workstream.
+GFTA6 will consume approved projection and asset-foundry APIs at reviewed
+commit SHAs, not duplicate or replace them.
+
+See [GFTA6-WORLD-002 content and integration contracts](docs/GFTA6_WORLD_002.md).
+This content is **not live on GitHub Pages until PR #5 is reviewed and merged**.
+
 ## Play online
 
 **[PLAY GFTA6 ON GITHUB PAGES](https://qsolkcb.github.io/GFTA6/)**

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Cache only our own static assets. No trackers, CDN resources or background sync.
-const CACHE_NAME = 'gfta6-static-v0.1.2';
+const CACHE_NAME = 'gfta6-static-v0.1.3';
 const ASSETS = [
   './', './index.html', './src/style.css', './src/app.js', './src/render.js',
-  './src/core.js', './src/vehicle.js', './vendor/vanillajs/motion2d.js',
+  './src/core.js', './src/world.js', './src/vehicle.js', './src/vehicle-art.js',
+  './vendor/vanillajs/motion2d.js',
   './assets/favicon.svg', './assets/gfta6-banner.svg'
 ];
 self.addEventListener('install', event => {

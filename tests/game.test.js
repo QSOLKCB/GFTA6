@@ -10,8 +10,9 @@ test('seed validation and stable starting state', () => {
   assert.throws(() => createGame(1.5), RangeError);
   assert.deepEqual(snapshot(createGame(1988)), snapshot(createGame(1988)));
   assert.equal(currentMission(createGame(1988)).id, 'salon');
-  assert.equal(PLACES.length, 8);
-  assert.deepEqual(WORLD.roadsX, [170, 560, 950]);
+  assert.equal(PLACES.length, 14);
+  assert.deepEqual(WORLD.roadsX, [170, 560, 950, 1340]);
+  assert.deepEqual(WORLD.roadsY, [170, 435, 695, 970]);
 });
 
 test('no random ambient clock or hidden input changes deterministic simulation', () => {
@@ -63,15 +64,16 @@ test('grocery mini-game rejects wrong choices, preserves question and penalises 
 });
 
 test('unassigned ambush is exactly once, seeded, and returns to original mission', () => {
-  for (const [seed, expected] of [[1988, 'spa'], [1989, 'parcel']]) {
+  for (const [seed, expected] of [[1988, 'spa'], [1989, 'parcel'],
+    [1990, 'chemist'], [1991, 'neighbour']]) {
     const s = createGame(seed);
-    s.index = 4;
+    s.index = 8;
     s.body = bodyAt(170, 330);
     stepGame(s);
     assert.equal(s.ambushed, true);
-    assert.equal(s.tasks[4].id, 'ambush');
-    assert.equal(s.tasks[4].place, expected);
-    assert.equal(s.tasks[5].id, 'return');
+    assert.equal(s.tasks[8].id, 'ambush');
+    assert.equal(s.tasks[8].place, expected);
+    assert.equal(s.tasks[9].id, 'return');
     s.body = bodyAt(PLACES.find(p => p.id === expected).x, PLACES.find(p => p.id === expected).y);
     assert.equal(interact(s), true);
     assert.equal(currentMission(s).id, 'return');
@@ -99,7 +101,8 @@ test('paused game cannot advance simulation or accept mini-game answers', () => 
   const pre = snapshot(s);
   stepGame(s, {throttle: 1});
   assert.deepEqual(snapshot(s), pre);
-  s.index = 5;
+  // Locate the laundry mini-game by mission identity, not a brittle index.
+  s.index = s.tasks.findIndex(t => t.id === 'laundry');
   s.body = bodyAt(170, 170);
   assert.equal(interact(s), false);
   setPaused(s, false);
@@ -137,6 +140,8 @@ test('full Saturday campaign can be completed with all mini-games and final boss
   assert.ok(s.finished, 'the full campaign must reach end credits');
   assert.equal(s.outcome, 'MISSION FAILED SUCCESSFULLY');
   assert.equal(s.tasks.filter(t => t.id === 'ambush').length, 1);
+  for (const id of ['dogspa-run', 'furniture-run', 'bread-run', 'takeaway-run'])
+    assert.ok(s.tasks.some(t => t.id === id), 'expanded Saturday includes '+id);
   assert.ok(s.moneyCents > 0);
   const frozen = snapshot(s);
   stepGame(s, {throttle: 1});

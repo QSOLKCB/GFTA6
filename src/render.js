@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Canvas presentation only. All rules and movement belong to core.js.
 import {WORLD, PLACES, BLOCKS, currentMission, placeById, screenPosition, INTERACT_RADIUS} from './core.js';
-import {vehicleSpec} from './vehicle.js';
+import {vehicleArt} from './vehicle-art.js';
+import {PARKING_BAYS} from './world.js';
 
 const TAU = Math.PI * 2;
 function rect(ctx, x, y, w, h, fill) { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); }
@@ -87,6 +88,13 @@ function scenery(ctx) {
       rect(ctx, x - 47 + i * 12, y + 46, 7, 5, '#d8d7c6');
     }
   }
+  // Designated bays are visual guidance; the real interaction predicate is
+  // still controlled by the original pure game rules.
+  for (const bay of PARKING_BAYS) {
+    ctx.strokeStyle = '#d5ddc2'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(bay.x - 13, bay.y - 10, 26, 19);
+    text(ctx, 'P', bay.x, bay.y + 4, 'bold 12px system-ui', '#e6e8be');
+  }
   for (const b of BLOCKS) building(ctx, b);
   text(ctx, 'SUBURBANIA', 543, 37, '900 32px system-ui', '#93b1a3');
   text(ctx, 'NO FREE TIME ZONE', 543, 60, 'bold 12px system-ui', '#93b1a3');
@@ -116,20 +124,28 @@ function marker(ctx, p, active, tick) {
   text(ctx, p.name, 0, 50, '900 12px system-ui', '#fff7e3');
   ctx.restore();
 }
-function car(ctx, x, y, headingFine, paint) {
+function car(ctx, x, y, headingFine, skin) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(-headingFine * Math.PI / 512);
   ellipse(ctx, 4, 6, 30, 17, '#101f2b');
   rect(ctx, -20, -22, 17, 5, '#101923'); rect(ctx, -20, 17, 17, 5, '#101923');
   rect(ctx, 10, -22, 16, 5, '#101923'); rect(ctx, 10, 17, 16, 5, '#101923');
-  ctx.fillStyle = paint; ctx.strokeStyle = '#fff0c9'; ctx.lineWidth = 2;
+  ctx.fillStyle = skin.paint; ctx.strokeStyle = '#fff0c9'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.roundRect(-28, -18, 59, 36, 12); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#294c69'; ctx.beginPath(); ctx.roundRect(-12, -14, 29, 28, 6); ctx.fill();
+  ctx.fillStyle = skin.roof; ctx.beginPath(); ctx.roundRect(-12, -14, 29, 28, 6); ctx.fill();
   rect(ctx, -10, -10, 4, 20, '#b6dce3');
   // Roof bevel and shopping bags: inexpensive 2.5D shading.
   rect(ctx, -11, -15, 25, 3, 'rgba(255,249,229,.34)');
   rect(ctx, -11, 12, 25, 3, 'rgba(5,20,41,.35)');
-  rect(ctx, -25, -9, 10, 10, '#f8c789');
+  rect(ctx, -25, -9, 10, 10, skin.trim);
   rect(ctx, -25, 3, 10, 10, '#a4e4d7');
+  if (skin.silhouette === 'van') {
+    // Cargo on the roof gives the shopping van its distinct profile.
+    rect(ctx, -9, -17, 23, 4, '#fff2dd');
+    rect(ctx, -9, 13, 23, 4, '#fff2dd');
+    rect(ctx, -1, -11, 12, 22, '#c1d8ce');
+  } else if (skin.silhouette === 'coupe') {
+    rect(ctx, -26, -21, 4, 42, '#eadbb5');
+  }
   rect(ctx, 25, -12, 5, 9, '#fff5bb'); rect(ctx, 25, 4, 5, 9, '#fff5bb');
   rect(ctx, -28, -12, 4, 7, '#dc335c'); rect(ctx, -28, 5, 4, 7, '#dc335c');
   ellipse(ctx, 15, -23, 10, 7, '#e8bb88'); ellipse(ctx, 1, -26, 11, 8, '#eee2bb');
@@ -161,7 +177,7 @@ export function drawScene(canvas, state) {
   scenery(ctx);
   const mission = currentMission(state);
   for (const p of PLACES) marker(ctx, p, mission?.place === p.id, state.tick);
-  car(ctx, carPoint.x, carPoint.y, state.headingFine, vehicleSpec(state.profile).paint);
+  car(ctx, carPoint.x, carPoint.y, state.headingFine, vehicleArt(state.profile));
   ctx.restore();
   miniMap(ctx, state);
   const target = mission?.place;
