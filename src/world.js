@@ -24,7 +24,8 @@ export const PLACES = Object.freeze([
   location('takeaway', 'TAKEAWAY', 1340, 695, '★', '#efb087', 'shop'),
   location('bakery', 'THE BAKERY', 170, 970, '❋', '#ffe3a7', 'shop'),
   location('neighbour', 'THE NEIGHBOUR', 560, 970, '⌂', '#a2dfd0', 'residence'),
-  location('chemist', 'CHEMIST', 950, 970, '✚', '#a8cae9', 'service')
+  location('chemist', 'CHEMIST', 950, 970, '✚', '#a8cae9', 'service'),
+  location('airfield', 'OLD AIRFIELD', 1340, 970, '✈', '#f4d298', 'airfield')
 ]);
 const building = (id, x, y, w, h, color, label, height) =>
   Object.freeze({id, x, y, w, h, color, label, height});
@@ -37,7 +38,8 @@ export const BLOCKS = Object.freeze([
   building('storage', 1081, 539, 146, 94, '#a88b76', 'STORAGE', 2),
   building('terrace', 334, 816, 136, 99, '#ae838b', 'TERRACE', 2),
   building('library', 746, 823, 128, 102, '#829cc6', 'LIBRARY', 2),
-  building('courtyard', 1087, 822, 143, 103, '#779f8b', 'COURT', 1)
+  building('courtyard', 1087, 822, 143, 103, '#779f8b', 'COURT', 1),
+  building('hangar', 1105, 1018, 128, 75, '#92a6a4', 'HANGAR', 2)
 ]);
 
 // Parking decorations describe the world, but do NOT become a separate
