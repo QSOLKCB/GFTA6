@@ -146,3 +146,11 @@ main{max-width:1580px;margin:auto;padding:30px 24px 54px}
 .button-arcade:hover{background:#95546b}
 @media(max-width:690px){.arcade-launch{padding:10px;gap:10px}
   .button-arcade{width:100%;padding:10px 12px;font-size:11px}}
+
+/* The independent arcade stage has its own HUD, not a fake Saturday mission. */
+body.standalone-dogfight .stats-panel,
+body.standalone-dogfight .cargo-panel,
+body.standalone-dogfight .phone-panel,
+body.standalone-dogfight .feed-panel { display:none; }
+body.standalone-dogfight .mission-panel { border-color:#d4ad83; }
+body.standalone-dogfight .escape-panel { border-color:#d4ad83!important; }
