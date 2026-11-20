@@ -228,10 +228,13 @@ function refreshHUD() {
   $('route-mode').disabled = Boolean(state.airCombat || state.escape.flight ||
     state.finished || !started);
   $('route-mode').setAttribute('aria-pressed', String(routeMode === 'escape'));
-  const completedContacts = combat ?
-    AIRCOMBAT_WAVES.slice(0,combat.stage).reduce((n,w)=>n+w.members.length,0) +
-      combat.opponents.filter(e=>e.disengaged).length : 0;
   const totalContacts = AIRCOMBAT_WAVES.reduce((n,w)=>n+w.members.length,0);
+  // The winning state retains the last disengaged opponent even though
+  // stage has advanced past the final wave. Count victory exactly once.
+  const completedContacts = combat ?
+    (combat.status === 'won' ? totalContacts :
+      AIRCOMBAT_WAVES.slice(0,combat.stage).reduce((n,w)=>n+w.members.length,0) +
+        combat.opponents.filter(e=>e.disengaged).length) : 0;
   $('task-progress').style.width = combat ?
     (100*completedContacts/totalContacts)+'%' :
     (100 * state.index / state.tasks.length) + '%';
