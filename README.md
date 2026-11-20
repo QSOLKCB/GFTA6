@@ -113,7 +113,7 @@ No new collisions, traffic AI, damage model or fines. The vehicles and
 pedestrians deliberately remain **ghost traffic**: they're atmosphere,
 not obstacles or targets. Static-world driving collision is unchanged.
 
-[Polish design / acceptance checks](docs/GFTA6_POLISH_001.md) ·
+[Polish design / acceptance checks](docs/GFTA6_RELEASE_POLISH_001.md) ·
 [Proposed v0.2.0 release notes](docs/GFTA6_RELEASE_v0.2.0_CANDIDATE.md).
 
 **Release status:** Candidate, awaiting independent Codex review,
