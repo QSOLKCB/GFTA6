@@ -2,6 +2,7 @@
 // Canvas presentation only. All rules and movement belong to core.js.
 import {WORLD, PLACES, BLOCKS, screenPosition, INTERACT_RADIUS} from './core.js';
 import {vehicleArt} from './vehicle-art.js';
+import {drawCar25D} from './car-25d.js';
 import {PARKING_BAYS} from './world.js';
 import {getCityProjection, projectCityGroundPoint} from './scene25d.js';
 import {drawFlightScene} from './flight-view.js';
@@ -172,7 +173,7 @@ function raisedCity(ctx, state, carPoint) {
   for (const entry of entries) {
     if (!entry.solid) {
       const [x, y] = projectCityGroundPoint('raised', carPoint.x, carPoint.y);
-      car(ctx, x, y, state.headingFine, vehicleArt(state.profile));
+      drawCar25D(ctx, x, y, state.headingFine, vehicleArt(state.profile));
       continue;
     }
     const solid = entry.solid, source = BUILDING_BY_ID.get(solid.id);
