@@ -39,7 +39,7 @@ test('old destinations and the opening mission stay at their original coordinate
 test('four new story missions are real interactions, not unreachable display markers', () => {
   const missions = ['dogspa-run','furniture-run','bread-run','takeaway-run'];
   const s = createGame(1988);
-  assert.deepEqual(s.tasks.slice(4,8).map(t => t.id), missions);
+  assert.ok(missions.every(id => s.tasks.some(t => t.id === id)));
   for (const id of missions) {
     s.index = s.tasks.findIndex(m => m.id === id);
     const target = PLACES.find(p => p.id === currentMission(s).place);
@@ -59,6 +59,12 @@ test('four new story missions are real interactions, not unreachable display mar
         assert.equal(chooseMiniGame(s,q.answer),true);
     }
     assert.notEqual(currentMission(s)?.id,id);
+    if (id === 'furniture-run') {
+      assert.equal(currentMission(s).id,'furniture-delivery');
+      s.body=bodyAt(170,170);
+      assert.equal(interact(s),true);
+      assert.equal(s.cargo,null);
+    }
   }
   assert.equal(currentMission(s).id,'return');
 });
